@@ -1,5 +1,7 @@
 "use client";
 
+import person1 from "../../public/cleaner.webp";
+
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#F5E8D3] text-[#3B2F1E] flex flex-col">
@@ -75,6 +77,47 @@ export default function LandingPage() {
                   {service.title}
                 </h3>
                 <p className="text-[#7C5E3C]">{service.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section className="py-16 px-6 flex-1 bg-[#F5E8D3]">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12 text-[#7C5E3C]">
+            Our Best Providers
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+            {[
+              {
+                title: "Person 1",
+                desc: "Professional cleaners for a spotless home.",
+                image: "/cleaner.webp",
+              },
+              {
+                title: "Person 2",
+                desc: "Qualified and caring babysitters for your children.",
+                image: "/cleaner.webp",
+              },
+              {
+                title: "Person 3",
+                desc: "Qualified and caring pet sitters for your pets.",
+                image: "/cleaner.webp",
+              },
+            ].map((service, i) => (
+              <div
+                key={i}
+                className=" rounded-xl p-6 transition flex flex-col items-center"
+              >
+                <h3 className="text-xl font-semibold mb-2 text-[#BFA181]">
+                  {service.title}
+                </h3>
+                {/* <p className="text-[#7C5E3C]">{service.desc}</p> */}
+                <img
+                  src={service.image}
+                  alt={service.title}
+                  className="w-40 h-40 object-cover rounded-full mb-4"
+                />{" "}
               </div>
             ))}
           </div>

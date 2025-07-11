@@ -3,6 +3,14 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
+import { getFirestore, doc, setDoc } from "firebase/firestore";
+import "../../lib/firebase"; // Ensure firebase is initialized
+import { db, auth } from "../../lib/firebase";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -11,10 +19,54 @@ export default function SignupPage() {
   const [why, setWhy] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Signup:", { email, password, role });
+    setError(null);
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    if (role === "provider" && !why.trim()) {
+      setError("Please tell us why you want to work at Vela Services.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Crée le compte
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      // Met à jour le profil avec le rôle
+      await updateProfile(userCredential.user, {
+        displayName: role,
+      });
+
+      // Enregistre dans Firestore
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        uid: userCredential.user.uid,
+        email,
+        role,
+        ...(role === "provider" ? { why } : {}),
+        createdAt: new Date().toISOString(),
+      });
+
+      router.push("/home");
+    } catch (err: any) {
+      console.error(err);
+      setError(err?.message || "Signup failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -23,6 +75,11 @@ export default function SignupPage() {
         <h2 className="text-2xl font-bold mb-6 text-center text-[#7C5E3C]">
           Sign Up
         </h2>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4 text-center text-red-600 text-sm">{error}</div>
+        )}
 
         {/* Role Selector */}
         <div className="flex justify-center gap-4 mb-6">
@@ -35,6 +92,7 @@ export default function SignupPage() {
                   : "bg-gray-100 text-gray-700"
               }`}
               onClick={() => setRole(r as "customer" | "provider")}
+              type="button"
             >
               {r === "customer" ? "Customer" : "Provider"}
             </button>
@@ -53,6 +111,8 @@ export default function SignupPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="mt-1 w-full border rounded-md px-3 py-2 text-sm text-[#7C5E3C] focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
+              autoComplete="email"
+              disabled={loading}
             />
           </div>
 
@@ -62,12 +122,13 @@ export default function SignupPage() {
                 Why do you want to work at Vela Services?
               </label>
               <input
-              type="why"
-              required
-              value={why}
-              onChange={(e) => setWhy(e.target.value)}
-              className="mt-1 w-full border rounded-md px-3 py-2 text-sm text-[#7C5E3C] focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
-            />
+                type="text"
+                required
+                value={why}
+                onChange={(e) => setWhy(e.target.value)}
+                className="mt-1 w-full border rounded-md px-3 py-2 text-sm text-[#7C5E3C] focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
+                disabled={loading}
+              />
             </div>
           )}
 
@@ -81,6 +142,8 @@ export default function SignupPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="mt-1 w-full border rounded-md px-3 py-2 text-sm text-[#7C5E3C] focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
+              autoComplete="new-password"
+              disabled={loading}
             />
           </div>
 
@@ -94,14 +157,17 @@ export default function SignupPage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="mt-1 w-full border rounded-md px-3 py-2 text-sm text-[#7C5E3C] focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
+              autoComplete="new-password"
+              disabled={loading}
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-[#BFA181] text-white py-2 rounded-md hover:bg-[#A68A64] transition"
+            className="w-full bg-[#BFA181] text-white py-2 rounded-md hover:bg-[#A68A64] transition disabled:opacity-60"
+            disabled={loading}
           >
-            Create an account
+            {loading ? "Creating account..." : "Create an account"}
           </button>
         </form>
 
@@ -110,6 +176,8 @@ export default function SignupPage() {
           <button
             onClick={() => router.push("/login")}
             className="text-[#BFA181] hover:underline"
+            type="button"
+            disabled={loading}
           >
             Login
           </button>
