@@ -1,12 +1,8 @@
 "use client";
-import Navbar from "../components/Navbar";
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#F5E8D3] text-[#3B2F1E] flex flex-col">
-      {/* Navbar */}
-      <Navbar />
-
       {/* Hero Section */}
       <section className="bg-[#F5E8D3] py-20 px-6 text-center flex flex-col items-center">
         {/* Logo Part */}
@@ -36,7 +32,8 @@ export default function LandingPage() {
             Find Trusted Home Services
           </h1>
           <p className="text-lg md:text-xl mb-8">
-            Cleaning, babysitting, elderly care, and more. Easy, fast, and secure.
+            Cleaning, babysitting, elderly care, and more. Easy, fast, and
+            secure.
           </p>
           <div className="flex justify-center gap-4">
             <button className="bg-[#BFA181] text-white px-6 py-3 rounded-full font-semibold hover:bg-[#A68A64] transition">
@@ -52,7 +49,9 @@ export default function LandingPage() {
       {/* Services Section */}
       <section className="py-16 px-6 flex-1 bg-[#F9F5EF]">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-[#7C5E3C]">Our Services</h2>
+          <h2 className="text-3xl font-bold text-center mb-12 text-[#7C5E3C]">
+            Our Services
+          </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
             {[
               {
@@ -72,18 +71,15 @@ export default function LandingPage() {
                 key={i}
                 className="border border-[#E2CBAA] rounded-xl p-6 shadow-sm hover:shadow-md transition bg-white"
               >
-                <h3 className="text-xl font-semibold mb-2 text-[#BFA181]">{service.title}</h3>
+                <h3 className="text-xl font-semibold mb-2 text-[#BFA181]">
+                  {service.title}
+                </h3>
                 <p className="text-[#7C5E3C]">{service.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-[#E2CBAA] py-8 text-center text-sm text-[#7C5E3C]">
-        © {new Date().getFullYear()} Vela Services. All rights reserved.
-      </footer>
     </div>
   );
 }

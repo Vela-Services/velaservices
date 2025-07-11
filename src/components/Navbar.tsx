@@ -1,14 +1,16 @@
 "use client";
-
 import React from "react";
+import { useRouter } from "next/navigation";
 
 const Navbar: React.FC = () => {
+  const router = useRouter();
   return (
     <nav className="w-full bg-[#fcf5eb] shadow-md px-6 py-4 flex items-center justify-between">
-      {/* Logo/Brand */}
       <div className="flex items-center">
-        <div className="w-10 h-10 rounded-full bg-[#BFA181] flex items-center justify-center mr-2 shadow-lg">
-          {/* Simple Home Icon SVG */}
+        <div
+          onClick={() => router.push("/")}
+          className="w-10 h-10 rounded-full bg-[#BFA181] flex items-center justify-center mr-2 shadow-lg"
+        >
           <svg
             className="w-6 h-6 text-white"
             fill="none"
@@ -29,22 +31,43 @@ const Navbar: React.FC = () => {
       </div>
       {/* Navigation Links */}
       <div className="hidden md:flex gap-8">
-        <a href="#" className="text-[#7C5E3C] hover:text-[#BFA181] font-medium transition">
+        <a
+          href="/home"
+          className="text-[#7C5E3C] hover:text-[#BFA181] font-medium transition"
+        >
+          Home
+        </a>
+        <a
+          href="#"
+          className="text-[#7C5E3C] hover:text-[#BFA181] font-medium transition"
+        >
           Services
         </a>
-        <a href="#" className="text-[#7C5E3C] hover:text-[#BFA181] font-medium transition">
+        <a
+          href="#"
+          className="text-[#7C5E3C] hover:text-[#BFA181] font-medium transition"
+        >
           About
         </a>
-        <a href="#" className="text-[#7C5E3C] hover:text-[#BFA181] font-medium transition">
+        <a
+          href="#"
+          className="text-[#7C5E3C] hover:text-[#BFA181] font-medium transition"
+        >
           Contact
         </a>
       </div>
       {/* Auth Buttons */}
       <div className="flex gap-3">
-        <button className="px-4 py-2 rounded-full border border-[#BFA181] text-[#BFA181] font-semibold hover:bg-[#F5E8D3]/80 transition">
-          Sign In
+        <button
+          onClick={() => router.push("/login")}
+          className="px-4 py-2 rounded-full border border-[#BFA181] text-[#BFA181] font-semibold hover:bg-[#F5E8D3]/80 transition"
+        >
+          Login
         </button>
-        <button className="px-4 py-2 rounded-full bg-[#BFA181] text-white font-semibold hover:bg-[#A68A64] transition">
+        <button
+          onClick={() => router.push("/signup")}
+          className="px-4 py-2 rounded-full bg-[#BFA181] text-white font-semibold hover:bg-[#A68A64] transition"
+        >
           Sign Up
         </button>
       </div>
