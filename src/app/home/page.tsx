@@ -1,18 +1,40 @@
 "use client";
 
 import React, { useState } from "react";
+import { useCart } from "../../lib/CartContext";
 
 const services = [
   { id: "cleaning", name: "Cleaning" },
   { id: "babysitting", name: "Babysitting" },
   { id: "petsitting", name: "Pet Sitting" },
+  { id: "cooking", name: "Cooking" },
 ];
 
 export default function HomePage() {
   const [openService, setOpenService] = useState<string | null>(null);
+  const [dateByService, setDateByService] = useState<Record<string, string>>(
+    {}
+  );
+  const [timeByService, setTimeByService] = useState<Record<string, string>>(
+    {}
+  );
+
+  const { addToCart } = useCart();
 
   const toggleService = (id: string) => {
     setOpenService(openService === id ? null : id);
+  };
+
+  const handleAddToCart = (serviceId: string, serviceName: string) => {
+    const date = dateByService[serviceId] || "";
+    const time = timeByService[serviceId] || "";
+    if (!date || !time) {
+      alert("Please choose a date and time");
+      return;
+    }
+
+    addToCart({ serviceId, serviceName, date, time });
+    alert("Service added to cart!");
   };
 
   return (
@@ -41,13 +63,19 @@ export default function HomePage() {
                 openService === service.id ? "max-h-[300px] mt-4" : "max-h-0"
               }`}
             >
-              {/* Calendrier & heure */}
               <div className="mt-4 space-y-4">
                 <label className="block text-sm font-medium text-[#7C5E3C]">
                   Choose a date:
                 </label>
                 <input
                   type="date"
+                  value={dateByService[service.id] || ""}
+                  onChange={(e) =>
+                    setDateByService((prev) => ({
+                      ...prev,
+                      [service.id]: e.target.value,
+                    }))
+                  }
                   className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
                 />
 
@@ -56,11 +84,21 @@ export default function HomePage() {
                 </label>
                 <input
                   type="time"
+                  value={timeByService[service.id] || ""}
+                  onChange={(e) =>
+                    setTimeByService((prev) => ({
+                      ...prev,
+                      [service.id]: e.target.value,
+                    }))
+                  }
                   className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
                 />
 
-                <button className="mt-4 w-full bg-[#BFA181] text-white py-2 rounded-md hover:bg-[#A68A64] transition">
-                  Search Providers
+                <button
+                  className="mt-4 w-full bg-[#BFA181] text-white py-2 rounded-md hover:bg-[#A68A64] transition"
+                  onClick={() => handleAddToCart(service.id, service.name)}
+                >
+                  Add to Cart
                 </button>
               </div>
             </div>

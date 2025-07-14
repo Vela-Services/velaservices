@@ -1,9 +1,20 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { auth } from "../lib/firebase";
 
 const Navbar: React.FC = () => {
   const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
   return (
     <nav className="w-full bg-[#fcf5eb] shadow-md px-6 py-4 flex items-center justify-between">
       <div className="flex items-center">
@@ -58,18 +69,37 @@ const Navbar: React.FC = () => {
       </div>
       {/* Auth Buttons */}
       <div className="flex gap-3">
-        <button
-          onClick={() => router.push("/login")}
-          className="px-4 py-2 rounded-full border border-[#BFA181] text-[#BFA181] font-semibold hover:bg-[#F5E8D3]/80 transition"
-        >
-          Login
-        </button>
-        <button
-          onClick={() => router.push("/signup")}
-          className="px-4 py-2 rounded-full bg-[#BFA181] text-white font-semibold hover:bg-[#A68A64] transition"
-        >
-          Sign Up
-        </button>
+        {user ? (
+          <div className="flex gap-3">
+            <button
+              onClick={() => router.push("/cart")}
+              className="px-4 py-2 rounded-full bg-[#BFA181] text-white font-semibold hover:bg-[#A68A64] transition"
+            >
+              Cart
+            </button>
+            <button
+              onClick={() => router.push("/profile")}
+              className="px-4 py-2 rounded-full bg-[#BFA181] text-white font-semibold hover:bg-[#A68A64] transition"
+            >
+              Profile
+            </button>
+          </div>
+        ) : (
+          <>
+            <button
+              onClick={() => router.push("/login")}
+              className="px-4 py-2 rounded-full border border-[#BFA181] text-[#BFA181] font-semibold hover:bg-[#F5E8D3]/80 transition"
+            >
+              Login
+            </button>
+            <button
+              onClick={() => router.push("/signup")}
+              className="px-4 py-2 rounded-full bg-[#BFA181] text-white font-semibold hover:bg-[#A68A64] transition"
+            >
+              Sign Up
+            </button>
+          </>
+        )}
       </div>
     </nav>
   );
