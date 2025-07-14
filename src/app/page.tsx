@@ -1,21 +1,28 @@
 "use client";
 
-import person1 from "../../public/cleaner.webp";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../lib/useAuth";
 
 export default function LandingPage() {
+  const { user } = useAuth();
+  const router = useRouter();
+
   return (
-    <div className="min-h-screen bg-[#F5E8D3] text-[#3B2F1E] flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-[#F5E8D3] to-[#F9F5EF] text-[#3B2F1E] flex flex-col">
       {/* Hero Section */}
-      <section className="bg-[#F5E8D3] py-20 px-6 text-center flex flex-col items-center">
+      <section className="relative bg-[#F5E8D3] py-24 px-6 text-center flex flex-col items-center overflow-hidden">
+        {/* Decorative Blobs */}
+        <div className="absolute top-0 left-0 w-64 h-64 bg-[#BFA181]/20 rounded-full blur-3xl -z-10" />
+        <div className="absolute bottom-0 right-0 w-72 h-72 bg-[#7C5E3C]/10 rounded-full blur-3xl -z-10" />
         {/* Logo Part */}
-        <div className="flex items-center justify-center mb-8">
-          <div className="w-14 h-14 rounded-full bg-[#BFA181] flex items-center justify-center mr-3 shadow-lg">
+        <div className="flex items-center justify-center mb-10">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#BFA181] to-[#7C5E3C] flex items-center justify-center mr-4 shadow-2xl border-4 border-white">
             {/* Simple Home Icon SVG */}
             <svg
-              className="w-8 h-8 text-white"
+              className="w-9 h-9 text-white"
               fill="none"
               stroke="currentColor"
-              strokeWidth={2}
+              strokeWidth={2.5}
               viewBox="0 0 24 24"
             >
               <path
@@ -25,99 +32,199 @@ export default function LandingPage() {
               />
             </svg>
           </div>
-          <span className="text-3xl font-extrabold text-[#7C5E3C] tracking-tight">
+          <span className="text-4xl font-extrabold text-[#7C5E3C] tracking-tight drop-shadow-sm">
             Vela Services
           </span>
         </div>
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-5xl md:text-6xl font-extrabold mb-7 leading-tight text-[#3B2F1E] drop-shadow">
             Find Trusted Home Services
           </h1>
-          <p className="text-lg md:text-xl mb-8">
-            Cleaning, babysitting, elderly care, and more. Easy, fast, and
-            secure.
+          <p className="text-xl md:text-2xl mb-10 text-[#7C5E3C] font-medium">
+            Cleaning, babysitting, elderly care, and more.{" "}
+            <span className="text-[#BFA181] font-semibold">Easy</span>,{" "}
+            <span className="text-[#BFA181] font-semibold">fast</span>, and{" "}
+            <span className="text-[#BFA181] font-semibold">secure</span>.
           </p>
-          <div className="flex justify-center gap-4">
-            <button className="bg-[#BFA181] text-white px-6 py-3 rounded-full font-semibold hover:bg-[#A68A64] transition">
-              Create an Account
-            </button>
-            <button className="border border-[#BFA181] text-[#BFA181] px-6 py-3 rounded-full font-semibold hover:bg-[#F5E8D3]/80 transition">
-              Sign In
-            </button>
-          </div>
+          {user ? (
+            <div>
+              <button
+                onClick={() => router.push("/profile")}
+                className="px-6 py-3 rounded-full bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white font-bold shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-200"
+              >
+                Go to Profile
+              </button>
+            </div>
+          ) : (
+            <div className="flex justify-center gap-6">
+              <button
+                className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-8 py-3 rounded-full font-bold shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-200"
+                onClick={() => router.push("/signup")}
+              >
+                Create an Account
+              </button>
+              <button
+                className="border-2 border-[#BFA181] text-[#BFA181] px-8 py-3 rounded-full font-bold bg-white/80 hover:bg-[#F5E8D3] hover:text-[#7C5E3C] hover:border-[#7C5E3C] transition-all duration-200 shadow"
+                onClick={() => router.push("/login")}
+              >
+                Sign In
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
       {/* Services Section */}
-      <section className="py-16 px-6 flex-1 bg-[#F9F5EF]">
+      <section className="py-20 px-6 flex-1 bg-gradient-to-b from-[#F9F5EF] to-[#F5E8D3]">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-[#7C5E3C]">
+          <h2 className="text-4xl font-extrabold text-center mb-14 text-[#7C5E3C] tracking-tight">
             Our Services
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10">
             {[
               {
                 title: "Cleaning",
                 desc: "Professional cleaners for a spotless home.",
+                icon: (
+                  <svg
+                    className="w-12 h-12 text-[#BFA181]"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 19h18M9 10V5a3 3 0 116 0v5m-9 9a3 3 0 006 0"
+                    />
+                  </svg>
+                ),
               },
               {
                 title: "Babysitting",
                 desc: "Qualified and caring babysitters for your children.",
+                icon: (
+                  <svg
+                    className="w-12 h-12 text-[#BFA181]"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      cx="12"
+                      cy="7"
+                      r="4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5.5 21a7.5 7.5 0 0113 0"
+                    />
+                  </svg>
+                ),
               },
               {
                 title: "Pet Sitting",
                 desc: "Qualified and caring pet sitters for your pets.",
+                icon: (
+                  <svg
+                    className="w-12 h-12 text-[#BFA181]"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                    viewBox="0 0 24 24"
+                  >
+                    <ellipse
+                      cx="12"
+                      cy="12"
+                      rx="8"
+                      ry="5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <circle cx="8" cy="10" r="1" />
+                    <circle cx="16" cy="10" r="1" />
+                  </svg>
+                ),
               },
+              {
+                title: "Cooking",
+                desc: "Professional chefs for your home cooking needs.",
+                icon: (
+                  <svg
+                    className="w-12 h-12 text-[#BFA181]"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zm0 0V4m0 16v-4"
+                    />
+                  </svg>
+                ),
+              }
             ].map((service, i) => (
               <div
                 key={i}
-                className="border border-[#E2CBAA] rounded-xl p-6 shadow-sm hover:shadow-md transition bg-white"
+                className="border border-[#E2CBAA] rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-200 bg-white flex flex-col items-center group hover:-translate-y-1"
               >
-                <h3 className="text-xl font-semibold mb-2 text-[#BFA181]">
+                <div className="mb-4">{service.icon}</div>
+                <h3 className="text-2xl font-bold mb-2 text-[#BFA181] group-hover:text-[#7C5E3C] transition">
                   {service.title}
                 </h3>
-                <p className="text-[#7C5E3C]">{service.desc}</p>
+                <p className="text-[#7C5E3C] text-lg">{service.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
-      <section className="py-16 px-6 flex-1 bg-[#F5E8D3]">
+
+      {/* Providers Section */}
+      <section className="py-20 px-6 flex-1 bg-[#F5E8D3]">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-[#7C5E3C]">
+          <h2 className="text-4xl font-extrabold text-center mb-14 text-[#7C5E3C] tracking-tight">
             Our Best Providers
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
             {[
               {
-                title: "Person 1",
-                desc: "Professional cleaners for a spotless home.",
+                title: "Maria S.",
+                desc: "Professional cleaner with 10+ years of experience.",
                 image: "/cleaner.webp",
               },
               {
-                title: "Person 2",
-                desc: "Qualified and caring babysitters for your children.",
+                title: "Lucas P.",
+                desc: "Caring babysitter and early childhood educator.",
                 image: "/cleaner.webp",
               },
               {
-                title: "Person 3",
-                desc: "Qualified and caring pet sitters for your pets.",
+                title: "Sophie T.",
+                desc: "Loving pet sitter and animal enthusiast.",
                 image: "/cleaner.webp",
               },
-            ].map((service, i) => (
+            ].map((provider, i) => (
               <div
                 key={i}
-                className=" rounded-xl p-6 transition flex flex-col items-center"
+                className="rounded-2xl p-8 bg-white shadow-md hover:shadow-xl transition-all duration-200 flex flex-col items-center group hover:-translate-y-1"
               >
-                <h3 className="text-xl font-semibold mb-2 text-[#BFA181]">
-                  {service.title}
-                </h3>
-                {/* <p className="text-[#7C5E3C]">{service.desc}</p> */}
                 <img
-                  src={service.image}
-                  alt={service.title}
-                  className="w-40 h-40 object-cover rounded-full mb-4"
-                />{" "}
+                  src={provider.image}
+                  alt={provider.title}
+                  className="w-32 h-32 object-cover rounded-full mb-5 border-4 border-[#BFA181]/30 shadow-lg group-hover:scale-105 transition"
+                />
+                <h3 className="text-xl font-bold mb-1 text-[#BFA181] group-hover:text-[#7C5E3C] transition">
+                  {provider.title}
+                </h3>
+                <p className="text-[#7C5E3C] text-center text-base">
+                  {provider.desc}
+                </p>
               </div>
             ))}
           </div>
