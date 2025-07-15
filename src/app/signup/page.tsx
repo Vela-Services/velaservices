@@ -3,12 +3,8 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  updateProfile,
-} from "firebase/auth";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 import "../../lib/firebase"; // Ensure firebase is initialized
 import { db, auth } from "../../lib/firebase";
 
@@ -61,9 +57,12 @@ export default function SignupPage() {
       });
 
       router.push("/home");
-    } catch (err: any) {
-      console.error(err);
-      setError(err?.message || "Signup failed. Please try again.");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Signup failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

@@ -32,19 +32,21 @@ export default function LandingPage() {
               />
             </svg>
           </div>
-          <span className="text-4xl font-extrabold text-[#7C5E3C] tracking-tight drop-shadow-sm">
-            Vela Services
-          </span>
+          
         </div>
         <div className="max-w-3xl mx-auto">
           <h1 className="text-5xl md:text-6xl font-extrabold mb-7 leading-tight text-[#3B2F1E] drop-shadow">
-            Find Trusted Home Services
+            WELCOME
+          </h1>
+          <h1 className="text-5xl md:text-6xl font-extrabold mb-7 leading-tight text-[#3B2F1E] drop-shadow">
+            TO
+          </h1>
+          <h1 className="text-5xl md:text-6xl font-extrabold mb-7 leading-tight text-[#3B2F1E] drop-shadow">
+            VÉLA
           </h1>
           <p className="text-xl md:text-2xl mb-10 text-[#7C5E3C] font-medium">
-            Cleaning, babysitting, elderly care, and more.{" "}
-            <span className="text-[#BFA181] font-semibold">Easy</span>,{" "}
-            <span className="text-[#BFA181] font-semibold">fast</span>, and{" "}
-            <span className="text-[#BFA181] font-semibold">secure</span>.
+            Because life runs better with a little help.Véla connects you with
+            reliable, home-based services at your fingertips.
           </p>
           {user ? (
             <div>
@@ -80,7 +82,7 @@ export default function LandingPage() {
           <h2 className="text-4xl font-extrabold text-center mb-14 text-[#7C5E3C] tracking-tight">
             Our Services
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-10">
             {[
               {
                 title: "Cleaning",
@@ -169,17 +171,17 @@ export default function LandingPage() {
                     />
                   </svg>
                 ),
-              }
+              },
             ].map((service, i) => (
               <div
                 key={i}
                 className="border border-[#E2CBAA] rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-200 bg-white flex flex-col items-center group hover:-translate-y-1"
               >
                 <div className="mb-4">{service.icon}</div>
-                <h3 className="text-2xl font-bold mb-2 text-[#BFA181] group-hover:text-[#7C5E3C] transition">
+                <h3 className="text-xl font-bold mb-2 text-[#BFA181] group-hover:text-[#7C5E3C] transition">
                   {service.title}
                 </h3>
-                <p className="text-[#7C5E3C] text-lg">{service.desc}</p>
+                {/* <p className="text-[#7C5E3C] text-lg">{service.desc}</p> */}
               </div>
             ))}
           </div>
@@ -192,7 +194,7 @@ export default function LandingPage() {
           <h2 className="text-4xl font-extrabold text-center mb-14 text-[#7C5E3C] tracking-tight">
             Our Best Providers
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-10">
             {[
               {
                 title: "Maria S.",
@@ -212,7 +214,7 @@ export default function LandingPage() {
             ].map((provider, i) => (
               <div
                 key={i}
-                className="rounded-2xl p-8 bg-white shadow-md hover:shadow-xl transition-all duration-200 flex flex-col items-center group hover:-translate-y-1"
+                className="rounded-2xl p-4 bg-white shadow-md hover:shadow-xl transition-all duration-200 flex flex-col items-center group hover:-translate-y-1"
               >
                 <img
                   src={provider.image}

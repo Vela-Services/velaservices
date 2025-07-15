@@ -5,10 +5,11 @@ import { onAuthStateChanged, User, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../../lib/firebase";
 import { useRouter } from "next/navigation";
+import { UserProfile } from "../../types/types";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [signingOut, setSigningOut] = useState(false);
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function ProfilePage() {
         // Fetch user profile from Firestore
         const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
         if (userDoc.exists()) {
-          setProfile(userDoc.data());
+          setProfile(userDoc.data() as UserProfile);
         } else {
           setProfile(null);
         }
@@ -38,8 +39,12 @@ export default function ProfilePage() {
     try {
       await signOut(auth);
       router.push("/login");
-    } catch (err) {
-      // Optionally handle error
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.error(err.message);
+      } else {
+        console.error("An unknown error occurred");
+      }
       setSigningOut(false);
     }
   };

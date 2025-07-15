@@ -8,13 +8,13 @@ import "../../lib/firebase"; // Ensure firebase is initialized
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState<string>(""); // Fix type error: explicitly type as string
+  const [password, setPassword] = useState<string>(""); // Fix type error: explicitly type as string
   const [role, setRole] = useState<"customer" | "provider">("customer");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
@@ -25,11 +25,12 @@ export default function LoginPage() {
       // localStorage.setItem("role", role);
       // Redirect to home or dashboard
       router.push("/home");
-    } catch (err: any) {
-      setError(
-        err?.message ||
-          "Login failed. Please check your credentials and try again."
-      );
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Login failed. Please check your credentials and try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -75,7 +76,7 @@ export default function LoginPage() {
               type="email"
               required
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
               className="mt-1 w-full border rounded-md px-3 py-2 text-sm text-[#7C5E3C] focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
               autoComplete="email"
             />
@@ -89,7 +90,7 @@ export default function LoginPage() {
               type="password"
               required
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
               className="mt-1 w-full border rounded-md px-3 py-2 text-sm text-[#7C5E3C] focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
               autoComplete="current-password"
             />

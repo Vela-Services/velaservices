@@ -37,7 +37,7 @@ const Navbar: React.FC = () => {
           </svg>
         </div>
         <span className="text-2xl font-bold text-[#7C5E3C] tracking-tight">
-          Vela Services
+          Véla
         </span>
       </div>
       {/* Navigation Links */}
