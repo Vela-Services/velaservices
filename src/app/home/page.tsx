@@ -76,7 +76,7 @@ export default function HomePage() {
                       [service.id]: e.target.value,
                     }))
                   }
-                  className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
+                  className="w-full border rounded-md px-3 py-2 text-sm text-[#7C5E3C] focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
                 />
 
                 <label className="block text-sm font-medium text-[#7C5E3C]">
@@ -91,7 +91,7 @@ export default function HomePage() {
                       [service.id]: e.target.value,
                     }))
                   }
-                  className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
+                  className="w-full border rounded-md px-3 py-2 text-sm text-[#7C5E3C] focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
                 />
 
                 <button

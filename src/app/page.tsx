@@ -32,21 +32,24 @@ export default function LandingPage() {
               />
             </svg>
           </div>
-          
         </div>
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-5xl md:text-6xl font-extrabold mb-7 leading-tight text-[#3B2F1E] drop-shadow">
-            WELCOME
-          </h1>
-          <h1 className="text-5xl md:text-6xl font-extrabold mb-7 leading-tight text-[#3B2F1E] drop-shadow">
+          <div className="flex flex-col items-center">
+            <h1 className="text-md md:text-2xl mb-3 leading-tight text-[#A68A64]/60">
+              WELCOME TO{" "}
+              <span className="text-[#3F2E2C] font-bold font-abhaya-libre italic text-4xl md:text-5xl">
+                VÉLA
+              </span>
+            </h1>
+          </div>
+          {/* <h1 className="text-5xl md:text-6xl font-extrabold mb-7 leading-tight text-[#3B2F1E] drop-shadow">
             TO
           </h1>
           <h1 className="text-5xl md:text-6xl font-extrabold mb-7 leading-tight text-[#3B2F1E] drop-shadow">
             VÉLA
-          </h1>
-          <p className="text-xl md:text-2xl mb-10 text-[#7C5E3C] font-medium">
-            Because life runs better with a little help.Véla connects you with
-            reliable, home-based services at your fingertips.
+          </h1> */}
+          <p className="text-xl md:text-2xl mb-10 text-[#7C5E3C] font-medium italic">
+            Because life runs better with a little help.
           </p>
           {user ? (
             <div>
@@ -58,38 +61,60 @@ export default function LandingPage() {
               </button>
             </div>
           ) : (
-            <div className="flex justify-center gap-6">
-              <button
-                className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-8 py-3 rounded-full font-bold shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-200"
-                onClick={() => router.push("/signup")}
-              >
-                Create an Account
-              </button>
-              <button
-                className="border-2 border-[#BFA181] text-[#BFA181] px-8 py-3 rounded-full font-bold bg-white/80 hover:bg-[#F5E8D3] hover:text-[#7C5E3C] hover:border-[#7C5E3C] transition-all duration-200 shadow"
-                onClick={() => router.push("/login")}
-              >
-                Sign In
-              </button>
+            <div>
+              <div className="flex justify-center gap-6">
+                <button
+                  className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-8 py-3 rounded-full font-bold shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-200"
+                  onClick={() => router.push("/signup")}
+                >
+                  Create an Account
+                </button>
+                <button
+                  className="border-2 border-[#BFA181] text-[#BFA181] px-8 py-3 rounded-full font-bold bg-white/80 hover:bg-[#F5E8D3] hover:text-[#7C5E3C] hover:border-[#7C5E3C] transition-all duration-200 shadow"
+                  onClick={() => router.push("/login")}
+                >
+                  Sign In
+                </button>
+              </div>
             </div>
           )}
         </div>
       </section>
 
       {/* Services Section */}
-      <section className="py-20 px-6 flex-1 bg-gradient-to-b from-[#F9F5EF] to-[#F5E8D3]">
+      <section className="py-10 px-6 flex-1 bg-gradient-to-b from-[#F9F5EF] to-[#F5E8D3]">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl font-extrabold text-center mb-14 text-[#7C5E3C] tracking-tight">
-            Our Services
+          <h2 className="text-xl md:text-4xl font-extrabold text-center mb-14 text-[#7C5E3C] tracking-tight">
+            Véla connects you with reliable, home-based services at your
+            fingertips.
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-10">
             {[
+              {
+                title: "Cooking",
+                desc: "Professional chefs for your home cooking needs.",
+                icon: (
+                  <svg
+                    className="w-20 h-20 text-[#FDEADB]"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zm0 0V4m0 16v-4"
+                    />
+                  </svg>
+                ),
+              },
               {
                 title: "Cleaning",
                 desc: "Professional cleaners for a spotless home.",
                 icon: (
                   <svg
-                    className="w-12 h-12 text-[#BFA181]"
+                    className="w-20 h-20 text-[#FDEADB]"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth={1.5}
@@ -104,11 +129,35 @@ export default function LandingPage() {
                 ),
               },
               {
-                title: "Babysitting",
+                title: "Petcare",
+                desc: "Qualified and caring pet sitters for your pets.",
+                icon: (
+                  <svg
+                    className="w-20 h-20 text-[#FDEADB]"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                    viewBox="0 0 24 24"
+                  >
+                    <ellipse
+                      cx="12"
+                      cy="12"
+                      rx="8"
+                      ry="5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <circle cx="8" cy="10" r="1" />
+                    <circle cx="16" cy="10" r="1" />
+                  </svg>
+                ),
+              },
+              {
+                title: "Childcare",
                 desc: "Qualified and caring babysitters for your children.",
                 icon: (
                   <svg
-                    className="w-12 h-12 text-[#BFA181]"
+                    className="w-20 h-20 text-[#FDEADB]"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth={1.5}
@@ -129,56 +178,13 @@ export default function LandingPage() {
                   </svg>
                 ),
               },
-              {
-                title: "Pet Sitting",
-                desc: "Qualified and caring pet sitters for your pets.",
-                icon: (
-                  <svg
-                    className="w-12 h-12 text-[#BFA181]"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={1.5}
-                    viewBox="0 0 24 24"
-                  >
-                    <ellipse
-                      cx="12"
-                      cy="12"
-                      rx="8"
-                      ry="5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <circle cx="8" cy="10" r="1" />
-                    <circle cx="16" cy="10" r="1" />
-                  </svg>
-                ),
-              },
-              {
-                title: "Cooking",
-                desc: "Professional chefs for your home cooking needs.",
-                icon: (
-                  <svg
-                    className="w-12 h-12 text-[#BFA181]"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={1.5}
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zm0 0V4m0 16v-4"
-                    />
-                  </svg>
-                ),
-              },
             ].map((service, i) => (
               <div
                 key={i}
-                className="border border-[#E2CBAA] rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-200 bg-white flex flex-col items-center group hover:-translate-y-1"
+                className=" aspect-square flex justify-center items-center border border-[#E2CBAA] bg-[#A2754F] rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-200 flex flex-col items-center group hover:-translate-y-1"
               >
                 <div className="mb-4">{service.icon}</div>
-                <h3 className="text-xl font-bold mb-2 text-[#BFA181] group-hover:text-[#7C5E3C] transition">
+                <h3 className="text-xl font-bold mb-2 text-[#FDEADB] group-hover:text-[#7C5E3C] transition">
                   {service.title}
                 </h3>
                 {/* <p className="text-[#7C5E3C] text-lg">{service.desc}</p> */}
@@ -189,7 +195,7 @@ export default function LandingPage() {
       </section>
 
       {/* Providers Section */}
-      <section className="py-20 px-6 flex-1 bg-[#F5E8D3]">
+      <section className="py-10 px-6 flex-1 bg-[#F5E8D3]">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-4xl font-extrabold text-center mb-14 text-[#7C5E3C] tracking-tight">
             Our Best Providers
