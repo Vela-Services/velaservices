@@ -3,6 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "../lib/useAuth";
 
+import { LuCookingPot } from "react-icons/lu";
+import {
+  MdOutlineCleaningServices,
+  MdOutlinePets,
+  MdChildCare,
+} from "react-icons/md";
+
 export default function LandingPage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -94,88 +101,28 @@ export default function LandingPage() {
                 title: "Cooking",
                 desc: "Professional chefs for your home cooking needs.",
                 icon: (
-                  <svg
-                    className="w-20 h-20 text-[#FDEADB]"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={1.5}
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zm0 0V4m0 16v-4"
-                    />
-                  </svg>
+                  <LuCookingPot className="w-20 h-20 text-[#FDEADB] group-hover:text-[#7C5E3C] transition" />
                 ),
               },
               {
                 title: "Cleaning",
                 desc: "Professional cleaners for a spotless home.",
                 icon: (
-                  <svg
-                    className="w-20 h-20 text-[#FDEADB]"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={1.5}
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3 19h18M9 10V5a3 3 0 116 0v5m-9 9a3 3 0 006 0"
-                    />
-                  </svg>
+                  <MdOutlineCleaningServices className="w-20 h-20 text-[#FDEADB] group-hover:text-[#7C5E3C] transition" />
                 ),
               },
               {
                 title: "Petcare",
                 desc: "Qualified and caring pet sitters for your pets.",
                 icon: (
-                  <svg
-                    className="w-20 h-20 text-[#FDEADB]"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={1.5}
-                    viewBox="0 0 24 24"
-                  >
-                    <ellipse
-                      cx="12"
-                      cy="12"
-                      rx="8"
-                      ry="5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <circle cx="8" cy="10" r="1" />
-                    <circle cx="16" cy="10" r="1" />
-                  </svg>
+                  <MdOutlinePets className="w-20 h-20 text-[#FDEADB] group-hover:text-[#7C5E3C] transition" />
                 ),
               },
               {
                 title: "Childcare",
                 desc: "Qualified and caring babysitters for your children.",
                 icon: (
-                  <svg
-                    className="w-20 h-20 text-[#FDEADB]"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={1.5}
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      cx="12"
-                      cy="7"
-                      r="4"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M5.5 21a7.5 7.5 0 0113 0"
-                    />
-                  </svg>
+                  <MdChildCare className="w-20 h-20 text-[#FDEADB] group-hover:text-[#7C5E3C] transition" />
                 ),
               },
             ].map((service, i) => (
