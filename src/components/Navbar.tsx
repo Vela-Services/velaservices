@@ -7,6 +7,8 @@ import { auth } from "../lib/firebase";
 import { FaShoppingCart } from "react-icons/fa";
 import { FaUser } from "react-icons/fa";
 
+import Link from "next/link";
+
 
 const Navbar: React.FC = () => {
   const router = useRouter();
@@ -20,24 +22,24 @@ const Navbar: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  // Close menu on route change
-  useEffect(() => {
-    const handleRouteChange = () => setMenuOpen(false);
-    // Next.js router events are not available in app dir, so we skip this for now
-    // If you use page router, you can add: router.events.on('routeChangeStart', handleRouteChange)
-    // For now, we close menu on click of any link/button
-    return () => {};
-  }, []);
+  // // Close menu on route change
+  // useEffect(() => {
+  //   const handleRouteChange = () => setMenuOpen(false);
+  //   // Next.js router events are not available in app dir, so we skip this for now
+  //   // If you use page router, you can add: router.events.on('routeChangeStart', handleRouteChange)
+  //   // For now, we close menu on click of any link/button
+  //   return () => {};
+  // }, []);
 
   const navLinks = (
     <>
-      <a
+      <Link
         href="/"
         className="text-[#7C5E3C] hover:text-[#BFA181] font-medium transition block md:inline"
         onClick={() => setMenuOpen(false)}
       >
         Home
-      </a>
+      </Link>
       <a
         href="/home"
         className="text-[#7C5E3C] hover:text-[#BFA181] font-medium transition block md:inline"

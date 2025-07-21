@@ -5,7 +5,6 @@ import {
   onAuthStateChanged,
   User,
   signOut,
-  updateProfile,
 } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "../../lib/firebase";
@@ -101,8 +100,8 @@ export default function ProfilePage() {
         setProfile(userDoc.data() as UserProfile);
       }
       setEditing(false);
-    } catch (err: any) {
-      setError(err?.message || "Failed to update profile.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to update profile.");
     }
     setSaving(false);
   };
