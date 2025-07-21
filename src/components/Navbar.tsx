@@ -3,17 +3,19 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "../lib/firebase";
+import { useCart } from "@/lib/CartContext";
 
 import { FaShoppingCart } from "react-icons/fa";
 import { FaUser } from "react-icons/fa";
 
 import Link from "next/link";
 
-
 const Navbar: React.FC = () => {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const { cart } = useCart();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -71,18 +73,40 @@ const Navbar: React.FC = () => {
           setMenuOpen(false);
           router.push("/cart");
         }}
-        className="px-4 py-2 rounded-full text-[#7C5E3C] font-semibold hover:text-black hover:cursor-pointer transition"
+        className="relative px-4 py-2 rounded-full text-[#7C5E3C] font-semibold hover:text-black hover:cursor-pointer transition"
+        style={{ overflow: "visible" }}
+        aria-label="Cart"
       >
-        <FaShoppingCart className="text-3xl" />
+        <span className="relative inline-block">
+          <FaShoppingCart className="text-3xl" />
+          {cart.length > 0 && (
+            <span
+              className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full shadow-md border-2 border-white"
+              style={{
+                minWidth: "1.25rem",
+                minHeight: "1.25rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                pointerEvents: "none",
+              }}
+            >
+              {cart.length}
+            </span>
+          )}
+        </span>
       </button>
       <button
         onClick={() => {
           setMenuOpen(false);
           router.push("/profile");
         }}
-        className="px-4 py-2 rounded-full text-[#7C5E3C] font-semibold hover:text-black hover:cursor-pointer transition"
+        className="relative px-4 py-2 rounded-full text-[#7C5E3C] font-semibold hover:text-black hover:cursor-pointer transition"
       >
+                <span className="relative inline-block">
+
         <FaUser className="text-3xl" />
+        </span>
       </button>
     </div>
   ) : (
@@ -169,7 +193,7 @@ const Navbar: React.FC = () => {
       </button>
       {/* Mobile Menu */}
       {menuOpen && (
-        <div className="md:hidden absolute top-full left-0 w-full bg-[#fcf5eb] shadow-lg border-t border-[#e5dbc9] flex flex-col gap-6 px-6 py-6 animate-fade-in z-40">
+        <div className="md:hidden absolute top-full left-0 w-full bg-[#F5E8D3] shadow-lg border-t border-[#e5dbc9] flex flex-col gap-6 px-6 py-6 animate-fade-in z-40">
           <div className="flex flex-col gap-4">{navLinks}</div>
           <div className="flex flex-col gap-3 mt-4">{authButtons}</div>
         </div>
