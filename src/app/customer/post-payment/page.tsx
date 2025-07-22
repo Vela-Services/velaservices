@@ -84,6 +84,7 @@ export default function PostPaymentPage() {
 
         setProvidersByMission(result);
       } catch (err) {
+        console.error("Failed to load missions or providers.", err);
         setErrorMsg("Failed to load missions or providers.");
       } finally {
         setLoading(false);
@@ -108,6 +109,7 @@ export default function PostPaymentPage() {
       // Remove the mission from the list
       setMissions((prev) => prev.filter((m) => m.id !== missionId));
     } catch (error) {
+      console.error("Error assigning provider.", error);
       setErrorMsg("Error assigning provider. Try again.");
     } finally {
       setAssigning(null);

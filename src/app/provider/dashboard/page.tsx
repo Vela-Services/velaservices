@@ -160,8 +160,6 @@ export default function DashboardProviderPage() {
   useEffect(() => {
     const auth = getAuth();
 
-    let unsubscribe: () => void;
-
     const fetchMissions = async (user: User) => {
       setLoading(true);
       setErrorMsg(null);
@@ -179,13 +177,14 @@ export default function DashboardProviderPage() {
         }));
         setAssignedMissions(missionsData);
       } catch (error) {
+        console.error("Failed to fetch missions.", error);
         setErrorMsg("Failed to fetch missions.");
       } finally {
         setLoading(false);
       }
     };
 
-    unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         fetchMissions(user);
       } else {
@@ -211,6 +210,7 @@ export default function DashboardProviderPage() {
       setAssignedMissions((prev) => prev.filter((m) => m.id !== missionId));
       setSuccessMsg("Mission marked as completed!");
     } catch (error) {
+      console.error("Failed to mark mission as completed.", error);
       setErrorMsg("Failed to mark mission as completed.");
     } finally {
       setMarking(null);
@@ -234,7 +234,7 @@ export default function DashboardProviderPage() {
 
   // Stats
   const totalMissions = assignedMissions.length;
-  const completedMissions = 0; // Could be fetched if needed
+ // const completedMissions = 0; // Could be fetched if needed
   const upcomingMissions = assignedMissions.filter((m) => {
     const missionDate = new Date(m.date + "T" + (m.time || "00:00"));
     return missionDate >= new Date();

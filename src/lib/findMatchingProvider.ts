@@ -1,5 +1,5 @@
 import { db } from "./firebase";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 import { UserProfile } from "@/types/types";
 
 export async function findMatchingProviders(service: string, date: string, time: string): Promise<(UserProfile & { uid: string })[]> {
