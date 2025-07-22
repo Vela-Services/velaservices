@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { useCart } from "../../lib/CartContext";
 
+import { createMissionsFromCart } from "../../lib/createMission";
+import { useAuth } from "../../lib/useAuth"; // ou autre selon ton système d'auth
+
 export default function PaymentPage() {
+  const { user } = useAuth();
   const { cart, clearCart } = useCart();
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -25,12 +29,25 @@ export default function PaymentPage() {
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Simule traitement paiement
+    if (!user) {
+      alert("You must be logged in to pay.");
+      return;
+    }
+
     setProcessing(true);
-    setTimeout(() => {
-      setProcessing(false);
-      setSuccess(true);
-      clearCart();
+
+    // Simule un délai de paiement
+    setTimeout(async () => {
+      try {
+        await createMissionsFromCart(cart, user.uid);
+        await clearCart();
+        setSuccess(true);
+      } catch (err) {
+        console.error("Failed to create missions", err);
+        alert("Error while creating missions. Please try again.");
+      } finally {
+        setProcessing(false);
+      }
     }, 2000);
   };
 
@@ -152,7 +169,9 @@ export default function PaymentPage() {
                       className="py-3 flex justify-between items-center text-[#7C5E3C]"
                     >
                       <div>
-                        <div className="font-medium text-base">{item.serviceName}</div>
+                        <div className="font-medium text-base">
+                          {item.serviceName}
+                        </div>
                         <div className="text-sm text-gray-400">
                           {item.date} at {item.time}
                         </div>
@@ -163,8 +182,12 @@ export default function PaymentPage() {
                 </ul>
               </div>
               <div className="border-t pt-4 mt-2 flex justify-between items-center">
-                <span className="font-semibold text-[#7C5E3C] text-lg">Total:</span>
-                <span className="font-bold text-2xl text-[#BFA181]">{totalPrice}€</span>
+                <span className="font-semibold text-[#7C5E3C] text-lg">
+                  Total:
+                </span>
+                <span className="font-bold text-2xl text-[#BFA181]">
+                  {totalPrice}€
+                </span>
               </div>
             </section>
 
@@ -204,7 +227,10 @@ export default function PaymentPage() {
                 </h2>
 
                 <div className="mb-4">
-                  <label htmlFor="cardNumber" className="block mb-1 font-medium">
+                  <label
+                    htmlFor="cardNumber"
+                    className="block mb-1 font-medium"
+                  >
                     Card Number
                   </label>
                   <input
@@ -224,7 +250,10 @@ export default function PaymentPage() {
 
                 <div className="flex gap-4 mb-4">
                   <div className="flex-1">
-                    <label htmlFor="expiryDate" className="block mb-1 font-medium">
+                    <label
+                      htmlFor="expiryDate"
+                      className="block mb-1 font-medium"
+                    >
                       Expiry Date
                     </label>
                     <input
