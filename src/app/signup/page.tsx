@@ -56,7 +56,11 @@ export default function SignupPage() {
         createdAt: new Date().toISOString(),
       });
 
-      router.push("/home");
+      if (role === "customer") {
+        router.push("/customer/services");
+      } else {
+        router.push("/provider/services");
+      }
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);

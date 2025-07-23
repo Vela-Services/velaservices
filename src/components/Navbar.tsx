@@ -1,25 +1,36 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged, User } from "firebase/auth";
-import { auth } from "../lib/firebase";
+import { onAuthStateChanged, User, UserProfile } from "firebase/auth";
+import { auth, db } from "../lib/firebase";
 import { useCart } from "@/lib/CartContext";
 
 import { FaShoppingCart } from "react-icons/fa";
 import { FaUser } from "react-icons/fa";
 
 import Link from "next/link";
+import { doc, getDoc } from "firebase/firestore";
 
 const Navbar: React.FC = () => {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const { cart } = useCart();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
+      if (firebaseUser) {
+        // Fetch user profile from Firestore
+        const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+        if (userDoc.exists()) {
+          setProfile(userDoc.data() as UserProfile);
+        } else {
+          setProfile(null);
+        }
+      }
     });
     return () => unsubscribe();
   }, []);
@@ -42,27 +53,42 @@ const Navbar: React.FC = () => {
       >
         Home
       </Link>
-      <a
-        href="/home"
-        className="text-[#7C5E3C] hover:text-[#BFA181] font-medium transition block md:inline"
-        onClick={() => setMenuOpen(false)}
-      >
-        Services
-      </a>
-      <a
-        href="#"
-        className="text-[#7C5E3C] hover:text-[#BFA181] font-medium transition block md:inline"
-        onClick={() => setMenuOpen(false)}
-      >
-        About
-      </a>
-      <a
-        href="#"
-        className="text-[#7C5E3C] hover:text-[#BFA181] font-medium transition block md:inline"
-        onClick={() => setMenuOpen(false)}
-      >
-        Contact
-      </a>
+      {profile && profile.role === "customer" && (
+        <Link
+          href="/customer/services"
+          className="text-[#7C5E3C] hover:text-[#BFA181] font-medium transition block md:inline"
+          onClick={() => setMenuOpen(false)}
+        >
+          Services
+        </Link>
+      )}
+      {profile && profile.role === "provider" && (
+        <Link
+          href="/provider/services"
+          className="text-[#7C5E3C] hover:text-[#BFA181] font-medium transition block md:inline"
+          onClick={() => setMenuOpen(false)}
+        >
+          Services
+        </Link>
+      )}
+      {profile && profile.role === "provider" && (
+        <Link
+          href="/provider/dashboard"
+          className="text-[#7C5E3C] hover:text-[#BFA181] font-medium transition block md:inline"
+          onClick={() => setMenuOpen(false)}
+        >
+          Dashboard
+        </Link>
+      )}
+      {profile && profile.role === "customer" && (
+        <Link
+          href="/customer/orders"
+          className="text-[#7C5E3C] hover:text-[#BFA181] font-medium transition block md:inline"
+          onClick={() => setMenuOpen(false)}
+        >
+          Orders
+        </Link>
+      )}
     </>
   );
 
@@ -103,9 +129,8 @@ const Navbar: React.FC = () => {
         }}
         className="relative px-4 py-2 rounded-full text-[#7C5E3C] font-semibold hover:text-black hover:cursor-pointer transition"
       >
-                <span className="relative inline-block">
-
-        <FaUser className="text-3xl" />
+        <span className="relative inline-block">
+          <FaUser className="text-3xl" />
         </span>
       </button>
     </div>

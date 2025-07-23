@@ -5,6 +5,8 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import "../../lib/firebase"; // Ensure firebase is initialized
+import { db } from "../../lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,12 +21,30 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
     const auth = getAuth();
+
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      // Optionally, you can store the role in localStorage or context if needed
-      // localStorage.setItem("role", role);
-      // Redirect to home or dashboard
-      router.push("/home");
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+
+      // 🔥 Lire Firestore pour récupérer le rôle réel
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      const userData = userDoc.data();
+      const role = userData?.role;
+
+      if (!role) throw new Error("User role not found");
+
+      // 🍪 Stocker le rôle dans un cookie lisible côté middleware
+      document.cookie = `role=${role}; path=/; max-age=604800`; // 1 semaine
+
+      if (role === "customer") {
+        router.push("/customer/services");
+      } else {
+        router.push("/provider/services");
+      }
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -76,7 +96,9 @@ export default function LoginPage() {
               type="email"
               required
               value={email}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setEmail(e.target.value)
+              }
               className="mt-1 w-full border rounded-md px-3 py-2 text-sm text-[#7C5E3C] focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
               autoComplete="email"
             />
@@ -90,7 +112,9 @@ export default function LoginPage() {
               type="password"
               required
               value={password}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setPassword(e.target.value)
+              }
               className="mt-1 w-full border rounded-md px-3 py-2 text-sm text-[#7C5E3C] focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
               autoComplete="current-password"
             />
