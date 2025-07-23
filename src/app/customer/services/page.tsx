@@ -22,7 +22,7 @@ export default function ServicesPage() {
     {}
   );
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   const { addToCart } = useCart();

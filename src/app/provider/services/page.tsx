@@ -55,7 +55,6 @@ export default function ServicesPage() {
     });
 
     return () => unsubscribe();
-    // eslint-disable-next-line
   }, []);
 
   // Provider: toggle service selection

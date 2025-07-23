@@ -12,7 +12,7 @@ import {
 } from "firebase/firestore";
 
 export default function OrdersPage() {
-  const [user, setUser] = useState<User | null>(null);
+  const [, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [orders, setOrders] = useState<DocumentData[]>([]);
