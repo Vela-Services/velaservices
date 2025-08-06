@@ -20,14 +20,8 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "./useAuth"; // custom hook pour l'utilisateur connecté
+import { CartItem } from "@/types/types";
 
-export type CartItem = {
-  id: string;
-  serviceId: string;
-  serviceName: string;
-  date: string;
-  time: string;
-};
 
 type CartContextType = {
   cart: CartItem[];

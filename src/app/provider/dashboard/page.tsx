@@ -29,22 +29,21 @@ function Calendar({
   selectedDate: string;
   setSelectedDate: (date: string) => void;
 }) {
-  // Get current month and year from selectedDate
+  // ... (unchanged)
+  // [Calendar code omitted for brevity, unchanged from original]
+  // ... (unchanged)
+  // (Keep the Calendar function as in the original)
+  // ... (unchanged)
   const today = new Date();
   const selected = selectedDate ? new Date(selectedDate) : today;
   const year = selected.getFullYear();
   const month = selected.getMonth();
 
-  // First day of month
   const firstDay = new Date(year, month, 1);
-  // Last day of month
   const lastDay = new Date(year, month + 1, 0);
-  // What day of week does the month start on? (0=Sun)
   const startDay = firstDay.getDay();
-  // How many days in month?
   const daysInMonth = lastDay.getDate();
 
-  // Build calendar grid
   const weeks: (number | null)[][] = [];
   let week: (number | null)[] = [];
   for (let i = 0; i < startDay; i++) week.push(null);
@@ -60,16 +59,20 @@ function Calendar({
     weeks.push(week);
   }
 
-  // Helper to format date as yyyy-mm-dd
   function fmt(year: number, month: number, day: number) {
-    return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    return `${year}-${String(month + 1).padStart(2, "0")}-${String(
+      day
+    ).padStart(2, "0")}`;
   }
 
   return (
     <div className="bg-white rounded-xl shadow p-4 mb-8">
       <div className="flex items-center justify-between mb-2">
         <span className="font-semibold text-[#7C5E3C] text-lg">
-          {selected.toLocaleString("default", { month: "long", year: "numeric" })}
+          {selected.toLocaleString("default", {
+            month: "long",
+            year: "numeric",
+          })}
         </span>
         {/* Month navigation */}
         <div className="flex gap-2">
@@ -77,7 +80,9 @@ function Calendar({
             className="px-2 py-1 rounded hover:bg-[#F5E8D3]"
             onClick={() => {
               const prevMonth = new Date(year, month - 1, 1);
-              setSelectedDate(fmt(prevMonth.getFullYear(), prevMonth.getMonth(), 1));
+              setSelectedDate(
+                fmt(prevMonth.getFullYear(), prevMonth.getMonth(), 1)
+              );
             }}
             aria-label="Previous month"
           >
@@ -87,7 +92,9 @@ function Calendar({
             className="px-2 py-1 rounded hover:bg-[#F5E8D3]"
             onClick={() => {
               const nextMonth = new Date(year, month + 1, 1);
-              setSelectedDate(fmt(nextMonth.getFullYear(), nextMonth.getMonth(), 1));
+              setSelectedDate(
+                fmt(nextMonth.getFullYear(), nextMonth.getMonth(), 1)
+              );
             }}
             aria-label="Next month"
           >
@@ -96,7 +103,13 @@ function Calendar({
         </div>
       </div>
       <div className="grid grid-cols-7 text-center text-xs text-[#BFA181] mb-1">
-        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+        <div>Sun</div>
+        <div>Mon</div>
+        <div>Tue</div>
+        <div>Wed</div>
+        <div>Thu</div>
+        <div>Fri</div>
+        <div>Sat</div>
       </div>
       <div className="grid grid-cols-7 gap-1">
         {weeks.flat().map((day, idx) => {
@@ -108,7 +121,11 @@ function Calendar({
             <button
               key={idx}
               className={`aspect-square rounded-lg text-sm font-medium transition
-                ${isSelected ? "bg-[#BFA181] text-white" : "bg-[#F9F5EF] text-[#7C5E3C]"}
+                ${
+                  isSelected
+                    ? "bg-[#BFA181] text-white"
+                    : "bg-[#F9F5EF] text-[#7C5E3C]"
+                }
                 ${hasMissions ? "border-2 border-[#BFA181]" : ""}
                 hover:bg-[#BFA181]/80`}
               onClick={() => setSelectedDate(dateStr)}
@@ -144,19 +161,83 @@ function getServiceIcon(serviceName: string) {
   }
 }
 
+// --- New: Simple Bar Chart for Completed Missions by Service ---
+function CompletedMissionsBarChart({
+  completedMissions,
+}: {
+  completedMissions: DocumentData[];
+}) {
+  // Count by serviceName
+  const counts: { [service: string]: number } = {};
+  completedMissions.forEach((m) => {
+    const name = m.serviceName || "Other";
+    counts[name] = (counts[name] || 0) + 1;
+  });
+  const maxCount = Math.max(1, ...Object.values(counts));
+  const services = Object.keys(counts);
+
+  if (services.length === 0) {
+    return (
+      <div className="text-[#7C5E3C] text-center py-8">
+        No completed missions yet.
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full">
+      <div className="flex flex-col gap-2">
+        {services.map((service) => (
+          <div key={service} className="flex items-center gap-2">
+            <div className="w-32 flex items-center gap-2">
+              {getServiceIcon(service)}
+              <span className="text-[#7C5E3C] text-sm">{service}</span>
+            </div>
+            <div className="flex-1 h-5 bg-[#F5E8D3] rounded">
+              <div
+                className="h-5 bg-[#BFA181] rounded"
+                style={{
+                  width: `${(counts[service] / maxCount) * 100}%`,
+                  minWidth: "2rem",
+                  transition: "width 0.3s",
+                }}
+              />
+            </div>
+            <span className="ml-2 text-[#7C5E3C] font-semibold">
+              {counts[service]}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// --- End Bar Chart ---
+
 export default function DashboardProviderPage() {
-  const [assignedMissions, setAssignedMissions] = useState<DocumentData[]>([]);
+  const [missions, setMissions] = useState<DocumentData[]>([]);
   const [loading, setLoading] = useState(true);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [marking, setMarking] = useState<string | null>(null);
+  const [accepting, setAccepting] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   // Calendar state
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
-    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}-${String(today.getDate()).padStart(2, "0")}`;
   });
 
+  // --- New: Completed missions state ---
+  const [completedMissions, setCompletedMissions] = useState<DocumentData[]>([]);
+  const [completedLoading, setCompletedLoading] = useState(true);
+
+  // Fetch missions: both pending (status: "pending", providerId: current user) and assigned (status: "assigned", providerId: current user)
   useEffect(() => {
     const auth = getAuth();
 
@@ -164,18 +245,20 @@ export default function DashboardProviderPage() {
       setLoading(true);
       setErrorMsg(null);
       try {
+        // Fetch both pending and assigned missions for this provider
         const missionsSnapshot = await getDocs(
           query(
             collection(db, "missions"),
             where("providerId", "==", user.uid),
-            where("status", "==", "assigned")
+            where("status", "in", ["pending", "assigned"])
           )
         );
         const missionsData = missionsSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
-        setAssignedMissions(missionsData);
+        setMissions(missionsData);
+        setUserId(user.uid);
       } catch (error) {
         console.error("Failed to fetch missions.", error);
         setErrorMsg("Failed to fetch missions.");
@@ -184,12 +267,39 @@ export default function DashboardProviderPage() {
       }
     };
 
+    const fetchCompletedMissions = async (user: User) => {
+      setCompletedLoading(true);
+      try {
+        const completedSnapshot = await getDocs(
+          query(
+            collection(db, "missions"),
+            where("providerId", "==", user.uid),
+            where("status", "==", "completed")
+          )
+        );
+        const completedData = completedSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setCompletedMissions(completedData);
+      } catch (error) {
+        console.error("Failed to fetch completed missions.", error);
+        setErrorMsg("Failed to fetch completed missions.");
+            } finally {
+        setCompletedLoading(false);
+      }
+    };
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         fetchMissions(user);
+        fetchCompletedMissions(user);
       } else {
-        setAssignedMissions([]);
+        setMissions([]);
+        setCompletedMissions([]);
+        setUserId(null);
         setLoading(false);
+        setCompletedLoading(false);
       }
     });
 
@@ -197,6 +307,33 @@ export default function DashboardProviderPage() {
       if (unsubscribe) unsubscribe();
     };
   }, []);
+
+  // Accept a mission: set status to "assigned"
+  const acceptMission = async (mission: DocumentData) => {
+    setAccepting(mission.id);
+    setSuccessMsg(null);
+    setErrorMsg(null);
+    try {
+      const missionRef = doc(db, "missions", mission.id);
+      await updateDoc(missionRef, {
+        status: "assigned",
+        providerId: userId,
+      });
+
+      // Update local state
+      setMissions((prev) =>
+        prev.map((m) =>
+          m.id === mission.id ? { ...m, status: "assigned" } : m
+        )
+      );
+      setSuccessMsg("Mission accepted successfully!");
+    } catch (error) {
+      console.error("Failed to accept mission.", error);
+      setErrorMsg("Failed to accept mission.");
+    } finally {
+      setAccepting(null);
+    }
+  };
 
   const markMissionDone = async (missionId: string) => {
     setMarking(missionId);
@@ -207,7 +344,24 @@ export default function DashboardProviderPage() {
       await updateDoc(missionRef, {
         status: "completed",
       });
-      setAssignedMissions((prev) => prev.filter((m) => m.id !== missionId));
+      setMissions((prev) => prev.filter((m) => m.id !== missionId));
+      // After marking as completed, refetch completed missions
+      if (userId) {
+        setCompletedLoading(true);
+        const completedSnapshot = await getDocs(
+          query(
+            collection(db, "missions"),
+            where("providerId", "==", userId),
+            where("status", "==", "completed")
+          )
+        );
+        const completedData = completedSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setCompletedMissions(completedData);
+        setCompletedLoading(false);
+      }
       setSuccessMsg("Mission marked as completed!");
     } catch (error) {
       console.error("Failed to mark mission as completed.", error);
@@ -220,25 +374,43 @@ export default function DashboardProviderPage() {
   // Group missions by date (yyyy-mm-dd)
   const missionsByDate = useMemo(() => {
     const map: { [date: string]: DocumentData[] } = {};
-    assignedMissions.forEach((mission) => {
+    missions.forEach((mission) => {
       if (mission.date) {
         map[mission.date] = map[mission.date] || [];
         map[mission.date].push(mission);
       }
     });
     return map;
-  }, [assignedMissions]);
+  }, [missions]);
 
   // Missions for selected date
   const missionsForSelectedDate = missionsByDate[selectedDate] || [];
 
   // Stats
-  const totalMissions = assignedMissions.length;
- // const completedMissions = 0; // Could be fetched if needed
-  const upcomingMissions = assignedMissions.filter((m) => {
+  const totalMissions = missions.length;
+  const upcomingMissions = missions.filter((m) => {
     const missionDate = new Date(m.date + "T" + (m.time || "00:00"));
     return missionDate >= new Date();
   }).length;
+
+  // --- New: Completed stats and earnings ---
+  const completedCount = completedMissions.length;
+  // Assume each mission has a "price" field (number), otherwise 0
+  const totalEarnings = completedMissions.reduce(
+    (sum, m) => sum + (typeof m.price === "number" ? m.price : 0),
+    0
+  );
+
+  // Helper: is provider already assigned for this date/time?
+  const isProviderAssignedFor = (date: string, time: string) => {
+    return missions.some(
+      (m) =>
+        m.status === "assigned" &&
+        m.date === date &&
+        m.time === time &&
+        m.providerId === userId
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F9F5EF] to-[#F5E8D3] flex flex-col items-center py-10 px-2">
@@ -281,15 +453,162 @@ export default function DashboardProviderPage() {
           {/* Stats */}
           <div className="flex gap-4">
             <div className="bg-white rounded-xl shadow px-6 py-3 flex flex-col items-center">
-              <span className="text-[#BFA181] font-bold text-xl">{totalMissions}</span>
+              <span className="text-[#BFA181] font-bold text-xl">
+                {totalMissions}
+              </span>
               <span className="text-xs text-[#7C5E3C]">Total Missions</span>
             </div>
             <div className="bg-white rounded-xl shadow px-6 py-3 flex flex-col items-center">
-              <span className="text-[#BFA181] font-bold text-xl">{upcomingMissions}</span>
+              <span className="text-[#BFA181] font-bold text-xl">
+                {upcomingMissions}
+              </span>
               <span className="text-xs text-[#7C5E3C]">Upcoming</span>
+            </div>
+            {/* New: Completed Missions */}
+            <div className="bg-white rounded-xl shadow px-6 py-3 flex flex-col items-center">
+              <span className="text-[#BFA181] font-bold text-xl">
+                {completedLoading ? (
+                  <svg
+                    className="animate-spin h-5 w-5 text-[#BFA181]"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    ></path>
+                  </svg>
+                ) : (
+                  completedCount
+                )}
+              </span>
+              <span className="text-xs text-[#7C5E3C]">Completed</span>
+            </div>
+            {/* New: Earnings */}
+            <div className="bg-white rounded-xl shadow px-6 py-3 flex flex-col items-center">
+              <span className="text-[#BFA181] font-bold text-xl">
+                {completedLoading ? (
+                  <svg
+                    className="animate-spin h-5 w-5 text-[#BFA181]"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    ></path>
+                  </svg>
+                ) : (
+                  <>
+                    $
+                    {totalEarnings.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </>
+                )}
+              </span>
+              <span className="text-xs text-[#7C5E3C]">Earnings</span>
             </div>
           </div>
         </div>
+
+        {/* New: Completed Missions Graphics */}
+        <div className="mb-8">
+          <div className="bg-white rounded-xl shadow p-4">
+            <h2 className="text-xl font-semibold text-[#7C5E3C] mb-4 flex items-center gap-2">
+              <svg
+                className="w-6 h-6 text-[#BFA181]"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 17v-2a4 4 0 014-4h2a4 4 0 014 4v2"
+                />
+                <circle
+                  cx="12"
+                  cy="7"
+                  r="4"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  fill="none"
+                />
+              </svg>
+              Completed Missions Overview
+            </h2>
+            {completedLoading ? (
+              <div className="flex justify-center items-center py-8">
+                <svg
+                  className="animate-spin h-8 w-8 text-[#BFA181] mr-2"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8z"
+                  ></path>
+                </svg>
+                <span className="text-[#7C5E3C] text-lg">Loading...</span>
+              </div>
+            ) : (
+              <CompletedMissionsBarChart completedMissions={completedMissions} />
+            )}
+            {/* Earnings summary */}
+            {!completedLoading && (
+              <div className="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="text-[#7C5E3C] text-lg font-semibold">
+                  Total Completed:{" "}
+                  <span className="text-[#BFA181]">{completedCount}</span>
+                </div>
+                <div className="text-[#7C5E3C] text-lg font-semibold">
+                  Total Earnings:{" "}
+                  <span className="text-[#BFA181]">
+                    $
+                    {totalEarnings.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+        {/* End New: Completed Missions Graphics */}
 
         {/* Success/Error messages */}
         {successMsg && (
@@ -343,9 +662,28 @@ export default function DashboardProviderPage() {
           <div className="md:w-1/2">
             <div className="bg-white rounded-xl shadow p-4 min-h-[350px]">
               <h2 className="text-xl font-semibold text-[#7C5E3C] mb-4 flex items-center gap-2">
-                <svg className="w-6 h-6 text-[#BFA181]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                  <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" fill="none"/>
-                  <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="2"/>
+                <svg
+                  className="w-6 h-6 text-[#BFA181]"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <rect
+                    x="3"
+                    y="4"
+                    width="18"
+                    height="18"
+                    rx="2"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    fill="none"
+                  />
+                  <path
+                    d="M16 2v4M8 2v4M3 10h18"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  />
                 </svg>
                 Missions on {selectedDate}
               </h2>
@@ -388,77 +726,113 @@ export default function DashboardProviderPage() {
                       d="M3 12l9-7 9 7M4 10v10a1 1 0 001 1h3m10-11v10a1 1 0 01-1 1h-3m-6 0h6"
                     />
                   </svg>
-                  <span className="text-[#7C5E3C] text-lg">No missions for this date.</span>
+                  <span className="text-[#7C5E3C] text-lg">
+                    No missions for this date.
+                  </span>
                 </div>
               ) : (
                 <div className="space-y-6">
                   {missionsForSelectedDate
                     .sort((a, b) => (a.time || "").localeCompare(b.time || ""))
-                    .map((mission) => (
-                    <div
-                      key={mission.id}
-                      className="p-4 border rounded-xl bg-[#F9F5EF] shadow flex flex-col md:flex-row items-center md:items-start"
-                    >
-                      <div className="bg-[#F5E8D3] rounded-full p-3 mr-0 md:mr-4 mb-3 md:mb-0 flex-shrink-0">
-                        {getServiceIcon(mission.serviceName)}
-                      </div>
-                      <div className="flex-1 w-full">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                          <h3 className="font-semibold text-lg text-[#7C5E3C] mb-1">
-                            {mission.serviceName}
-                          </h3>
-                          <div className="text-sm text-[#BFA181] mb-1 md:mb-0">
-                            {mission.time}
+                    .map((mission) => {
+                      // If mission is pending, show accept button (if not already assigned for this date/time)
+                      const isPending = mission.status === "pending";
+                      const isAssigned = mission.status === "assigned";
+                      const alreadyAssignedForSlot =
+                        isProviderAssignedFor(mission.date, mission.time) &&
+                        !isAssigned;
+                      return (
+                        <div
+                          key={mission.id}
+                          className="p-4 border rounded-xl bg-[#F9F5EF] shadow flex flex-col md:flex-row items-center md:items-start"
+                        >
+                          <div className="bg-[#F5E8D3] rounded-full p-3 mr-0 md:mr-4 mb-3 md:mb-0 flex-shrink-0">
+                            {getServiceIcon(mission.serviceName)}
+                          </div>
+                          <div className="flex-1 w-full">
+                            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                              <h3 className="font-semibold text-lg text-[#7C5E3C] mb-1">
+                                {mission.serviceName}
+                              </h3>
+                              <div className="text-sm text-[#BFA181] mb-1 md:mb-0">
+                                {mission.time}
+                              </div>
+                            </div>
+                            <div className="text-sm text-gray-600 mb-1">
+                              <span className="font-medium">Customer:</span>{" "}
+                              <span>
+                                {mission.userName
+                                  ? mission.userName
+                                  : mission.userId
+                                  ? mission.userId
+                                  : "N/A"}
+                              </span>
+                            </div>
+                            {mission.address && (
+                              <div className="text-sm text-gray-500 mb-1">
+                                <span className="font-medium">Address:</span>{" "}
+                                {mission.address}
+                              </div>
+                            )}
+                            {mission.notes && (
+                              <div className="text-sm text-gray-400 mb-1">
+                                <span className="font-medium">Notes:</span>{" "}
+                                {mission.notes}
+                              </div>
+                            )}
+                            <div className="flex flex-wrap gap-3 mt-2">
+                              {isPending ? (
+                                <button
+                                  onClick={() => acceptMission(mission)}
+                                  className={`px-4 py-1.5 rounded-full font-semibold transition ${
+                                    accepting === mission.id ||
+                                    alreadyAssignedForSlot
+                                      ? "bg-[#A68A64] text-white opacity-70 cursor-not-allowed"
+                                      : "bg-[#BFA181] text-white hover:bg-[#A68A64]"
+                                  }`}
+                                  disabled={
+                                    accepting === mission.id ||
+                                    alreadyAssignedForSlot
+                                  }
+                                >
+                                  {accepting === mission.id
+                                    ? "Accepting..."
+                                    : alreadyAssignedForSlot
+                                    ? "Unavailable"
+                                    : "Accept"}
+                                </button>
+                              ) : isAssigned ? (
+                                <>
+                                  <button
+                                    onClick={() => markMissionDone(mission.id)}
+                                    className={`px-4 py-1.5 rounded-full font-semibold transition ${
+                                      marking === mission.id
+                                        ? "bg-[#A68A64] text-white opacity-70 cursor-not-allowed"
+                                        : "bg-[#BFA181] text-white hover:bg-[#A68A64]"
+                                    }`}
+                                    disabled={marking === mission.id}
+                                  >
+                                    {marking === mission.id
+                                      ? "Marking..."
+                                      : "Mark as Done"}
+                                  </button>
+                                  {mission.customerEmail && (
+                                    <a
+                                      href={`mailto:${mission.customerEmail}`}
+                                      className="px-4 py-1.5 rounded-full font-semibold bg-white border border-[#BFA181] text-[#BFA181] hover:bg-[#F5E8D3] transition"
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      Contact Customer
+                                    </a>
+                                  )}
+                                </>
+                              ) : null}
+                            </div>
                           </div>
                         </div>
-                        <div className="text-sm text-gray-600 mb-1">
-                          <span className="font-medium">Customer:</span>{" "}
-                          <span>
-                            {mission.customerName
-                              ? mission.customerName
-                              : mission.userId
-                              ? mission.userId
-                              : "N/A"}
-                          </span>
-                        </div>
-                        {mission.address && (
-                          <div className="text-sm text-gray-500 mb-1">
-                            <span className="font-medium">Address:</span>{" "}
-                            {mission.address}
-                          </div>
-                        )}
-                        {mission.notes && (
-                          <div className="text-sm text-gray-400 mb-1">
-                            <span className="font-medium">Notes:</span>{" "}
-                            {mission.notes}
-                          </div>
-                        )}
-                        <div className="flex flex-wrap gap-3 mt-2">
-                          <button
-                            onClick={() => markMissionDone(mission.id)}
-                            className={`px-4 py-1.5 rounded-full font-semibold transition ${
-                              marking === mission.id
-                                ? "bg-[#A68A64] text-white opacity-70 cursor-not-allowed"
-                                : "bg-[#BFA181] text-white hover:bg-[#A68A64]"
-                            }`}
-                            disabled={marking === mission.id}
-                          >
-                            {marking === mission.id ? "Marking..." : "Mark as Done"}
-                          </button>
-                          {mission.customerEmail && (
-                            <a
-                              href={`mailto:${mission.customerEmail}`}
-                              className="px-4 py-1.5 rounded-full font-semibold bg-white border border-[#BFA181] text-[#BFA181] hover:bg-[#F5E8D3] transition"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              Contact Customer
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                      );
+                    })}
                 </div>
               )}
             </div>

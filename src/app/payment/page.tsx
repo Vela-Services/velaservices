@@ -13,7 +13,7 @@ export default function PaymentPage() {
   const [success, setSuccess] = useState(false);
 
   // Calcul simple du total (ex: 50€ par service)
-  const totalPrice = cart.length * 50;
+  const totalPrice = cart.reduce((acc, item) => acc + item.price, 0);
 
   const [formData, setFormData] = useState({
     cardNumber: "",
@@ -39,7 +39,7 @@ export default function PaymentPage() {
     // Simule un délai de paiement
     setTimeout(async () => {
       try {
-        await createMissionsFromCart(cart, user.uid);
+        await createMissionsFromCart(cart, user.uid, user.displayName || "Anonymous");
         await clearCart();
         setSuccess(true);
       } catch (err) {
@@ -135,10 +135,10 @@ export default function PaymentPage() {
             <h2 className="text-2xl font-semibold mb-2">Payment Successful!</h2>
             <p className="mb-4">Thank you for your purchase.</p>
             <a
-              href="/home"
+              href="/customer/post-payment"
               className="inline-block px-6 py-2 rounded-full bg-[#BFA181] text-white font-semibold hover:bg-[#A68A64] transition"
             >
-              Back to Home
+              Next
             </a>
           </div>
         ) : (
@@ -176,7 +176,7 @@ export default function PaymentPage() {
                           {item.date} at {item.time}
                         </div>
                       </div>
-                      <div className="font-semibold text-[#BFA181]">50€</div>
+                      <div className="font-semibold text-[#BFA181]">{item.price}€</div>
                     </li>
                   ))}
                 </ul>

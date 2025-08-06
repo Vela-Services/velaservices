@@ -7,8 +7,8 @@ import { FaTrashAlt, FaCalendarAlt, FaClock } from "react-icons/fa";
 export default function CartPage() {
   const { cart, removeFromCart, clearCart } = useCart();
 
-  // Calculate total price (assuming 50€ per service)
-  const totalPrice = cart.length * 50;
+  const totalPrice = cart.reduce((acc, item) => acc + item.price, 0);
+  console.log(cart);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F5E8D3] to-[#fcf5eb] flex flex-col items-center py-12 px-2">
@@ -53,10 +53,10 @@ export default function CartPage() {
             <h2 className="text-2xl font-semibold mb-2 text-[#7C5E3C]">Your cart is empty</h2>
             <p className="mb-4 text-[#7C5E3C]/80">Add services to your cart before proceeding to payment.</p>
             <Link
-              href="/home"
+              href="/customer/services"
               className="mt-2 px-6 py-2 rounded-full bg-[#BFA181] text-white font-semibold hover:bg-[#A68A64] transition"
             >
-              Back to Home
+              Back to the services
             </Link>
           </div>
         ) : (
@@ -98,7 +98,7 @@ export default function CartPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="font-semibold text-[#BFA181] text-lg">50€</span>
+                      <span className="font-semibold text-[#BFA181] text-lg">{item.price}€</span>
                       <button
                         onClick={() => removeFromCart(item.id)}
                         className="p-2 rounded-full hover:bg-red-100 transition"

@@ -7,10 +7,10 @@ import { auth, db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 
 const services = [
-  { id: "cleaning", name: "Cleaning" },
-  { id: "babysitting", name: "Babysitting" },
-  { id: "petsitting", name: "Pet Sitting" },
-  { id: "cooking", name: "Cooking" },
+  { id: "cleaning", name: "Cleaning", price: 50 },
+  { id: "babysitting", name: "Babysitting", price: 40 },
+  { id: "petsitting", name: "Pet Sitting", price: 30 },
+  { id: "cooking", name: "Cooking", price: 40 },
 ];
 
 export default function ServicesPage() {
@@ -52,14 +52,14 @@ export default function ServicesPage() {
   };
 
   // Customer: add to cart
-  const handleAddToCart = (serviceId: string, serviceName: string) => {
+  const handleAddToCart = (serviceId: string, serviceName: string, price: number) => {
     const date = dateByService[serviceId] || "";
     const time = timeByService[serviceId] || "";
     if (!date || !time) {
       alert("Please choose a date and time");
       return;
     }
-    addToCart({ serviceId, serviceName, date, time });
+    addToCart({ serviceId, serviceName, date, time, price });
     alert("Service added to cart!");
   };
 
@@ -140,7 +140,7 @@ export default function ServicesPage() {
 
                   <button
                     className="mt-4 w-full bg-[#BFA181] text-white py-2 rounded-md hover:bg-[#A68A64] transition"
-                    onClick={() => handleAddToCart(service.id, service.name)}
+                    onClick={() => handleAddToCart(service.id, service.name, service.price)}
                   >
                     Add to Cart
                   </button>

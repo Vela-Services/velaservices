@@ -13,8 +13,6 @@ import {
   updateDoc,
 } from "firebase/firestore";
 
-
-
 export default function PostPaymentPage() {
   const [missions, setMissions] = useState<DocumentData[]>([]);
   const [providersByMission, setProvidersByMission] = useState<{
@@ -49,10 +47,12 @@ export default function PostPaymentPage() {
             where("status", "==", "pending")
           )
         );
-        const missionsData: DocumentData[] = missionsSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as DocumentData[];
+        const missionsData: DocumentData[] = missionsSnapshot.docs.map(
+          (doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })
+        ) as DocumentData[];
         setMissions(missionsData);
 
         // Step 2: Fetch providers
@@ -68,13 +68,20 @@ export default function PostPaymentPage() {
         const result: { [missionId: string]: DocumentData[] } = {};
 
         for (const mission of missionsData) {
+          const missionDate = new Date(`${mission.date}T00:00:00`);
+          const weekday = missionDate.toLocaleDateString("en-US", {
+            weekday: "long",
+          });
+
           const compatibleProviders = allProviders.filter((provider) => {
             const matchesService = provider.services?.includes(
               mission.serviceName
             );
-            const matchesAvailability =
-              provider.availability?.date === mission.date &&
-              provider.availability?.times?.includes(mission.time);
+
+            const matchesAvailability = provider.availability?.some(
+              (slot: { day: string; times: string[] }) =>
+                slot.day === weekday && slot.times?.includes(mission.time)
+            );
 
             return matchesService && matchesAvailability;
           });
@@ -95,7 +102,10 @@ export default function PostPaymentPage() {
     return () => unsubscribe();
   }, []);
 
-  async function assignProviderToMission(missionId: string, providerId: string) {
+  async function assignProviderToMission(
+    missionId: string,
+    providerId: string
+  ) {
     setAssigning(missionId + providerId);
     setSuccessMsg(null);
     setErrorMsg(null);
@@ -133,7 +143,14 @@ export default function PostPaymentPage() {
                 strokeLinejoin="round"
                 d="M12 6v6l4 2"
               />
-              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="2"
+                fill="none"
+              />
             </svg>
           </div>
           <h1 className="text-3xl font-bold text-[#7C5E3C] mb-2">
