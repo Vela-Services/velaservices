@@ -32,25 +32,24 @@ export default function ServicesPage() {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
-        // Fetch user profile from Firestore
         const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
         if (userDoc.exists()) {
-          setProfile(userDoc.data() as UserProfile);
-        } else {
-          setProfile(null);
-        }
-
-        // Fetch provider's services from "providers" collection
-        if (userDoc.exists() && userDoc.data().role === "provider") {
-          const providerRef = doc(db, "users", firebaseUser.uid);
-          const providerSnap = await getDoc(providerRef);
-          if (providerSnap.exists()) {
-            const data = providerSnap.data();
-            setProviderServices(data.services || []);
+          const data = userDoc.data();
+          setProfile(data as UserProfile);
+          if (data.role === "provider") {
+            // Ensure services is an array of strings
+            const loadedServices = Array.isArray(data.services)
+              ? data.services.filter((s: unknown): s is string => typeof s === "string")
+              : [];
+            console.log("loadedServices:", loadedServices); // Debug
+            setProviderServices(loadedServices);
             setAvailability(data.availability || []);
           } else {
             setProviderServices([]);
           }
+        } else {
+          setProfile(null);
+          setProviderServices([]);
         }
       } else {
         setProfile(null);
@@ -162,23 +161,23 @@ export default function ServicesPage() {
                   <label
                     key={service.id}
                     className={`flex items-center gap-3 text-base text-[#7C5E3C] font-medium px-4 py-3 rounded-lg border transition
-                      ${
-                        providerServices.includes(service.name)
-                          ? "bg-[#F5E8D3] border-[#BFA181] shadow"
-                          : "bg-white border-gray-200"
-                      }
-                      hover:border-[#BFA181] cursor-pointer
-                    `}
+        ${
+          providerServices.includes(service.id)
+            ? "bg-[#F5E8D3] border-[#BFA181] shadow"
+            : "bg-white border-gray-200"
+        }
+        hover:border-[#BFA181] cursor-pointer
+      `}
                   >
                     <input
                       type="checkbox"
-                      checked={providerServices.includes(service.name)}
-                      onChange={() => handleProviderServiceToggle(service.name)}
+                      checked={providerServices.includes(service.id)}
+                      onChange={() => handleProviderServiceToggle(service.id)} // Use service.id
                       className="accent-[#BFA181] w-5 h-5"
                     />
                     <span className="flex items-center gap-2">
                       {service.name}
-                      {providerServices.includes(service.name) && (
+                      {providerServices.includes(service.id) && (
                         <FaCheckCircle className="text-green-500 ml-1" />
                       )}
                     </span>
@@ -195,9 +194,23 @@ export default function ServicesPage() {
             >
               {saving ? (
                 <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                  <svg
+                    className="animate-spin h-5 w-5 text-white"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    ></path>
                   </svg>
                   Saving...
                 </span>
@@ -232,7 +245,9 @@ export default function ServicesPage() {
             ) : (
               <ul className="flex flex-wrap gap-2">
                 {providerServices.map((sid) => {
-                  const s = services.find((s) => s.id === sid || s.name === sid);
+                  const s = services.find(
+                    (s) => s.id === sid || s.name === sid
+                  );
                   return (
                     <li
                       key={sid}
@@ -251,9 +266,28 @@ export default function ServicesPage() {
         <div className="mt-12 bg-white rounded-2xl shadow-xl p-8">
           <h2 className="text-2xl font-bold text-[#7C5E3C] mb-4 flex items-center gap-2">
             <span className="inline-block w-7 h-7 bg-[#BFA181] rounded-full flex items-center justify-center text-white">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                <rect x="3" y="4" width="18" height="18" rx="4" stroke="currentColor" strokeWidth={2} />
-                <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth={2} strokeLinecap="round" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <rect
+                  x="3"
+                  y="4"
+                  width="18"
+                  height="18"
+                  rx="4"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                />
+                <path
+                  d="M16 2v4M8 2v4M3 10h18"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                />
               </svg>
             </span>
             Set Your Weekly Availability
