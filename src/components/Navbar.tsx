@@ -94,34 +94,36 @@ const Navbar: React.FC = () => {
 
   const authButtons = user ? (
     <div className="flex flex-col md:flex-row gap-3">
-      <button
-        onClick={() => {
-          setMenuOpen(false);
-          router.push("/cart");
-        }}
-        className="relative px-4 py-2 rounded-full text-[#7C5E3C] font-semibold hover:text-black hover:cursor-pointer transition"
-        style={{ overflow: "visible" }}
-        aria-label="Cart"
-      >
-        <span className="relative inline-block">
-          <FaShoppingCart className="text-3xl" />
-          {cart.length > 0 && (
-            <span
-              className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full shadow-md border-2 border-white"
-              style={{
-                minWidth: "1.25rem",
-                minHeight: "1.25rem",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                pointerEvents: "none",
-              }}
-            >
-              {cart.length}
-            </span>
-          )}
-        </span>
-      </button>
+      {user && profile && profile.role === "customer" && (
+        <button
+          onClick={() => {
+            setMenuOpen(false);
+            router.push("/cart");
+          }}
+          className="relative px-4 py-2 rounded-full text-[#7C5E3C] font-semibold hover:text-black hover:cursor-pointer transition"
+          style={{ overflow: "visible" }}
+          aria-label="Cart"
+        >
+          <span className="relative inline-block">
+            <FaShoppingCart className="text-3xl" />
+            {cart.length > 0 && (
+              <span
+                className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full shadow-md border-2 border-white"
+                style={{
+                  minWidth: "1.25rem",
+                  minHeight: "1.25rem",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  pointerEvents: "none",
+                }}
+              >
+                {cart.length}
+              </span>
+            )}
+          </span>
+        </button>
+      )}
       <button
         onClick={() => {
           setMenuOpen(false);

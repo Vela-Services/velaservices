@@ -12,6 +12,7 @@ export default function SignupPage() {
   const router = useRouter();
   const [role, setRole] = useState<"customer" | "provider">("customer");
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [why, setWhy] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -44,17 +45,24 @@ export default function SignupPage() {
 
       // Met à jour le profil avec le rôle
       await updateProfile(userCredential.user, {
-        displayName: role,
+        displayName: name,
       });
 
       // Enregistre dans Firestore
       await setDoc(doc(db, "users", userCredential.user.uid), {
         uid: userCredential.user.uid,
+        displayName: name,
         email,
         role,
         ...(role === "provider" ? { why } : {}),
         createdAt: new Date().toISOString(),
       });
+
+
+      if (!role) throw new Error("User role not found");
+
+      // 🍪 Stocker le rôle dans un cookie lisible côté middleware
+      document.cookie = `role=${role}; path=/; max-age=604800`; // 1 semaine
 
       if (role === "customer") {
         router.push("/customer/services");
@@ -104,6 +112,20 @@ export default function SignupPage() {
 
         {/* Signup Form */}
         <form onSubmit={handleSignup} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-[#7C5E3C]">
+              Name
+            </label>
+            <input
+              type="name"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="mt-1 w-full border rounded-md px-3 py-2 text-sm text-[#7C5E3C] focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
+              autoComplete="name"
+              disabled={loading}
+            />
+          </div>
           <div>
             <label className="block text-sm font-medium text-[#7C5E3C]">
               Email

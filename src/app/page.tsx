@@ -88,6 +88,24 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section className="py-16 px-6 bg-[#F9F5EF] flex justify-center">
+        <div className="max-w-4xl w-full rounded-2xl overflow-hidden shadow-lg">
+          {/* ✅ wrapper avec ratio vidéo */}
+          <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute top-0 left-0 w-full h-full object-cover"
+            >
+              <source src="/Vela_Header_Video.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        </div>
+      </section>
+
       {/* Services Section */}
       <section className="py-10 px-6 flex-1 bg-gradient-to-b from-[#F9F5EF] to-[#F5E8D3]">
         <div className="max-w-6xl mx-auto">
@@ -95,6 +113,7 @@ export default function LandingPage() {
             Véla connects you with reliable, home-based services at your
             fingertips.
           </h2>
+
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-10">
             {[
               {

@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { onAuthStateChanged, User, UserProfile } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, getDocs } from "firebase/firestore";
 import { FaCheckCircle } from "react-icons/fa";
 import Link from "next/link";
 
@@ -11,59 +11,123 @@ import AvailabilitySelector, {
   Availability,
 } from "@/components/AvailabilitySelector";
 
-const services = [
-  { id: "cleaning", name: "Cleaning" },
-  { id: "babysitting", name: "Babysitting" },
-  { id: "petsitting", name: "Pet Sitting" },
-  { id: "cooking", name: "Cooking" },
-];
+import { Service, SubService, ProviderService } from "@/types/types";
 
 export default function ServicesPage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [providerServices, setProviderServices] = useState<string[]>([]);
+  const [providerServices, setProviderServices] = useState<ProviderService[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
   const [availability, setAvailability] = useState<Availability[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
 
-  // Fetch user and provider's services from Firestore
+  // Fetch services
   useEffect(() => {
+    let isMounted = true;
+    async function fetchServices() {
+      try {
+        const servicesCol = collection(db, "services");
+        const servicesSnap = await getDocs(servicesCol);
+
+        const servicesArr: Service[] = [];
+
+        for (const docSnap of servicesSnap.docs) {
+          const data = docSnap.data();
+
+          // Si subServices est stocké dans le document principal comme array de maps
+          const subServices: SubService[] | undefined = data.subServices?.map(
+            (subData: unknown) => {
+              const s = subData as {
+                id: string;
+                name: string;
+                price: number;
+                baseDuration: number;
+              };
+              return {
+                id: s.id,
+                name: s.name,
+                price: s.price,
+                baseDuration: s.baseDuration,
+              };
+            }
+          );
+
+          servicesArr.push({
+            id: docSnap.id,
+            name: data.name,
+            subServices: subServices?.length ? subServices : undefined,
+          });
+        }
+
+        console.log("✅ Services fetched from Firestore:", servicesArr);
+
+        if (isMounted) setServices(servicesArr);
+      } catch (err) {
+        console.error("❌ Failed to fetch services from Firestore", err);
+      }
+    }
+    fetchServices();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Fetch user + provider
+  useEffect(() => {
+    let isMounted = true;
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!isMounted) return;
       setUser(firebaseUser);
-      if (firebaseUser) {
+
+      if (!firebaseUser) {
+        setProfile(null);
+        setProviderServices([]);
+        setLoading(false);
+        return;
+      }
+
+      try {
         const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          setProfile(data as UserProfile);
-          if (data.role === "provider") {
-            // Ensure services is an array of strings
-            const loadedServices = Array.isArray(data.services)
-              ? data.services.filter((s: unknown): s is string => typeof s === "string")
-              : [];
-            console.log("loadedServices:", loadedServices); // Debug
-            setProviderServices(loadedServices);
-            setAvailability(data.availability || []);
-          } else {
-            setProviderServices([]);
-          }
-        } else {
+        if (!userDoc.exists()) {
           setProfile(null);
           setProviderServices([]);
+          setLoading(false);
+          return;
         }
-      } else {
+
+        const data = userDoc.data();
+        setProfile(data as UserProfile);
+
+        if (data.role === "provider" && Array.isArray(data.services)) {
+          // data.services contains provider's selected services
+          setProviderServices(data.services);
+          setAvailability(data.availability || []);
+        } else {
+          setProviderServices([]);
+        }
+      } catch (error) {
+        console.error("❌ Error loading provider services:", error);
         setProfile(null);
         setProviderServices([]);
       }
+
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, []);
 
+  // Save availability to Firestore (debounced)
   useEffect(() => {
     if (!user) return;
-
+    if (loading) return;
     const timeoutId = setTimeout(async () => {
       try {
         const userRef = doc(db, "users", user.uid);
@@ -73,23 +137,98 @@ export default function ServicesPage() {
         console.error("Failed to save availability", err);
         setSaveMsg("Failed to save availability.");
       }
-    }, 1000); // 1 seconde après la dernière modification
+    }, 1000);
 
     return () => clearTimeout(timeoutId);
-  }, [availability, user]);
+  }, [availability, user, loading]);
 
-  // Provider: toggle service selection
-  const handleProviderServiceToggle = (serviceId: string) => {
-    setProviderServices((prev) =>
-      prev.includes(serviceId)
-        ? prev.filter((id) => id !== serviceId)
-        : [...prev, serviceId]
-    );
+  const handleProviderServiceToggle = async (serviceId: string) => {
+    if (!user) return;
+    setSaving(true);
     setSaveMsg(null);
+
+    // Construire directement la nouvelle liste
+    let updatedServices: ProviderService[];
+    const exists = providerServices.some((s) => s.serviceId === serviceId);
+
+    if (exists) {
+      updatedServices = providerServices.filter(
+        (s) => s.serviceId !== serviceId
+      );
+    } else {
+      const service = services.find((s) => s.id === serviceId);
+      updatedServices = [
+        ...providerServices,
+        {
+          serviceId: service!.id,
+          subServices: service?.subServices || [],
+        },
+      ];
+    }
+
+    console.log(updatedServices, "updatedServices");
+
+    // Mettre à jour l'état local
+    setProviderServices(updatedServices);
+
+    // Puis Firestore
+    try {
+      const userRef = doc(db, "users", user.uid);
+      console.log(
+        "Saving to Firestore:",
+        JSON.stringify(updatedServices, null, 2)
+      );
+
+      await setDoc(userRef, { services: updatedServices }, { merge: true });
+      setSaveMsg("Services updated!");
+    } catch (err) {
+      console.error("Failed to update services.", err);
+      setSaveMsg("Failed to update services.");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // Provider: save selected services to Firestore
-  const handleSaveProviderServices = async () => {
+  const handleSubServiceToggle = (serviceId: string, subServiceId: string) => {
+    // Find the subService object from the main services list
+    const service = services.find((s) => s.id === serviceId);
+    const subService = service?.subServices?.find((s) => s.id === subServiceId);
+    if (!subService) return;
+
+    setProviderServices((prev) =>
+      prev.map((ps) => {
+        if (ps.serviceId !== serviceId) return ps;
+        const exists = ps.subServices?.some((s) => s.id === subServiceId);
+        return {
+          ...ps,
+          subServices: exists
+            ? ps.subServices!.filter((s) => s.id !== subServiceId)
+            : [...(ps.subServices || []), subService],
+        };
+      })
+    );
+  };
+
+  const handleSubServicePriceChange = (
+    serviceId: string,
+    subId: string,
+    price: number
+  ) => {
+    setProviderServices((prev) =>
+      prev.map((ps) => {
+        if (ps.serviceId !== serviceId) return ps;
+        return {
+          ...ps,
+          subServices: ps.subServices!.map((s) =>
+            s.id === subId ? { ...s, price } : s
+          ),
+        };
+      })
+    );
+  };
+
+  // Save to Firestore
+  const handleSaveProviderServices = useCallback(async () => {
     if (!user) return;
     setSaving(true);
     setSaveMsg(null);
@@ -103,17 +242,16 @@ export default function ServicesPage() {
         },
         { merge: true }
       );
-
-      setSaveMsg("Services and availability updated successfully!");
+      setSaveMsg("Services, prices, and availability updated successfully!");
     } catch (err) {
       console.error("Failed to update services and availability.", err);
       setSaveMsg("Failed to update services and availability.");
     } finally {
       setSaving(false);
     }
-  };
+  }, [user, providerServices, availability]);
 
-  if (loading) {
+  if (loading || services.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F5E8D3]">
         <span className="text-[#7C5E3C] text-xl font-semibold">Loading...</span>
@@ -141,7 +279,8 @@ export default function ServicesPage() {
             Your Provider Profile
           </h1>
           <p className="text-center text-[#7C5E3C]/70 mb-8 text-lg">
-            Select the services you offer and set your weekly availability.
+            Select the services you offer, set your hourly price, and set your
+            weekly availability.
           </p>
           <form
             onSubmit={(e) => {
@@ -157,32 +296,110 @@ export default function ServicesPage() {
                 Services You Provide
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {services.map((service) => (
-                  <label
-                    key={service.id}
-                    className={`flex items-center gap-3 text-base text-[#7C5E3C] font-medium px-4 py-3 rounded-lg border transition
+                {/* Dynamic Service List */}
+                {services.map((service) => {
+                  const providerService = providerServices.find(
+                    (s) => s.serviceId === service.id
+                  );
+                  const serviceSelected = !!providerService;
+
+                  return (
+                    <div
+                      key={service.id}
+                      className={`flex flex-col gap-2 text-[#7C5E3C] font-medium px-4 py-3 rounded-lg border transition
         ${
-          providerServices.includes(service.id)
+          serviceSelected
             ? "bg-[#F5E8D3] border-[#BFA181] shadow"
             : "bg-white border-gray-200"
         }
-        hover:border-[#BFA181] cursor-pointer
       `}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={providerServices.includes(service.id)}
-                      onChange={() => handleProviderServiceToggle(service.id)} // Use service.id
-                      className="accent-[#BFA181] w-5 h-5"
-                    />
-                    <span className="flex items-center gap-2">
-                      {service.name}
-                      {providerServices.includes(service.id) && (
-                        <FaCheckCircle className="text-green-500 ml-1" />
+                    >
+                      {/* Main service checkbox */}
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={serviceSelected}
+                          onChange={() =>
+                            handleProviderServiceToggle(service.id)
+                          }
+                          className="accent-[#BFA181] w-5 h-5"
+                          id={`service-checkbox-${service.id}`}
+                        />
+                        <label
+                          htmlFor={`service-checkbox-${service.id}`}
+                          className="cursor-pointer flex items-center gap-2"
+                        >
+                          {service.name}
+                          {serviceSelected && (
+                            <FaCheckCircle className="text-green-500 ml-1" />
+                          )}
+                        </label>
+                      </div>
+
+                      {/* Subservices */}
+                      {serviceSelected && service.subServices && (
+                        <div className="ml-6 mt-2 flex flex-col gap-2">
+                          {service.subServices.map((sub) => {
+                            const subSelected =
+                              providerService?.subServices?.some(
+                                (ss) => ss.id === sub.id
+                              );
+                            return (
+                              <div
+                                key={sub.id}
+                                className="flex items-center gap-2"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={!!subSelected}
+                                  onChange={() =>
+                                    handleSubServiceToggle(service.id, sub.id)
+                                  }
+                                  className="accent-[#BFA181] w-4 h-4"
+                                  id={`subservice-${sub.id}`}
+                                />
+                                <label
+                                  htmlFor={`subservice-${sub.id}`}
+                                  className="cursor-pointer text-[#7C5E3C]"
+                                >
+                                  {sub.name}
+                                </label>
+
+                                {/* Optional price */}
+                                {subSelected && (
+                                  <div className="flex items-center gap-1 ml-auto">
+                                    <input
+                                      type="number"
+                                      min={1}
+                                      value={
+                                        providerService?.subServices?.find(
+                                          (ss) => ss.id === sub.id
+                                        )?.price ??
+                                        sub.price ??
+                                        20
+                                      }
+                                      onChange={(e) =>
+                                        handleSubServicePriceChange(
+                                          service.id,
+                                          sub.id,
+                                          Number(e.target.value)
+                                        )
+                                      }
+                                      className="w-20 px-2 py-1 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
+                                    />
+                                    <span className="text-[#BFA181] font-bold">
+                                      €/h
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
                       )}
-                    </span>
-                  </label>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
             </div>
             <button
@@ -221,7 +438,7 @@ export default function ServicesPage() {
             {saveMsg && (
               <div
                 className={`mt-4 text-center font-medium transition ${
-                  saveMsg.includes("success")
+                  saveMsg.includes("success") || saveMsg.includes("updated")
                     ? "text-green-700"
                     : "text-red-700"
                 }`}
@@ -244,19 +461,32 @@ export default function ServicesPage() {
               </div>
             ) : (
               <ul className="flex flex-wrap gap-2">
-                {providerServices.map((sid) => {
-                  const s = services.find(
-                    (s) => s.id === sid || s.name === sid
-                  );
-                  return (
-                    <li
-                      key={sid}
-                      className="bg-[#BFA181] text-white px-3 py-1 rounded-full text-sm flex items-center gap-1 shadow"
-                    >
-                      {s?.name || sid}
-                      <FaCheckCircle className="ml-1 text-white" />
-                    </li>
-                  );
+                {providerServices?.map((svc) => {
+                  console.log("Provider Service:", svc);
+                  console.log("Pro:", providerServices);
+
+                  {
+                    return (
+                      <li
+                        key={svc.serviceId}
+                        className="bg-[#BFA181] text-white px-3 py-1 rounded-full text-sm flex items-center gap-2 shadow"
+                      >
+                        {services.find((s) => s.id === svc.serviceId)?.name ||
+                          "Unknown Service"}
+                        
+                        {svc.subServices?.some((sub) => sub.price) && (
+
+                          <span className="text-xs text-white bg-[#7C5E3C] rounded px-2 py-0.5 ml-1">
+                            {svc.subServices
+                              .filter((sub) => sub.price)
+                              .map((sub) => `${sub.price} €/h`)
+                              .join(", ")}
+                          </span>
+                        )}
+                        <FaCheckCircle className="ml-1 text-white" />
+                      </li>
+                    );
+                  }
                 })}
               </ul>
             )}

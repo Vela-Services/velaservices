@@ -1,16 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCart } from "../../lib/CartContext";
 
 import { createMissionsFromCart } from "../../lib/createMission";
 import { useAuth } from "../../lib/useAuth"; // ou autre selon ton système d'auth
+import { UserProfile } from "@/types/types";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
+import { onAuthStateChanged, User } from "firebase/auth";
 
 export default function PaymentPage() {
   const { user } = useAuth();
   const { cart, clearCart } = useCart();
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [, setUser] = useState<User | null>(null);
+  const [, setLoading] = useState(true);
+
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser);
+      if (firebaseUser) {
+        // Fetch user profile from Firestore
+        const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+        if (userDoc.exists()) {
+          setProfile(userDoc.data() as UserProfile);
+        } else {
+          setProfile(null);
+        }
+      } else {
+        setProfile(null);
+      }
+      setLoading(false); 
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+
 
   // Calcul simple du total (ex: 50€ par service)
   const totalPrice = cart.reduce((acc, item) => acc + item.price, 0);
@@ -21,6 +51,8 @@ export default function PaymentPage() {
     cvc: "",
     name: "",
   });
+
+  console.log(profile,"yusere")
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -35,11 +67,12 @@ export default function PaymentPage() {
     }
 
     setProcessing(true);
+    
 
     // Simule un délai de paiement
     setTimeout(async () => {
       try {
-        await createMissionsFromCart(cart, user.uid, user.displayName || "Anonymous");
+        await createMissionsFromCart(cart, user.uid, profile?.displayName ?? "", profile?.address ?? "", profile?.phone || "Anonymous");
         await clearCart();
         setSuccess(true);
       } catch (err) {
@@ -135,7 +168,7 @@ export default function PaymentPage() {
             <h2 className="text-2xl font-semibold mb-2">Payment Successful!</h2>
             <p className="mb-4">Thank you for your purchase.</p>
             <a
-              href="/customer/post-payment"
+              href="/customer/orders"
               className="inline-block px-6 py-2 rounded-full bg-[#BFA181] text-white font-semibold hover:bg-[#A68A64] transition"
             >
               Next
@@ -173,7 +206,7 @@ export default function PaymentPage() {
                           {item.serviceName}
                         </div>
                         <div className="text-sm text-gray-400">
-                          {item.date} at {item.time}
+                          {item.date} at {item.times}
                         </div>
                       </div>
                       <div className="font-semibold text-[#BFA181]">{item.price}€</div>

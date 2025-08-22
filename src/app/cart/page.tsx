@@ -93,7 +93,7 @@ export default function CartPage() {
                         </span>
                         <span className="flex items-center gap-1">
                           <FaClock className="inline-block mr-1" />
-                          {item.time}
+                          {item.times}
                         </span>
                       </div>
                     </div>

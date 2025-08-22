@@ -234,7 +234,9 @@ export default function DashboardProviderPage() {
   });
 
   // --- New: Completed missions state ---
-  const [completedMissions, setCompletedMissions] = useState<DocumentData[]>([]);
+  const [completedMissions, setCompletedMissions] = useState<DocumentData[]>(
+    []
+  );
   const [completedLoading, setCompletedLoading] = useState(true);
 
   // Fetch missions: both pending (status: "pending", providerId: current user) and assigned (status: "assigned", providerId: current user)
@@ -285,7 +287,7 @@ export default function DashboardProviderPage() {
       } catch (error) {
         console.error("Failed to fetch completed missions.", error);
         setErrorMsg("Failed to fetch completed missions.");
-            } finally {
+      } finally {
         setCompletedLoading(false);
       }
     };
@@ -585,7 +587,9 @@ export default function DashboardProviderPage() {
                 <span className="text-[#7C5E3C] text-lg">Loading...</span>
               </div>
             ) : (
-              <CompletedMissionsBarChart completedMissions={completedMissions} />
+              <CompletedMissionsBarChart
+                completedMissions={completedMissions}
+              />
             )}
             {/* Earnings summary */}
             {!completedLoading && (
@@ -733,7 +737,11 @@ export default function DashboardProviderPage() {
               ) : (
                 <div className="space-y-6">
                   {missionsForSelectedDate
-                    .sort((a, b) => (a.time || "").localeCompare(b.time || ""))
+                    .sort((a, b) => {
+                      const timeA = typeof a.time === "string" ? a.time : "";
+                      const timeB = typeof b.time === "string" ? b.time : "";
+                      return timeA.localeCompare(timeB);
+                    })
                     .map((mission) => {
                       // If mission is pending, show accept button (if not already assigned for this date/time)
                       const isPending = mission.status === "pending";
@@ -759,7 +767,7 @@ export default function DashboardProviderPage() {
                               </div>
                             </div>
                             <div className="text-sm text-gray-600 mb-1">
-                              <span className="font-medium">Customer:</span>{" "}
+                              <span className="font-medium">Name:</span>{" "}
                               <span>
                                 {mission.userName
                                   ? mission.userName
@@ -768,12 +776,21 @@ export default function DashboardProviderPage() {
                                   : "N/A"}
                               </span>
                             </div>
-                            {mission.address && (
-                              <div className="text-sm text-gray-500 mb-1">
-                                <span className="font-medium">Address:</span>{" "}
-                                {mission.address}
-                              </div>
-                            )}
+                            <div className="text-sm text-gray-500 mb-1">
+                              <span className="font-medium">Phone number:</span>{" "}
+                              {mission.userPhone}
+                            </div>
+                            <div className="text-sm text-gray-600 mb-1">
+                              <span className="font-medium">
+                                Time(s): {mission.times}h
+                              </span>
+                            </div>
+
+                            <div className="text-sm text-gray-500 mb-1">
+                              <span className="font-medium">Address:</span>{" "}
+                              {mission.userAddress}
+                            </div>
+
                             {mission.notes && (
                               <div className="text-sm text-gray-400 mb-1">
                                 <span className="font-medium">Notes:</span>{" "}
