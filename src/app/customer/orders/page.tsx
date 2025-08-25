@@ -62,7 +62,7 @@ export default function OrdersPage() {
 
   // Helper to get a display time
   function getOrderTime(order: DocumentData) {
-    return order.time || order.missionTime || "";
+    return order.times || order.missionTime || "";
   }
 
   // Helper to get a description/notes
@@ -85,6 +85,10 @@ export default function OrdersPage() {
     return order.providerName || order.providerId || "N/A";
   }
 
+  function getOrderPrice(order: DocumentData) {
+    return order.price ? `${order.price}€` : "N/A";
+  }
+
   return (
     <div className="min-h-screen bg-[#F5E8D3]">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -105,6 +109,7 @@ export default function OrdersPage() {
                     <th className="px-4 py-2 text-left text-xs font-medium text-[#BFA181] uppercase">Date</th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-[#BFA181] uppercase">Time</th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-[#BFA181] uppercase">Provider</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-[#BFA181] uppercase">Price</th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-[#BFA181] uppercase">Status</th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-[#BFA181] uppercase">Notes</th>
                   </tr>
@@ -116,6 +121,7 @@ export default function OrdersPage() {
                       <td className="px-4 py-3 text-gray-700">{getOrderDate(order)}</td>
                       <td className="px-4 py-3 text-gray-700">{getOrderTime(order)}</td>
                       <td className="px-4 py-3 text-gray-700">{getProviderName(order)}</td>
+                      <td className="px-4 py-3 text-gray-700">{getOrderPrice(order)}</td>
                       <td className="px-4 py-3 text-gray-700">{getOrderStatus(order)}</td>
                       <td className="px-4 py-3 text-gray-500">{getOrderDescription(order)}</td>
                     </tr>

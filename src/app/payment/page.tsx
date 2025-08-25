@@ -72,7 +72,7 @@ export default function PaymentPage() {
     // Simule un délai de paiement
     setTimeout(async () => {
       try {
-        await createMissionsFromCart(cart, user.uid, profile?.displayName ?? "", profile?.address ?? "", profile?.phone || "Anonymous");
+        await createMissionsFromCart(cart, user.uid, profile?.displayName ?? "", profile?.address ?? "", profile?.phone ?? "", profile?.email || "Anonymous");
         await clearCart();
         setSuccess(true);
       } catch (err) {

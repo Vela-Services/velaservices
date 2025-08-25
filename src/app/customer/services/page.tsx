@@ -256,6 +256,8 @@ export default function ServicesPage() {
   const handleAddToCart = (
     serviceId: string,
     serviceName: string,
+    providerName: string,
+    providerEmail: string,
     price: number,
     hours: number,
     selectedTimes: string[],
@@ -283,6 +285,8 @@ export default function ServicesPage() {
       price,
       subservices: subserviceHours, // Now an object: { [subserviceId]: hours }
       providerId: selectedProvider?.id ?? "",
+      providerName,
+      providerEmail,
     });
     alert("Service added to cart!");
   };
@@ -761,19 +765,35 @@ export default function ServicesPage() {
                         <legend className="block text-base font-medium text-[#7C5E3C] mb-2">
                           Choose a date
                         </legend>
-                        <select
-                          value={selectedDate}
-                          onChange={handleDateChange}
-                          className="w-full border border-[#E5E7EB] rounded-md px-3 py-2 text-base text-[#7C5E3C] focus:outline-none focus:ring-2 focus:ring-[#BFA181] bg-white"
-                          aria-label="Choose a date"
-                        >
-                          <option value="">Select a date</option>
-                          {availableDates.map((date) => (
-                            <option key={date} value={date}>
-                              {date} ({indexToDayName[new Date(date).getDay()]})
-                            </option>
-                          ))}
-                        </select>
+                        <div className="flex flex-wrap gap-2">
+                          {availableDates.length === 0 ? (
+                            <span className="text-[#BFA181] text-sm" aria-live="polite">
+                              No available dates
+                            </span>
+                          ) : (
+                            availableDates.map((date) => {
+                              const isSelected = selectedDate === date;
+                              return (
+                                <button
+                                  key={date}
+                                  type="button"
+                                  onClick={() => handleDateChange({ target: { value: date } } as React.ChangeEvent<HTMLSelectElement>)}
+                                  className={`px-3 py-2 rounded-lg border text-base font-medium focus:outline-none focus:ring-2 focus:ring-[#BFA181] transition
+                                    ${isSelected
+                                      ? "bg-[#BFA181] text-white border-[#BFA181]"
+                                      : "bg-white text-[#7C5E3C] border-[#BFA181] hover:bg-[#F5F3EE]"
+                                    }
+                                  `}
+                                  aria-pressed={isSelected}
+                                  aria-label={`Select date ${date} (${indexToDayName[new Date(date).getDay()]})`}
+                                >
+                                  <span className="block font-semibold">{indexToDayName[new Date(date).getDay()]}</span>
+                                  <span className="block text-xs">{date}</span>
+                                </button>
+                              );
+                            })
+                          )}
+                        </div>
                       </fieldset>
 
                       <fieldset>
@@ -829,6 +849,8 @@ export default function ServicesPage() {
                             handleAddToCart(
                               service.id,
                               service.name,
+                              selectedProvider.displayName,
+                              selectedProvider.email,
                               totalPrice,
                               1,
                               selectedTimes,

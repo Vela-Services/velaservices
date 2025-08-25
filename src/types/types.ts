@@ -45,6 +45,7 @@ export type UserProfile = {
   address?: string;
   services: string[]; // Pour le customer on peut garder juste les ids de services choisis
   availability: Availability[];
+  email?: string;
 };
 
 export type Provider = {
@@ -68,6 +69,8 @@ export type CartItem = {
   times: string[];
   price: number;
   providerId: string;
+  providerName: string;
+  providerEmail?: string;
   subservices?: Record<string, number>; // subservices avec leur quantité
 };
 
