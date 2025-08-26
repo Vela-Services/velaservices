@@ -96,7 +96,7 @@ export default function Footer() {
           <h3 className="font-semibold text-base mb-2">For Providers</h3>
           <ul className="space-y-1">
             <li>
-              <Link href="/provider/register" className="hover:underline">
+              <Link href="/login" className="hover:underline">
                 Become a Provider
               </Link>
             </li>

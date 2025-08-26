@@ -157,33 +157,47 @@ export default function ProfilePage() {
             <span className="block text-sm font-medium text-[#7C5E3C] mb-1">
               Change Password
             </span>
-            {/* <a
-              href="/reset-password"
+            <a
+              href="profile/password"
               className="text-[#BFA181] hover:underline"
             >
               Reset your password
-            </a> */}
-            <span className="text-[#7C5E3C]">Coming soon</span>
+            </a>
           </li>
-          <li>
+          {/* <li>
             <span className="block text-sm font-medium text-[#7C5E3C] mb-1">
               Notifications
             </span>
-            <span className="text-[#7C5E3C]">Coming soon</span>
-          </li>
+            <a
+              href="/settings/notifications"
+              className="text-[#BFA181] hover:underline"
+            >
+              Manage notification preferences
+            </a>
+          </li> */}
           <li>
             <span className="block text-sm font-medium text-[#7C5E3C] mb-1">
               Privacy
             </span>
-            <span className="text-[#7C5E3C]">Coming soon</span>
+            <a
+              href="/privacy"
+              className="text-[#BFA181] hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View Privacy Policy
+            </a>
           </li>
           <li>
             <span className="block text-sm font-medium text-[#7C5E3C] mb-1">
               Delete Account
             </span>
-            <span className="text-[#7C5E3C]">
-              Contact support to delete your account.
-            </span>
+            <a
+              href="/contact"
+              className="text-[#BFA181] hover:underline"
+            >
+              Contact support to delete your account
+            </a>
           </li>
         </ul>
       </div>
