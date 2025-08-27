@@ -388,7 +388,7 @@ export default function ServicesPage() {
                                       className="w-20 px-2 py-1 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
                                     />
                                     <span className="text-[#BFA181] font-bold">
-                                      €/h
+                                      NOK/h
                                     </span>
                                   </div>
                                 )}
@@ -479,7 +479,7 @@ export default function ServicesPage() {
                           <span className="text-xs text-white bg-[#7C5E3C] rounded px-2 py-0.5 ml-1">
                             {svc.subServices
                               .filter((sub) => sub.price)
-                              .map((sub) => `${sub.price} €/h`)
+                              .map((sub) => `${sub.price} NOK/h`)
                               .join(", ")}
                           </span>
                         )}

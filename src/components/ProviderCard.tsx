@@ -140,7 +140,7 @@ export function ProviderCard({ provider }: { provider: Provider }) {
                           (sub) =>
                             `${sub.name}${
                               typeof sub.price === "number"
-                                ? `: ${sub.price}€/h`
+                                ? `: ${sub.price}NOK/h`
                                 : ""
                             }`
                         )

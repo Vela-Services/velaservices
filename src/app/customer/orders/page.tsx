@@ -86,7 +86,7 @@ export default function OrdersPage() {
   }
 
   function getOrderPrice(order: DocumentData) {
-    return order.price ? `${order.price}€` : "N/A";
+    return order.price ? `${order.price}NOK` : "N/A";
   }
 
   return (

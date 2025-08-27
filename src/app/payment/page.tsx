@@ -1,387 +1,225 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCart } from "../../lib/CartContext";
-
+import { loadStripe } from "@stripe/stripe-js";
+import {
+  Elements,
+  CardElement,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js";
+import { useAuth } from "../../lib/useAuth";
 import { createMissionsFromCart } from "../../lib/createMission";
-import { useAuth } from "../../lib/useAuth"; // ou autre selon ton système d'auth
-import { UserProfile } from "@/types/types";
-import { doc, getDoc } from "firebase/firestore";
+import { CartItem, UserProfile } from "@/types/types";
 import { auth, db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged, User } from "firebase/auth";
+
+// Stripe appearance theme must be a valid literal, not a string
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
+);
 
 export default function PaymentPage() {
   const { user } = useAuth();
   const { cart, clearCart } = useCart();
-  const [processing, setProcessing] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [, setUser] = useState<User | null>(null);
   const [, setLoading] = useState(true);
-
+  const totalPrice = cart.reduce((acc, item) => acc + item.price, 0);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
-        // Fetch user profile from Firestore
         const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-        if (userDoc.exists()) {
-          setProfile(userDoc.data() as UserProfile);
-        } else {
-          setProfile(null);
-        }
+        setProfile(userDoc.exists() ? (userDoc.data() as UserProfile) : null);
       } else {
         setProfile(null);
       }
-      setLoading(false); 
+      setLoading(false);
     });
-
-    return () => unsubscribe();
+    return () => unsub();
   }, []);
 
+  // Fix: theme must be a literal, not a string
+  const options = useMemo(
+    () => ({
+      appearance: { theme: "flat" as const },
+    }),
+    []
+  );
 
-
-  // Calcul simple du total (ex: 50€ par service)
-  const totalPrice = cart.reduce((acc, item) => acc + item.price, 0);
-
-  const [formData, setFormData] = useState({
-    cardNumber: "",
-    expiryDate: "",
-    cvc: "",
-    name: "",
-  });
-
-  console.log(profile,"yusere")
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handlePayment = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!user) {
-      alert("You must be logged in to pay.");
-      return;
-    }
-
-    setProcessing(true);
-    
-
-    // Simule un délai de paiement
-    setTimeout(async () => {
-      try {
-        await createMissionsFromCart(cart, user.uid, profile?.displayName ?? "", profile?.address ?? "", profile?.phone ?? "", profile?.email || "Anonymous");
-        await clearCart();
-        setSuccess(true);
-      } catch (err) {
-        console.error("Failed to create missions", err);
-        alert("Error while creating missions. Please try again.");
-      } finally {
-        setProcessing(false);
-      }
-    }, 2000);
-  };
-
-  if (cart.length === 0 && !success) {
+  if (cart.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col justify-center items-center p-6 bg-gradient-to-br from-[#F5E8D3] to-[#fcf5eb] text-[#7C5E3C]">
-        <div className="bg-white/80 rounded-2xl shadow-lg p-10 flex flex-col items-center">
-          <svg
-            className="w-16 h-16 mb-4 text-[#BFA181]"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.5}
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M3 12l9-7 9 7M4 10v10a1 1 0 001 1h3m10-11v10a1 1 0 01-1 1h-3m-6 0h6"
-            />
-          </svg>
-          <h1 className="text-2xl font-semibold mb-2">Your cart is empty</h1>
-          <p className="mb-2">Add services before proceeding to payment.</p>
-          <a
-            href="/home"
-            className="mt-2 px-6 py-2 rounded-full bg-[#BFA181] text-white font-semibold hover:bg-[#A68A64] transition"
-          >
-            Back to Home
-          </a>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="bg-white rounded-xl p-8 shadow">
+          Your cart is empty.
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F5E8D3] to-[#fcf5eb] flex flex-col items-center justify-center py-10 px-2">
-      <div className="w-full max-w-2xl mx-auto">
-        <div className="flex flex-col items-center mb-8">
-          <div className="bg-[#BFA181] rounded-full p-4 shadow-lg mb-3">
-            <svg
-              className="w-8 h-8 text-white"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              viewBox="0 0 24 24"
-            >
-              <rect
-                x="2"
-                y="7"
-                width="20"
-                height="10"
-                rx="2"
-                stroke="currentColor"
-                strokeWidth={2}
-                fill="none"
-              />
-              <path
-                d="M2 10h20"
-                stroke="currentColor"
-                strokeWidth={2}
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
-          <h1 className="text-4xl font-extrabold text-[#7C5E3C] mb-1 tracking-tight">
-            Payment
-          </h1>
-          <p className="text-[#7C5E3C]/70 text-lg">Secure checkout</p>
+    <div className="min-h-screen bg-gradient-to-br from-[#F5E8D3] to-[#fcf5eb] flex items-center justify-center p-6">
+      <div className="w-full max-w-2xl">
+        <h1 className="text-3xl font-bold text-[#7C5E3C] mb-6">Payment</h1>
+
+        <div className="bg-white rounded-2xl shadow-xl p-8 grid md:grid-cols-2 gap-8">
+          <section>
+            <h2 className="text-xl font-semibold text-[#7C5E3C] mb-4">
+              Order Summary
+            </h2>
+            <ul className="divide-y divide-gray-200 max-h-56 overflow-y-auto mb-4">
+              {cart.map((item, i) => (
+                <li key={i} className="py-3 flex justify-between">
+                  <div>
+                    <div className="font-medium">{item.serviceName}</div>
+                    <div className="text-sm text-gray-500">
+                      {item.date} — {item.times?.join(", ")}
+                    </div>
+                  </div>
+                  <div className="font-semibold text-[#BFA181]">
+                    {item.price}NOK
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <div className="flex justify-between border-t pt-3">
+              <span className="font-semibold text-[#7C5E3C]">Total</span>
+              <span className="font-bold text-[#BFA181]">{totalPrice}NOK</span>
+            </div>
+          </section>
+
+          <section>
+            {/* Fix: Only render Elements if stripePromise is loaded */}
+            {stripePromise && (
+              <Elements stripe={stripePromise} options={options}>
+                <CheckoutForm
+                  cart={cart}
+                  userId={user?.uid ?? ""}
+                  profile={profile}
+                  onSuccess={async (paymentIntentId: string) => {
+                    await createMissionsFromCart(
+                      cart,
+                      user?.uid ?? "",
+                      profile?.displayName ?? "",
+                      profile?.address ?? "",
+                      profile?.phone ?? "",
+                      profile?.email ?? "Anonymous",
+                      paymentIntentId
+                    );
+                    await clearCart();
+                  }}
+                />
+              </Elements>
+            )}
+          </section>
         </div>
-
-        {success ? (
-          <div className="bg-white rounded-2xl shadow-xl p-10 text-center text-[#7C5E3C] flex flex-col items-center animate-fade-in">
-            <svg
-              className="w-16 h-16 mb-4 text-green-500"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-            <h2 className="text-2xl font-semibold mb-2">Payment Successful!</h2>
-            <p className="mb-4">Thank you for your purchase.</p>
-            <a
-              href="/customer/orders"
-              className="inline-block px-6 py-2 rounded-full bg-[#BFA181] text-white font-semibold hover:bg-[#A68A64] transition"
-            >
-              Next
-            </a>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Order Summary */}
-            <section className="bg-white rounded-2xl shadow-xl p-8 flex flex-col justify-between">
-              <div>
-                <h2 className="text-xl font-semibold mb-4 text-[#7C5E3C] flex items-center gap-2">
-                  <svg
-                    className="w-6 h-6 text-[#BFA181]"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zm0 0V4m0 16v-4"
-                    />
-                  </svg>
-                  Order Summary
-                </h2>
-                <ul className="divide-y divide-gray-200 max-h-48 overflow-y-auto mb-4">
-                  {cart.map((item, i) => (
-                    <li
-                      key={i}
-                      className="py-3 flex justify-between items-center text-[#7C5E3C]"
-                    >
-                      <div>
-                        <div className="font-medium text-base">
-                          {item.serviceName}
-                        </div>
-                        <div className="text-sm text-gray-400">
-                          {item.date} at {item.times}
-                        </div>
-                      </div>
-                      <div className="font-semibold text-[#BFA181]">{item.price}€</div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="border-t pt-4 mt-2 flex justify-between items-center">
-                <span className="font-semibold text-[#7C5E3C] text-lg">
-                  Total:
-                </span>
-                <span className="font-bold text-2xl text-[#BFA181]">
-                  {totalPrice}€
-                </span>
-              </div>
-            </section>
-
-            {/* Payment Form */}
-            <form
-              onSubmit={handlePayment}
-              className="bg-white rounded-2xl shadow-xl p-8 space-y-7 text-[#7C5E3C] flex flex-col justify-between"
-              autoComplete="off"
-            >
-              <div>
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <svg
-                    className="w-6 h-6 text-[#BFA181]"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    viewBox="0 0 24 24"
-                  >
-                    <rect
-                      x="2"
-                      y="7"
-                      width="20"
-                      height="10"
-                      rx="2"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      fill="none"
-                    />
-                    <path
-                      d="M2 10h20"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  Payment Details
-                </h2>
-
-                <div className="mb-4">
-                  <label
-                    htmlFor="cardNumber"
-                    className="block mb-1 font-medium"
-                  >
-                    Card Number
-                  </label>
-                  <input
-                    type="text"
-                    id="cardNumber"
-                    name="cardNumber"
-                    placeholder="1234 5678 9012 3456"
-                    maxLength={19}
-                    onChange={handleChange}
-                    value={formData.cardNumber}
-                    required
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#BFA181] transition"
-                    inputMode="numeric"
-                    pattern="[0-9\s]{13,19}"
-                  />
-                </div>
-
-                <div className="flex gap-4 mb-4">
-                  <div className="flex-1">
-                    <label
-                      htmlFor="expiryDate"
-                      className="block mb-1 font-medium"
-                    >
-                      Expiry Date
-                    </label>
-                    <input
-                      type="text"
-                      id="expiryDate"
-                      name="expiryDate"
-                      placeholder="MM/YY"
-                      maxLength={5}
-                      onChange={handleChange}
-                      value={formData.expiryDate}
-                      required
-                      className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#BFA181] transition"
-                      inputMode="numeric"
-                      pattern="(0[1-9]|1[0-2])\/[0-9]{2}"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label htmlFor="cvc" className="block mb-1 font-medium">
-                      CVC
-                    </label>
-                    <input
-                      type="text"
-                      id="cvc"
-                      name="cvc"
-                      placeholder="123"
-                      maxLength={4}
-                      onChange={handleChange}
-                      value={formData.cvc}
-                      required
-                      className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#BFA181] transition"
-                      inputMode="numeric"
-                      pattern="[0-9]{3,4}"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="name" className="block mb-1 font-medium">
-                    Name on Card
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    placeholder="John Doe"
-                    onChange={handleChange}
-                    value={formData.name}
-                    required
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#BFA181] transition"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={processing}
-                className={`w-full py-3 rounded-full font-bold text-lg shadow-md transition 
-                  ${
-                    processing
-                      ? "bg-[#BFA181]/60 text-white cursor-not-allowed"
-                      : "bg-[#BFA181] text-white hover:bg-[#A68A64]"
-                  }`}
-              >
-                {processing ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg
-                      className="animate-spin h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v8z"
-                      ></path>
-                    </svg>
-                    Processing...
-                  </span>
-                ) : (
-                  `Pay ${totalPrice}€`
-                )}
-              </button>
-            </form>
-          </div>
-        )}
       </div>
     </div>
+  );
+}
+
+function CheckoutForm({
+  cart,
+  userId,
+  onSuccess,
+}: {
+  cart: CartItem[];
+  userId: string;
+  profile: UserProfile | null;
+  onSuccess: (paymentIntentId: string) => Promise<void>;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [succeeded, setSucceeded] = useState(false);
+
+  const pay = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+
+    setProcessing(true);
+    setError(null);
+
+    // 1) Crée le PaymentIntent sur le serveur
+    const piRes = await fetch("/api/stripe/create-payment-intent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cart, customerId: userId }),
+    });
+    const { clientSecret, paymentIntentId, error: piErr } = await piRes.json();
+    if (piErr || !clientSecret) {
+      setProcessing(false);
+      setError(piErr || "Failed to start payment.");
+      return;
+    }
+
+    // 2) Confirme le paiement côté client
+    const { error: confirmErr, paymentIntent } =
+      await stripe.confirmCardPayment(clientSecret, {
+        payment_method: { card: elements.getElement(CardElement)! },
+      });
+
+    if (confirmErr || !paymentIntent) {
+      setProcessing(false);
+      setError(confirmErr?.message || "Payment failed.");
+      return;
+    }
+
+    if (paymentIntent.status === "succeeded") {
+      // 3) Crée les missions après succès
+      await onSuccess(paymentIntentId);
+      setSucceeded(true);
+    } else {
+      setError("Payment not completed.");
+    }
+    setProcessing(false);
+  };
+
+  return (
+    <form onSubmit={pay} className="space-y-4">
+      <h2 className="text-xl font-semibold text-[#7C5E3C] mb-2">
+        Payment Details
+      </h2>
+      {/* Fix: Ensure CardElement is always rendered and visible */}
+      <div className="rounded-md border p-3 bg-white">
+        <CardElement
+          options={{
+            hidePostalCode: true,
+            style: {
+              base: {
+                fontSize: "16px",
+                color: "#3B2F1E",
+                "::placeholder": { color: "#BFA181" },
+                fontFamily: "inherit",
+              },
+              invalid: {
+                color: "#e5424d",
+                iconColor: "#e5424d",
+              },
+            },
+          }}
+        />
+      </div>
+      {error && <div className="text-red-600 text-sm">{error}</div>}
+      <button
+        type="submit"
+        disabled={processing || !stripe}
+        className={`w-full py-3 rounded-full font-bold text-lg shadow-md transition ${
+          processing
+            ? "bg-[#BFA181]/60 text-white cursor-not-allowed"
+            : "bg-[#BFA181] text-white hover:bg-[#A68A64]"
+        }`}
+      >
+        {processing ? "Processing..." : "Pay"}
+      </button>
+      {succeeded && (
+        <div className="text-green-600 text-sm mt-2">Payment successful!</div>
+      )}
+    </form>
   );
 }

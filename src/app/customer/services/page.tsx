@@ -684,7 +684,7 @@ export default function ServicesPage() {
                                       </span>
                                       
                                       <span className="text-xs text-[#BFA181] mt-1">
-                                        {subPrice}€/h
+                                        {subPrice}NOK/h
                                       </span>
                                     </div>
                                     <div className="flex items-center gap-2 mt-2 sm:mt-0">
@@ -840,7 +840,7 @@ export default function ServicesPage() {
                           className="text-[#7C5E3C] font-semibold text-lg"
                           aria-live="polite"
                         >
-                          Total: {totalPrice}€
+                          Total: {totalPrice}NOK
                         </span>
                         <button
                           type="button"

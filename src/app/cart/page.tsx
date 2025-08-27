@@ -98,7 +98,7 @@ export default function CartPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="font-semibold text-[#BFA181] text-lg">{item.price}€</span>
+                      <span className="font-semibold text-[#BFA181] text-lg">{item.price}NOK</span>
                       <button
                         onClick={() => removeFromCart(item.id)}
                         className="p-2 rounded-full hover:bg-red-100 transition"
@@ -113,7 +113,7 @@ export default function CartPage() {
               </ul>
               <div className="border-t pt-4 mt-2 flex justify-between items-center">
                 <span className="font-semibold text-[#7C5E3C] text-lg">Total:</span>
-                <span className="font-bold text-2xl text-[#BFA181]">{totalPrice}€</span>
+                <span className="font-bold text-2xl text-[#BFA181]">{totalPrice}NOK</span>
               </div>
               <button
                 onClick={clearCart}

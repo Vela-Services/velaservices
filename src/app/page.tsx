@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "../lib/useAuth";
 
-import { LuCookingPot } from "react-icons/lu";
+// import { LuCookingPot } from "react-icons/lu";
 import {
   MdOutlineCleaningServices,
   MdOutlinePets,
@@ -114,40 +114,40 @@ export default function LandingPage() {
             fingertips.
           </h2>
 
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-10">
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 gap-10 justify-items-center">
             {[
-              {
-                title: "Cooking",
-                desc: "Professional chefs for your home cooking needs.",
-                icon: (
-                  <LuCookingPot className="w-20 h-20 text-[#FDEADB] group-hover:text-[#7C5E3C] transition" />
-                ),
-              },
+              // {
+              //   title: "Cooking",
+              //   desc: "Professional chefs for your home cooking needs.",
+              //   icon: (
+              //     <LuCookingPot className="w-20 h-20 text-[#FDEADB] group-hover:text-[#7C5E3C] transition" />
+              //   ),
+              // },
               {
                 title: "Cleaning",
                 desc: "Professional cleaners for a spotless home.",
                 icon: (
-                  <MdOutlineCleaningServices className="w-20 h-20 text-[#FDEADB] group-hover:text-[#7C5E3C] transition" />
+                  <MdOutlineCleaningServices className="w-15 h-15 text-[#FDEADB] group-hover:text-[#7C5E3C] transition" />
                 ),
               },
               {
                 title: "Petcare",
                 desc: "Qualified and caring pet sitters for your pets.",
                 icon: (
-                  <MdOutlinePets className="w-20 h-20 text-[#FDEADB] group-hover:text-[#7C5E3C] transition" />
+                  <MdOutlinePets className="w-15 h-15 text-[#FDEADB] group-hover:text-[#7C5E3C] transition" />
                 ),
               },
               {
                 title: "Childcare",
                 desc: "Qualified and caring babysitters for your children.",
                 icon: (
-                  <MdChildCare className="w-20 h-20 text-[#FDEADB] group-hover:text-[#7C5E3C] transition" />
+                  <MdChildCare className="w-15 h-15 text-[#FDEADB] group-hover:text-[#7C5E3C] transition" />
                 ),
               },
             ].map((service, i) => (
               <div
                 key={i}
-                className=" aspect-square flex justify-center items-center border border-[#E2CBAA] bg-[#A2754F] rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-200 flex flex-col items-center group hover:-translate-y-1"
+                className="w-80 aspect-square flex justify-center items-center border border-[#E2CBAA] bg-[#A2754F] rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 flex flex-col items-center group hover:-translate-y-1"
               >
                 <div className="mb-4">{service.icon}</div>
                 <h3 className="text-xl font-bold mb-2 text-[#FDEADB] group-hover:text-[#7C5E3C] transition">

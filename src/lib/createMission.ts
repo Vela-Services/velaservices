@@ -8,7 +8,9 @@ export async function createMissionsFromCart(
   displayName: string,
   address: string,
   phone: string,
-  customerEmail: string
+  customerEmail: string,
+  paymentIntentId: string
+
 ) {
   const missionsRef = collection(db, "missions");
 
@@ -33,6 +35,8 @@ export async function createMissionsFromCart(
       providerId: item.providerId,
       providerName: item.providerName,
       subservices: safeSubservices,
+      stripePaymentIntentId: paymentIntentId, // ⬅️ important pour le transfer
+
     });
 
     // Email to provider
