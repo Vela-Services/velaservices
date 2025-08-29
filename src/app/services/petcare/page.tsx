@@ -125,7 +125,7 @@ export default function PetcareServicesPage() {
             What’s Included in Our Petcare Services?
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-            {petcareSubservices.map((sub, idx) => (
+            {petcareSubservices.map((sub) => (
               <div
                 key={sub.title}
                 className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 flex flex-col items-center group hover:-translate-y-1 border border-[#E2CBAA]"
