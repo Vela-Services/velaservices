@@ -22,22 +22,28 @@ export default function LandingPage() {
         <div className="absolute top-0 left-0 w-64 h-64 bg-[#BFA181]/20 rounded-full blur-3xl -z-10" />
         <div className="absolute bottom-0 right-0 w-72 h-72 bg-[#7C5E3C]/10 rounded-full blur-3xl -z-10" />
         {/* Logo Part */}
-        <div className="flex items-center justify-center mb-10">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#BFA181] to-[#7C5E3C] flex items-center justify-center mr-4 shadow-2xl border-4 border-white">
-            {/* Simple Home Icon SVG */}
-            <svg
-              className="w-9 h-9 text-white"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2.5}
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3 12l9-7 9 7M4 10v10a1 1 0 001 1h3m10-11v10a1 1 0 01-1 1h-3m-6 0h6"
-              />
-            </svg>
+        <div className="flex flex-col items-center justify-center mb-10">
+          <div
+            className="w-28 h-28 flex items-center justify-center mr-4 cursor-pointer transition-transform duration-200 hover:scale-105"
+            style={{
+              background: "linear-gradient(135deg,#fcf5eb 60%,rgb(212, 189, 165) 100%)",
+              borderRadius: "50%",
+              boxShadow: "0 4px 16px 0 rgba(191,161,129,0.10)",
+            }}
+          >
+            <img
+              src="/VELA_WHITE_LOGO.svg"
+              alt="Véla Logo"
+              className="drop-shadow-lg"
+              style={{
+                objectFit: "contain",
+                width: "6.5rem", // 104px, bigger than w-24 (96px)
+                height: "6.5rem",
+                maxWidth: "100%",
+                maxHeight: "100%",
+                display: "block",
+              }}
+            />
           </div>
         </div>
         <div className="max-w-3xl mx-auto">

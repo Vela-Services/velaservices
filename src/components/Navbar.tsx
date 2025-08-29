@@ -164,25 +164,27 @@ const Navbar: React.FC = () => {
       <div className="flex items-center">
         <div
           onClick={() => router.push("/")}
-          className="w-10 h-10 rounded-full bg-[#BFA181] flex items-center justify-center mr-2 shadow-lg cursor-pointer"
+          className="w-28 h-28 flex items-center justify-center mr-4 cursor-pointer transition-transform duration-200 hover:scale-105"
+          style={{
+            background: "linear-gradient(135deg, #F5E8D3 60%, #BFA181 100%)",
+            borderRadius: "50%",
+            boxShadow: "0 4px 16px 0 rgba(191,161,129,0.10)",
+          }}
         >
-          <svg
-            className="w-6 h-6 text-white"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M3 12l9-7 9 7M4 10v10a1 1 0 001 1h3m10-11v10a1 1 0 01-1 1h-3m-6 0h6"
-            />
-          </svg>
+          <img
+            src="/VELA_WHITE_LOGO.svg"
+            alt="Véla Logo"
+            className="drop-shadow-lg"
+            style={{
+              objectFit: "contain",
+              width: "6.5rem", // 104px, bigger than w-24 (96px)
+              height: "6.5rem",
+              maxWidth: "100%",
+              maxHeight: "100%",
+              display: "block",
+            }}
+          />
         </div>
-        <span className="text-2xl font-bold text-[#7C5E3C] tracking-tight">
-          Véla
-        </span>
       </div>
       {/* Desktop Navigation Links */}
       <div className="hidden md:flex gap-8">{navLinks}</div>
