@@ -1,0 +1,15 @@
+export const COLORS = {
+    primaryBg: "bg-[#d7d6ca]",
+    primaryBorder: "border-[#366760]/50",
+    headerText: "text-[#366760]",
+    subText: "text-[#366760]",
+    accent: "text-[#618173]",
+    accentBg: "bg-[#366760]/10",
+    accentBorder: "border-[#366760]/30",
+    muted: "text-[#999999]",
+    unavailable: "text-[#CC4B37]",
+    available: "text-[#366760]",
+    availableBg: "bg-[#366760]/10",
+    availableBorder: "border-[#A8D5BA]/30",
+    hoverShadow: "hover:shadow-[#FF6B6B]/20",
+  };
