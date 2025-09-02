@@ -22,6 +22,7 @@ export default function ContactPage() {
     issues: [] as string[],
   });
   const [submitted, setSubmitted] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -43,6 +44,8 @@ export default function ContactPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
+    setErrorMsg(null);
+
     // Send the form data directly to an API endpoint (e.g., /api/contact)
     try {
       const response = await fetch("/api/contact", {
@@ -61,10 +64,10 @@ export default function ContactPage() {
       if (response.ok) {
         setSubmitted(true);
       } else {
-        alert("There was a problem sending your message. Please try again later.");
+        setErrorMsg("There was a problem sending your message. Please try again later.");
       }
-    } catch (error) {
-      alert("There was a problem sending your message. Please try again later.");
+    } catch {
+      setErrorMsg("There was a problem sending your message. Please try again later.");
     }
   }
 
@@ -83,6 +86,11 @@ export default function ContactPage() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
+            {errorMsg && (
+              <div className="text-center text-red-600 font-medium mb-2">
+                {errorMsg}
+              </div>
+            )}
             <div>
               <label htmlFor="name" className="block text-[#A68A64] font-medium mb-1">
                 Name
