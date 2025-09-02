@@ -5,10 +5,12 @@ import {
   onAuthStateChanged,
   User,
   signOut,
+  setPersistence,
+  browserSessionPersistence,
+  browserLocalPersistence,
 } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "../../lib/firebase";
-import { useRouter } from "next/navigation";
 import { UserProfile } from "../../types/types";
 
 import { IoSettingsSharp } from "react-icons/io5";
@@ -26,33 +28,90 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
-  const router = useRouter();
 
+  // Ensure auth persistence is set and handle auth state
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
-      if (firebaseUser) {
-        // Fetch user profile from Firestore
-        const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-        if (userDoc.exists()) {
-          setProfile(userDoc.data() as UserProfile);
-        } else {
-          setProfile(null);
-        }
-      } else {
-        setProfile(null);
-      }
-      setLoading(false);
-    });
+    let unsubscribe: (() => void) | undefined;
 
-    return () => unsubscribe();
+    // Try to set persistence to local (default for most apps)
+    setPersistence(auth, browserLocalPersistence)
+      .catch(() => {
+        // fallback to session if local fails
+        return setPersistence(auth, browserSessionPersistence);
+      })
+      .finally(() => {
+        unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+          setUser(firebaseUser);
+          if (firebaseUser) {
+            // Fetch user profile from Firestore
+            try {
+              const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+              if (userDoc.exists()) {
+                setProfile(userDoc.data() as UserProfile);
+              } else {
+                setProfile(null);
+              }
+            } catch {
+              setProfile(null);
+            }
+          } else {
+            setProfile(null);
+          }
+          setLoading(false);
+        });
+      });
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
+
+  // Helper to clear all local/session storage and cookies for true disconnect
+  const clearAllAuthData = () => {
+    try {
+      // Remove Firebase tokens from localStorage/sessionStorage
+      localStorage.removeItem("firebase:authUser:" + auth.app.options.apiKey + ":" + auth.name);
+      localStorage.removeItem("firebase:authUser:" + auth.app.options.apiKey + ":DEFAULT");
+      localStorage.removeItem("firebase:redirectEvent:" + auth.app.options.apiKey + ":DEFAULT");
+      sessionStorage.removeItem("firebase:authUser:" + auth.app.options.apiKey + ":" + auth.name);
+      sessionStorage.removeItem("firebase:authUser:" + auth.app.options.apiKey + ":DEFAULT");
+      sessionStorage.removeItem("firebase:redirectEvent:" + auth.app.options.apiKey + ":DEFAULT");
+      // Remove all local/session storage keys that start with "firebase:"
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith("firebase:")) localStorage.removeItem(key);
+      });
+      Object.keys(sessionStorage).forEach((key) => {
+        if (key.startsWith("firebase:")) sessionStorage.removeItem(key);
+      });
+      // Remove cookies (if any) related to Firebase Auth
+      if (typeof document !== "undefined") {
+        document.cookie
+          .split(";")
+          .forEach((c) => {
+            if (c.trim().startsWith("__session") || c.trim().startsWith("firebase")) {
+              document.cookie = c
+                .replace(/^ +/, "")
+                .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+            }
+          });
+      }
+    } catch {
+      // ignore errors
+    }
+  };
 
   const handleSignOut = async () => {
     setSigningOut(true);
     try {
+      // Sign out from Firebase Auth
       await signOut(auth);
-      router.push("/login");
+
+      // Clear all local/session storage and cookies related to Firebase Auth
+      clearAllAuthData();
+
+      // Optionally, reload the page to ensure all state is reset
+      // router.push("/login") may not be enough if there are lingering tokens
+      window.location.href = "/login";
     } catch (err: unknown) {
       if (err instanceof Error) {
         console.error(err.message);
@@ -114,10 +173,17 @@ export default function ProfilePage() {
     );
   }
 
-  console.log(profile);
-  console.log(user);
+  // Remove debug logs for production
+  // console.log(profile);
+  // console.log(user);
 
   if (!user) {
+    // If not authenticated, redirect to login after a short delay (for extra safety)
+    if (typeof window !== "undefined") {
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 1000);
+    }
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F5E8D3]">
         <div className="bg-white p-8 rounded-xl shadow-lg text-center">

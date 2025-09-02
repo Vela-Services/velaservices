@@ -3,7 +3,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import "../../lib/firebase"; // Ensure firebase is initialized
 import { db, auth } from "../../lib/firebase";
@@ -36,19 +36,19 @@ export default function SignupPage() {
     try {
       setLoading(true);
 
-      // Crée le compte
+      // Create the account
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
 
-      // Met à jour le profil avec le rôle
+      // Update profile with displayName
       await updateProfile(userCredential.user, {
         displayName: name,
       });
 
-      // Enregistre dans Firestore
+      // Save user in Firestore
       await setDoc(doc(db, "users", userCredential.user.uid), {
         uid: userCredential.user.uid,
         displayName: name,
@@ -58,11 +58,17 @@ export default function SignupPage() {
         createdAt: new Date().toISOString(),
       });
 
-
       if (!role) throw new Error("User role not found");
 
-      // 🍪 Stocker le rôle dans un cookie lisible côté middleware
-      document.cookie = `role=${role}; path=/; max-age=604800`; // 1 semaine
+      // 🍪 Store the role in a cookie readable by middleware
+      document.cookie = `role=${role}; path=/; max-age=604800`; // 1 week
+
+      // Force a re-login to ensure auth state is fresh and cookies/session are set
+      // This helps with SSR/Next.js edge cases where the user is not recognized as logged in
+      await signInWithEmailAndPassword(auth, email, password);
+
+      // Optionally, reload the page to ensure all client state is synced
+      // window.location.reload();
 
       if (role === "customer") {
         router.push("/customer/services");

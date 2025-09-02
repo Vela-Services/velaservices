@@ -10,8 +10,8 @@ import { doc, getDoc } from "firebase/firestore";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState<string>(""); // Fix type error: explicitly type as string
-  const [password, setPassword] = useState<string>(""); // Fix type error: explicitly type as string
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const [role, setRole] = useState<"customer" | "provider">("customer");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -23,6 +23,7 @@ export default function LoginPage() {
     const auth = getAuth();
 
     try {
+      // Sign in the user
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
@@ -30,17 +31,24 @@ export default function LoginPage() {
       );
       const user = userCredential.user;
 
-      // 🔥 Lire Firestore pour récupérer le rôle réel
+      // Get the real role from Firestore
       const userDoc = await getDoc(doc(db, "users", user.uid));
       const userData = userDoc.data();
-      const role = userData?.role;
+      const realRole = userData?.role;
 
-      if (!role) throw new Error("User role not found");
+      if (!realRole) throw new Error("User role not found");
 
-      // 🍪 Stocker le rôle dans un cookie lisible côté middleware
-      document.cookie = `role=${role}; path=/; max-age=604800`; // 1 semaine
+      // 🍪 Store the role in a cookie readable by middleware
+      document.cookie = `role=${realRole}; path=/; max-age=604800`; // 1 week
 
-      if (role === "customer") {
+      // Force a re-login to ensure auth state is fresh and cookies/session are set
+      // This helps with SSR/Next.js edge cases where the user is not recognized as logged in
+      await signInWithEmailAndPassword(auth, email, password);
+
+      // Optionally, reload the page to ensure all client state is synced
+      // window.location.reload();
+
+      if (realRole === "customer") {
         router.push("/customer/services");
       } else {
         router.push("/provider/services");
