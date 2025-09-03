@@ -11,9 +11,15 @@ import {
 
 export function useServiceBooking(provider: Provider, services: Service[]) {
   const [openService, setOpenService] = useState<string | null>(null);
-  const [dateByService, setDateByService] = useState<Record<string, string>>({});
-  const [timesByService, setTimesByService] = useState<Record<string, string[]>>({});
-  const [hoursByService, setHoursByService] = useState<Record<string, number>>({});
+  const [dateByService, setDateByService] = useState<Record<string, string>>(
+    {}
+  );
+  const [timesByService, setTimesByService] = useState<
+    Record<string, string[]>
+  >({});
+  const [hoursByService, setHoursByService] = useState<Record<string, number>>(
+    {}
+  );
   const [subserviceHoursByService, setSubserviceHoursByService] = useState<
     Record<string, Record<string, number>>
   >({});
@@ -45,10 +51,26 @@ export function useServiceBooking(provider: Provider, services: Service[]) {
     setTimesByService((prev) => ({ ...prev, [serviceId]: [] }));
   };
 
-  const handleHoursChange = (serviceId: string, hours: number) => {
-    setHoursByService((prev) => ({ ...prev, [serviceId]: hours }));
-    setTimesByService((prev) => ({ ...prev, [serviceId]: [] }));
-    setDateByService((prev) => ({ ...prev, [serviceId]: "" }));
+  const handleHoursChange = (
+    serviceId: string,
+    subId: string | null,
+    hours: number
+  ) => {
+    if (subId) {
+      // 🎯 Service principal
+      setHoursByService((prev) => ({ ...prev, [serviceId]: hours }));
+      setTimesByService((prev) => ({ ...prev, [serviceId]: [] }));
+      setDateByService((prev) => ({ ...prev, [serviceId]: "" }));
+
+      // 🎯 Sous-service
+      setSubserviceHoursByService((prev) => {
+        const prevForService = prev[serviceId] || {};
+        return {
+          ...prev,
+          [serviceId]: { ...prevForService, [subId]: hours },
+        };
+      });
+    }
   };
 
   const handleTimeSelect = (serviceId: string, startTime: string) => {
@@ -70,21 +92,12 @@ export function useServiceBooking(provider: Provider, services: Service[]) {
     }
   };
 
-  const handleSubserviceHoursChange = (serviceId: string, subId: string, value: number) => {
-    setSubserviceHoursByService((prev) => {
-      const prevForService = prev[serviceId] || {};
-      return {
-        ...prev,
-        [serviceId]: { ...prevForService, [subId]: value },
-      };
-    });
-  };
-
-  const availableDates = (serviceId: string) => {
+  const availableDates = async (serviceId: string) => {
     const today = new Date();
     const availableDayIndices = getProviderAvailableDays(provider);
     const selectedHours = hoursByService[serviceId] || 1;
     const dates: string[] = [];
+
     for (let i = 1; i <= 30; i++) {
       const d = new Date(today);
       d.setDate(today.getDate() + i);
@@ -98,13 +111,18 @@ export function useServiceBooking(provider: Provider, services: Service[]) {
         const filteredTimes = allTimes.filter((t) =>
           isDateTimeAtLeast24hFromNow(dateStr, t)
         );
-        const bookedTimes = getProviderBookedSlots(provider.id, dateStr);
-        const blocks = getConsecutiveAvailableSlots(filteredTimes, bookedTimes, selectedHours);
+        const bookedTimes = await getProviderBookedSlots(provider.id, dateStr);
+        const blocks = getConsecutiveAvailableSlots(
+          filteredTimes,
+          bookedTimes,
+          selectedHours
+        );
         if (blocks.length > 0) {
           dates.push(dateStr);
         }
       }
     }
+
     return dates;
   };
 
@@ -117,7 +135,11 @@ export function useServiceBooking(provider: Provider, services: Service[]) {
       isDateTimeAtLeast24hFromNow(selectedDate, t)
     );
     const bookedTimes = getProviderBookedSlots(provider.id, selectedDate);
-    const consecutiveBlocks = getConsecutiveAvailableSlots(filteredTimes, bookedTimes, selectedHours);
+    const consecutiveBlocks = getConsecutiveAvailableSlots(
+      filteredTimes,
+      bookedTimes,
+      selectedHours
+    );
     return consecutiveBlocks.map((block) => block[0]);
   };
 
@@ -130,11 +152,17 @@ export function useServiceBooking(provider: Provider, services: Service[]) {
       isDateTimeAtLeast24hFromNow(selectedDate, t)
     );
     const bookedTimes = getProviderBookedSlots(provider.id, selectedDate);
-    return getConsecutiveAvailableSlots(filteredTimes, bookedTimes, selectedHours);
+    return getConsecutiveAvailableSlots(
+      filteredTimes,
+      bookedTimes,
+      selectedHours
+    );
   };
 
   const totalPrice = (serviceId: string) => {
-    const providerService = provider.services.find((s) => s.serviceId === serviceId);
+    const providerService = provider.services.find(
+      (s) => s.serviceId === serviceId
+    );
     const selectedHours = hoursByService[serviceId] || 1;
     const subserviceHours = subserviceHoursByService[serviceId] || {};
     let total = 0;
@@ -145,8 +173,11 @@ export function useServiceBooking(provider: Provider, services: Service[]) {
     if (service?.subServices && providerService?.subServices) {
       for (const sub of service.subServices) {
         const hours = subserviceHours[sub.id] || 0;
-        const providerSub = providerService.subServices.find((psub) => psub.id === sub.id);
-        total += (providerSub?.price ?? 0) * hours;
+        const providerSub = providerService.subServices.find(
+          (psub) => psub.id === sub.id
+        );
+        const subTotal = (providerSub?.price ?? 0) * hours;
+        total += subTotal;
       }
     }
     return total;
@@ -167,7 +198,8 @@ export function useServiceBooking(provider: Provider, services: Service[]) {
     return result;
   };
 
-  const isCleaningService = (service: Service) => service.name.toLowerCase().includes("cleaning");
+  const isCleaningService = (service: Service) =>
+    service.name.toLowerCase().includes("cleaning");
 
   const getRecommendedHours = (size: number) => {
     let found = apartmentSizes[0];
@@ -191,7 +223,6 @@ export function useServiceBooking(provider: Provider, services: Service[]) {
     handleDateChange,
     handleHoursChange,
     handleTimeSelect,
-    handleSubserviceHoursChange,
     availableDates,
     availableStartTimes,
     consecutiveBlocks,

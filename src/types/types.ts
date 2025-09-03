@@ -43,8 +43,9 @@ export type UserProfile = {
   displayName?: string;
   phone?: string;
   address?: string;
-  services: string[]; // Pour le customer on peut garder juste les ids de services choisis
+  services: string[];
   availability: Availability[];
+  bookedSlots?: Record<string, string[]>; // Format: { "YYYY-MM-DD": ["HH:MM", "HH:MM"] }
   email?: string;
 };
 

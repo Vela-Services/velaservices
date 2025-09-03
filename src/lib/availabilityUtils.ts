@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Provider } from "@/types/types";
 
@@ -45,23 +45,23 @@ export function isDateTimeAtLeast24hFromNow(dateStr: string, timeStr: string) {
 }
 
 export async function getProviderBookedSlots(providerId: string, dateStr: string): Promise<string[]> {
-  const missionsRef = collection(db, "missions");
-  const q = query(
-    missionsRef,
-    where("providerId", "==", providerId),
-    where("date", "==", dateStr),
-    where("status", "in", ["assigned", "pending"])
-  );
-  const snapshot = await getDocs(q);
-  const bookedTimes: string[] = [];
-  snapshot.forEach((doc) => {
-    const data = doc.data();
-    if (Array.isArray(data.times)) {
-      bookedTimes.push(...data.times);
-    } else if (typeof data.time === "string") {
-      bookedTimes.push(data.time);
+  const providerDocRef = doc(db, "users", providerId);
+  const docSnap = await getDoc(providerDocRef);
+
+  let bookedTimes: string[] = [];
+
+  if (docSnap.exists()) {
+    const data = docSnap.data();
+    // Structure attendue: bookedTimes: [{ date: string, times: string[] }, ...]
+    if (Array.isArray(data.bookedTimes)) {
+      for (const slot of data.bookedTimes) {
+        if (slot.date === dateStr && Array.isArray(slot.times)) {
+          bookedTimes.push(...slot.times);
+        }
+      }
     }
-  });
+  }
+
   return bookedTimes;
 }
 
@@ -70,27 +70,50 @@ export function getConsecutiveAvailableSlots(
   bookedTimes: string[] | undefined,
   requiredHours: number
 ): string[][] {
-  let bookedSet: Set<string> = new Set();
-  if (Array.isArray(bookedTimes)) {
-    bookedSet = new Set(bookedTimes);
-  } else if (bookedTimes && typeof bookedTimes === "object" && typeof (bookedTimes as any).forEach === "function") {
-    bookedSet = new Set(Array.from(bookedTimes as any));
+  // Convert hours into 30-minute slots
+  const requiredSlots = requiredHours * 2;
+
+  // Handle edge cases
+  if (requiredSlots <= 0 || !availableTimes || availableTimes.length < requiredSlots) {
+    return [];
   }
 
-  const available = availableTimes.filter((t) => !bookedSet.has(t));
+  // Ensure bookedTimes is an array
+  const bookedSet: Set<string> = new Set(Array.isArray(bookedTimes) ? bookedTimes : []);
+
+  // Filter out booked times and sort available times
+  const available = [...availableTimes]
+    .filter((t) => !bookedSet.has(t))
+    .sort((a, b) => {
+      const [h1, m1] = a.split(":").map(Number);
+      const [h2, m2] = b.split(":").map(Number);
+      return h1 * 60 + m1 - (h2 * 60 + m2);
+    });
+
   const result: string[][] = [];
-  for (let i = 0; i <= available.length - requiredHours; i++) {
-    let block = available.slice(i, i + requiredHours);
+
+  // Find consecutive blocks of requiredSlots (30 min each)
+  for (let i = 0; i <= available.length - requiredSlots; i++) {
+    const block = available.slice(i, i + requiredSlots);
     let isConsecutive = true;
+
+    // Check if the block is consecutive (each slot is 30 minutes apart)
     for (let j = 1; j < block.length; j++) {
       const [h1, m1] = block[j - 1].split(":").map(Number);
       const [h2, m2] = block[j].split(":").map(Number);
-      if (h2 * 60 + m2 !== h1 * 60 + m1 + 60) {
+      const time1 = h1 * 60 + m1;
+      const time2 = h2 * 60 + m2;
+
+      if (time2 !== time1 + 30) {
         isConsecutive = false;
+        console.log(`Block ${block} is not consecutive at index ${j}: ${block[j-1]} to ${block[j]}`);
         break;
       }
     }
-    if (isConsecutive) result.push(block);
+
+    if (isConsecutive) {
+      result.push(block);
+    }
   }
   return result;
 }
