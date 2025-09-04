@@ -16,11 +16,11 @@ export function useServices() {
         const servicesArr: Service[] = servicesSnap.docs.map((docSnap) => {
           const data = docSnap.data();
           const subServices: SubService[] | undefined = data.subServices?.map(
-            (subData: unknown) => ({
-              id: (subData as any).id,
-              name: (subData as any).name,
-              price: (subData as any).price,
-              baseDuration: (subData as any).baseDuration,
+            (subData: Record<string, unknown>) => ({
+              id: subData.id as string,
+              name: subData.name as string,
+              price: subData.price as number,
+              baseDuration: subData.baseDuration as number,
             })
           );
           return {

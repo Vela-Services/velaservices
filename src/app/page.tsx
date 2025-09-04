@@ -71,7 +71,7 @@ export default function LandingPage() {
             </h1>
           </div>
           <p className="text-xl md:text-2xl mb-10 text-white font-medium italic drop-shadow-lg">
-            Because life runs better with a little help.
+          Your Time, Our Priority.
           </p>
           {user ? (
             <div>
@@ -87,15 +87,9 @@ export default function LandingPage() {
               <div className="flex justify-center gap-6">
                 <button
                   className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-8 py-3 rounded-full font-bold shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
-                  onClick={() => router.push("/signup")}
-                >
-                  Create an Account
-                </button>
-                <button
-                  className="border-2 border-[#BFA181] text-[#BFA181] px-8 py-3 rounded-full font-bold bg-white/90 hover:bg-[#F5E8D3] hover:text-[#7C5E3C] hover:border-[#7C5E3C] transition-all duration-200 shadow focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
                   onClick={() => router.push("/login")}
                 >
-                  Sign In
+                  Book a Service
                 </button>
               </div>
             </div>

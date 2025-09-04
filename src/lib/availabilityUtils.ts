@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Provider } from "@/types/types";
 
@@ -28,7 +28,10 @@ export function getProviderAvailableDays(provider: Provider) {
     .map((a) => dayNameToIndex[a.day]);
 }
 
-export function getProviderAvailableTimesForDate(provider: Provider, dateStr: string) {
+export function getProviderAvailableTimesForDate(
+  provider: Provider,
+  dateStr: string
+) {
   if (!dateStr) return [];
   const date = new Date(dateStr + "T00:00:00");
   const dayIdx = date.getDay();
@@ -44,11 +47,14 @@ export function isDateTimeAtLeast24hFromNow(dateStr: string, timeStr: string) {
   return selected.getTime() - now.getTime() >= 24 * 60 * 60 * 1000;
 }
 
-export async function getProviderBookedSlots(providerId: string, dateStr: string): Promise<string[]> {
+export async function getProviderBookedSlots(
+  providerId: string,
+  dateStr: string
+): Promise<string[]> {
   const providerDocRef = doc(db, "users", providerId);
   const docSnap = await getDoc(providerDocRef);
 
-  let bookedTimes: string[] = [];
+  const bookedTimes: string[] = [];
 
   if (docSnap.exists()) {
     const data = docSnap.data();
@@ -74,12 +80,18 @@ export function getConsecutiveAvailableSlots(
   const requiredSlots = requiredHours * 2;
 
   // Handle edge cases
-  if (requiredSlots <= 0 || !availableTimes || availableTimes.length < requiredSlots) {
+  if (
+    requiredSlots <= 0 ||
+    !availableTimes ||
+    availableTimes.length < requiredSlots
+  ) {
     return [];
   }
 
   // Ensure bookedTimes is an array
-  const bookedSet: Set<string> = new Set(Array.isArray(bookedTimes) ? bookedTimes : []);
+  const bookedSet: Set<string> = new Set(
+    Array.isArray(bookedTimes) ? bookedTimes : []
+  );
 
   // Filter out booked times and sort available times
   const available = [...availableTimes]
@@ -106,7 +118,11 @@ export function getConsecutiveAvailableSlots(
 
       if (time2 !== time1 + 30) {
         isConsecutive = false;
-        console.log(`Block ${block} is not consecutive at index ${j}: ${block[j-1]} to ${block[j]}`);
+        console.log(
+          `Block ${block} is not consecutive at index ${j}: ${
+            block[j - 1]
+          } to ${block[j]}`
+        );
         break;
       }
     }

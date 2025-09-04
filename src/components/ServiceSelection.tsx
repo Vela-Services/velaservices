@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
-import { Provider, Service, SubService } from "@/types/types";
+import { Provider, Service } from "@/types/types";
 import { ProviderCard } from "@/components/ProviderCard";
 import { useServiceBooking } from "@/app/hooks/useServiceBooking";
 import { CartItem } from "@/types/types";
 import { indexToDayName } from "../lib/availabilityUtils";
+import { Loader2 } from "lucide-react"; // spinner
+
+import { useAuth } from "../lib/useAuth";
+
+
+import { addPendingSlot } from "../app/hooks/usePendingSlots";
 
 interface ServiceSelectionProps {
   provider: Provider;
@@ -11,7 +17,6 @@ interface ServiceSelectionProps {
   addToCart: (item: CartItem) => void;
   onBack: () => void;
 }
-
 // Simple spinner component
 function Spinner() {
   return (
@@ -41,39 +46,100 @@ export default function ServiceSelection({
     handleDateChange,
     handleHoursChange,
     handleTimeSelect,
-    availableDates,
-    availableStartTimes,
-    consecutiveBlocks,
+    availableDates, // async (Promise<string[]>)
+    availableStartTimes, // async (Promise<string[]>)
     totalPrice,
     subservicesForCart,
     isCleaningService,
     getRecommendedHours,
   } = useServiceBooking(provider, services);
 
-  // --- Fix: available date map ---
-  // We'll use our own state to store available dates per service
-  const [datesByService, setDatesByService] = useState<Record<string, string[]>>({});
+  const { user } = useAuth(); 
 
+
+  // ---------- Dates (async) ----------
+  const [datesByService, setDatesByService] = useState<
+    Record<string, string[]>
+  >({});
   const [loadingDates, setLoadingDates] = useState(false);
 
   useEffect(() => {
-    let isMounted = true;
-    async function fetchDates() {
-      setLoadingDates(true);
-      const newDates: Record<string, string[]> = {};
-      for (const service of services) {
-        const dates = await availableDates(service.id);
-        newDates[service.id] = dates;
-      }
-      if (isMounted) setDatesByService(newDates);
-      if (isMounted) setLoadingDates(false);
-    }
-    fetchDates();
-    return () => { isMounted = false; };
-  }, [services, hoursByService]);
-  // --- End fix ---
+    let cancelled = false;
 
-  // Optionally, you could do the same for timesByService if needed, but not required for the date map fix
+    (async () => {
+      setLoadingDates(true);
+      try {
+        const newDates: Record<string, string[]> = {};
+        await Promise.all(
+          services.map(async (service) => {
+            const dates = await availableDates(service.id);
+            newDates[service.id] = dates;
+          })
+        );
+        if (!cancelled) setDatesByService(newDates);
+      } finally {
+        if (!cancelled) setLoadingDates(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [services, hoursByService, availableDates]);
+
+  // ---------- Start times (async, par service) ----------
+  const [startTimesByService, setStartTimesByService] = useState<
+    Record<string, string[]>
+  >({});
+  const [loadingStartTimesByService, setLoadingStartTimesByService] = useState<
+    Record<string, boolean>
+  >({});
+
+  // Charge les start times pour chaque service qui a une date sélectionnée
+  useEffect(() => {
+    let cancelled = false;
+
+    // Marque en "loading" les services qui ont une date sélectionnée
+    const loadingFlags: Record<string, boolean> = {};
+    services.forEach((s) => {
+      if (dateByService[s.id]) loadingFlags[s.id] = true;
+    });
+    setLoadingStartTimesByService((prev) => ({ ...prev, ...loadingFlags }));
+
+    (async () => {
+      const results: Record<string, string[]> = {};
+
+      await Promise.all(
+        services.map(async (s) => {
+          const selectedDate = dateByService[s.id];
+          if (!selectedDate) {
+            results[s.id] = [];
+            return;
+          }
+          try {
+            const times = await availableStartTimes(s.id);
+            results[s.id] = times;
+          } catch {
+            results[s.id] = [];
+          }
+        })
+      );
+
+      if (!cancelled) {
+        setStartTimesByService((prev) => ({ ...prev, ...results }));
+        // Désactive loading pour ceux concernés
+        const stopFlags: Record<string, boolean> = {};
+        services.forEach((s) => {
+          if (dateByService[s.id]) stopFlags[s.id] = false;
+        });
+        setLoadingStartTimesByService((prev) => ({ ...prev, ...stopFlags }));
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [services, dateByService, hoursByService, availableStartTimes]);
 
   return (
     <div className="min-h-screen bg-[#F5E8D3] py-12 px-4">
@@ -83,12 +149,15 @@ export default function ServiceSelection({
       >
         ← Back to Providers
       </button>
+
       <div className="max-w-xl mx-auto mb-8">
         <ProviderCard provider={provider} />
       </div>
+
       <h2 className="text-2xl font-bold text-center text-[#7C5E3C] mb-6">
         Choose a Service
       </h2>
+
       <div className="max-w-3xl mx-auto grid gap-6">
         {services
           .filter((service) =>
@@ -98,10 +167,12 @@ export default function ServiceSelection({
             const providerService = provider.services.find(
               (s) => s.serviceId === service.id
             );
-            const selectedHours = hoursByService[service.id] || 1;
             const selectedDate = dateByService[service.id] || "";
             const selectedTimes = timesByService[service.id] || [];
             const subserviceHours = subserviceHoursByService[service.id] || {};
+
+            const startTimes = startTimesByService[service.id] || [];
+            const isLoadingStart = !!loadingStartTimesByService[service.id];
 
             return (
               <section
@@ -128,6 +199,7 @@ export default function ServiceSelection({
                     {openService === service.id ? "−" : "+"}
                   </span>
                 </button>
+
                 <div
                   id={`service-panel-${service.id}`}
                   className={`overflow-hidden transition-all duration-300 ease-in-out ${
@@ -293,16 +365,22 @@ export default function ServiceSelection({
                           </div>
                         </fieldset>
                       )}
+
+                    {/* Dates */}
                     <fieldset>
                       <legend className="block text-base font-medium text-[#7C5E3C] mb-2">
                         Choose a date
                       </legend>
                       <div className="flex flex-wrap gap-2">
                         {loadingDates ? (
-                          <span className="flex items-center gap-2 text-[#BFA181] text-sm" aria-live="polite">
+                          <span
+                            className="flex items-center gap-2 text-[#BFA181] text-sm"
+                            aria-live="polite"
+                          >
                             <Spinner /> Loading available dates...
                           </span>
-                        ) : (!datesByService[service.id] || datesByService[service.id].length === 0) ? (
+                        ) : !datesByService[service.id] ||
+                          datesByService[service.id].length === 0 ? (
                           <span
                             className="text-[#BFA181] text-sm"
                             aria-live="polite"
@@ -316,9 +394,18 @@ export default function ServiceSelection({
                               <button
                                 key={date}
                                 type="button"
-                                onClick={() =>
-                                  handleDateChange(service.id, date)
-                                }
+                                onClick={() => {
+                                  // Reset et charge les times pour ce service
+                                  handleDateChange(service.id, date);
+                                  setStartTimesByService((prev) => ({
+                                    ...prev,
+                                    [service.id]: [],
+                                  }));
+                                  setLoadingStartTimesByService((prev) => ({
+                                    ...prev,
+                                    [service.id]: true,
+                                  }));
+                                }}
                                 className={`px-3 py-2 rounded-lg border text-base font-medium focus:outline-none focus:ring-2 focus:ring-[#BFA181] transition ${
                                   isSelected
                                     ? "bg-[#BFA181] text-white border-[#BFA181]"
@@ -339,14 +426,20 @@ export default function ServiceSelection({
                         )}
                       </div>
                     </fieldset>
+
+                    {/* Start times */}
                     <fieldset>
                       <legend className="block text-base font-medium text-[#7C5E3C] mb-2">
                         Choose a starting time
                       </legend>
                       <div className="flex flex-wrap gap-2">
-                        {selectedDate &&
-                        availableStartTimes(service.id).length > 0 ? (
-                          availableStartTimes(service.id).map((t) => (
+                        {isLoadingStart ? (
+                          <div className="flex items-center gap-2 text-[#BFA181]">
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                            <span>Loading times...</span>
+                          </div>
+                        ) : selectedDate && startTimes.length > 0 ? (
+                          startTimes.map((t) => (
                             <button
                               key={t}
                               type="button"
@@ -389,6 +482,7 @@ export default function ServiceSelection({
                         </div>
                       )}
                     </fieldset>
+
                     <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mt-2">
                       <span
                         className="text-[#7C5E3C] font-semibold text-lg"
@@ -398,8 +492,8 @@ export default function ServiceSelection({
                       </span>
                       <button
                         type="button"
-                        className={`w-full sm:w-auto bg-[#BFA181] text-white py-3 px-6 rounded-lg font-semibold text-base shadow-sm hover:bg-[#A68A64] focus:outline-none focus:ring-2 focus:ring-[#BFA181] transition disabled:opacity-60 disabled:cursor-not-allowed`}
-                        onClick={() =>
+                        className="w-full sm:w-auto bg-[#BFA181] text-white py-3 px-6 rounded-lg font-semibold text-base shadow-sm hover:bg-[#A68A64] focus:outline-none focus:ring-2 focus:ring-[#BFA181] transition disabled:opacity-60 disabled:cursor-not-allowed"
+                        onClick={() => {
                           addToCart({
                             id: "",
                             serviceId: service.id,
@@ -411,17 +505,32 @@ export default function ServiceSelection({
                             providerId: provider.id,
                             providerName: provider.displayName,
                             providerEmail: provider.email,
-                          })
-                        }
+                          });
+                          if (
+                            user?.uid &&
+                            provider.id &&
+                            service.id &&
+                            selectedDate &&
+                            selectedTimes.length > 0
+                          ) {
+                            addPendingSlot(
+                              user.uid,
+                              provider.id,
+                              service.id,
+                              selectedDate,
+                              selectedTimes
+                            );
+                          }
+                        }}
                         disabled={
                           !selectedDate ||
                           selectedTimes.length === 0 ||
-                          availableStartTimes(service.id).length === 0
+                          (startTimesByService[service.id]?.length ?? 0) === 0
                         }
                         aria-disabled={
                           !selectedDate ||
                           selectedTimes.length === 0 ||
-                          availableStartTimes(service.id).length === 0
+                          (startTimesByService[service.id]?.length ?? 0) === 0
                         }
                       >
                         Add to Cart
@@ -432,6 +541,7 @@ export default function ServiceSelection({
               </section>
             );
           })}
+
         {services.filter((service) =>
           provider.services.some((s) => s.serviceId === service.id)
         ).length === 0 && (

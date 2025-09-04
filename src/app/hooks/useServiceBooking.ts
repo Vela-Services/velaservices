@@ -1,13 +1,14 @@
-import { useState } from "react";
-import { Provider, Service, SubService } from "@/types/types";
+import { useCallback, useState } from "react";
+import { Provider, Service } from "@/types/types";
 import {
   getProviderAvailableDays,
   getProviderAvailableTimesForDate,
   isDateTimeAtLeast24hFromNow,
   getProviderBookedSlots,
   getConsecutiveAvailableSlots,
-  indexToDayName,
 } from "../../lib/availabilityUtils";
+
+import { getProviderSlotsWithPending } from "./usePendingSlots";
 
 export function useServiceBooking(provider: Provider, services: Service[]) {
   const [openService, setOpenService] = useState<string | null>(null);
@@ -73,90 +74,93 @@ export function useServiceBooking(provider: Provider, services: Service[]) {
     }
   };
 
-  const handleTimeSelect = (serviceId: string, startTime: string) => {
+  const handleTimeSelect = async (serviceId: string, startTime: string) => {
     const selectedDate = dateByService[serviceId] || "";
     const selectedHours = hoursByService[serviceId] || 1;
+    console.log(selectedDate, selectedHours, "date");
     const allTimes = getProviderAvailableTimesForDate(provider, selectedDate);
-    const filteredTimes = allTimes.filter((t) =>
-      isDateTimeAtLeast24hFromNow(selectedDate, t)
-    );
-    const bookedTimes = getProviderBookedSlots(provider.id, selectedDate);
-    const consecutiveBlocks = getConsecutiveAvailableSlots(
-      filteredTimes,
-      bookedTimes,
-      selectedHours
-    );
+    const filteredTimes = allTimes.filter((t) => isDateTimeAtLeast24hFromNow(selectedDate, t));
+
+    // ✅ on prend booked + pending
+    const bookedTimes = await getProviderSlotsWithPending(provider.id, selectedDate);
+
+    const consecutiveBlocks = getConsecutiveAvailableSlots(filteredTimes, bookedTimes, selectedHours);
     const block = consecutiveBlocks.find((b) => b[0] === startTime);
     if (block) {
       setTimesByService((prev) => ({ ...prev, [serviceId]: block }));
     }
   };
 
-  const availableDates = async (serviceId: string) => {
+  const availableDates = useCallback(async (serviceId: string) => {
     const today = new Date();
     const availableDayIndices = getProviderAvailableDays(provider);
     const selectedHours = hoursByService[serviceId] || 1;
-    const dates: string[] = [];
 
-    for (let i = 1; i <= 30; i++) {
+    // Generate next 30 days, skipping today
+    const dateCandidates: string[] = Array.from({ length: 30 }, (_, i) => {
       const d = new Date(today);
-      d.setDate(today.getDate() + i);
-      const dayIdx = d.getDay();
-      if (availableDayIndices.includes(dayIdx)) {
-        const yyyy = d.getFullYear();
-        const mm = String(d.getMonth() + 1).padStart(2, "0");
-        const dd = String(d.getDate()).padStart(2, "0");
-        const dateStr = `${yyyy}-${mm}-${dd}`;
+      d.setDate(today.getDate() + i + 1);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      return `${yyyy}-${mm}-${dd}`;
+    });
+
+    // Filter by provider's available days
+    const validDates = dateCandidates.filter(dateStr => {
+      const d = new Date(dateStr + "T00:00:00");
+      return availableDayIndices.includes(d.getDay());
+    });
+
+    // For each valid date, check if there are available time blocks
+    const results = await Promise.all(
+      validDates.map(async (dateStr) => {
         const allTimes = getProviderAvailableTimesForDate(provider, dateStr);
         const filteredTimes = allTimes.filter((t) =>
           isDateTimeAtLeast24hFromNow(dateStr, t)
         );
-        const bookedTimes = await getProviderBookedSlots(provider.id, dateStr);
-        const blocks = getConsecutiveAvailableSlots(
-          filteredTimes,
-          bookedTimes,
-          selectedHours
-        );
-        if (blocks.length > 0) {
-          dates.push(dateStr);
-        }
-      }
-    }
+        if (filteredTimes.length === 0) return null;
 
-    return dates;
-  };
+        const bookedTimes = await getProviderSlotsWithPending(provider.id, dateStr);
+        const blocks = getConsecutiveAvailableSlots(filteredTimes, bookedTimes, selectedHours);
+        return blocks.length > 0 ? dateStr : null;
+      })
+    );
 
-  const availableStartTimes = (serviceId: string) => {
+    // Remove nulls and return
+    return results.filter((d): d is string => Boolean(d));
+  }, [provider, hoursByService]); // Dépendances stables
+
+  const availableStartTimes = useCallback(async (serviceId: string) => {
     const selectedDate = dateByService[serviceId] || "";
     const selectedHours = hoursByService[serviceId] || 1;
     if (!selectedDate) return [];
     const allTimes = getProviderAvailableTimesForDate(provider, selectedDate);
-    const filteredTimes = allTimes.filter((t) =>
-      isDateTimeAtLeast24hFromNow(selectedDate, t)
-    );
-    const bookedTimes = getProviderBookedSlots(provider.id, selectedDate);
-    const consecutiveBlocks = getConsecutiveAvailableSlots(
-      filteredTimes,
-      bookedTimes,
-      selectedHours
-    );
+    const filteredTimes = allTimes.filter((t) => isDateTimeAtLeast24hFromNow(selectedDate, t));
+
+    // ✅ booked + pending
+    const bookedTimes = await getProviderSlotsWithPending(provider.id, selectedDate);
+
+    console.log("filteredTimes", filteredTimes);
+    console.log("bookedTimes", bookedTimes);
+
+
+    const consecutiveBlocks = getConsecutiveAvailableSlots(filteredTimes, bookedTimes, selectedHours);
+    console.log("consecutiveBlocks", consecutiveBlocks);
     return consecutiveBlocks.map((block) => block[0]);
-  };
+  }, [provider, dateByService, hoursByService]); // Dépendances stables
 
-  const consecutiveBlocks = (serviceId: string) => {
+  const consecutiveBlocks = async (serviceId: string) => {
     const selectedDate = dateByService[serviceId] || "";
     const selectedHours = hoursByService[serviceId] || 1;
     if (!selectedDate) return [];
     const allTimes = getProviderAvailableTimesForDate(provider, selectedDate);
-    const filteredTimes = allTimes.filter((t) =>
-      isDateTimeAtLeast24hFromNow(selectedDate, t)
-    );
-    const bookedTimes = getProviderBookedSlots(provider.id, selectedDate);
-    return getConsecutiveAvailableSlots(
-      filteredTimes,
-      bookedTimes,
-      selectedHours
-    );
+    const filteredTimes = allTimes.filter((t) => isDateTimeAtLeast24hFromNow(selectedDate, t));
+
+    // ✅ booked + pending
+    const bookedTimes = await getProviderSlotsWithPending(provider.id, selectedDate);
+
+    return getConsecutiveAvailableSlots(filteredTimes, bookedTimes, selectedHours);
   };
 
   const totalPrice = (serviceId: string) => {
