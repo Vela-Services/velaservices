@@ -22,6 +22,7 @@ export type Service = {
   name: string; // nom affiché (ex: "Cleaning")
   type?: string; // ex: "cleaning" (utile si tu veux catégoriser)
   subServices?: SubService[];
+  description?: string; // description optionnelle
 };
 
 /* ----------------------------- Users / Providers ----------------------------- */

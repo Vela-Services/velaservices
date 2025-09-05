@@ -27,6 +27,7 @@ export function useServices() {
             id: docSnap.id,
             name: data.name,
             subServices: subServices?.length ? subServices : undefined,
+            description: data.description,
           };
         });
         if (isMounted) setServices(servicesArr);
