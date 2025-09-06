@@ -231,94 +231,184 @@ export default function LandingPage() {
           </div>
 
           {/* Childcare Section */}
-          <div className="flex flex-col md:flex-row-reverse items-center md:items-start gap-8 mb-16">
-            <button
-              type="button"
-              onClick={() => (window.location.href = "/services/babysitting")}
-              className="w-80 aspect-square relative border border-[#E2CBAA] rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden group focus:outline-none"
-              style={{
-                backgroundImage: `url(/babysitting.webp)`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}
-              aria-label="Childcare"
-            >
-              <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-[#FDEADB] hover:cursor-pointer transition-opacity duration-300 z-10 px-6 text-center">
-                <h3 className="text-2xl font-bold mb-2 text-[#FDEADB] drop-shadow group-hover:text-[#7C5E3C] transition">
+          <div className="mb-16">
+            <div className="bg-[#FDEADB]/50 p-8 rounded-2xl border border-[#E2CBAA] shadow-lg flex flex-col md:flex-row-reverse items-center md:items-stretch relative gap-8">
+              {/* Left: Button Picture, full height */}
+              <div className="flex-shrink-0 flex items-stretch">
+                <button
+                  type="button"
+                  onClick={() =>
+                    (window.location.href = "/services/babysitting")
+                  }
+                  className="w-80 h-full min-h-[320px] relative border border-[#E2CBAA] rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden group focus:outline-none flex flex-col"
+                  style={{
+                    backgroundImage: `url(/babysitting.webp)`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }}
+                  aria-label="Childcare"
+                >
+                  <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-[#FDEADB] hover:cursor-pointer transition-opacity duration-300 z-10 px-6 text-center">
+                    <h3 className="text-2xl font-bold mb-2 text-[#FDEADB] drop-shadow group-hover:text-[#7C5E3C] transition">
+                      Childcare
+                    </h3>
+                    <p className="text-base text-[#FDEADB] group-hover:text-[#7C5E3C] transition drop-shadow">
+                      Qualified and caring babysitters for your children.
+                    </p>
+                  </div>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center z-0 group-hover:opacity-0 transition-opacity duration-300">
+                    <h3 className="text-2xl font-bold text-[#FDEADB] drop-shadow">
+                      Childcare
+                    </h3>
+                  </div>
+                </button>
+              </div>
+              {/* Right: Title and two white cards */}
+              <div className="flex-1 flex flex-col">
+                <h3 className="text-2xl font-bold text-[#7C5E3C] mb-2 text-left">
                   Childcare
                 </h3>
-                <p className="text-base text-[#FDEADB] group-hover:text-[#7C5E3C] transition drop-shadow">
-                  Qualified and caring babysitters for your children.
-                </p>
+                <h4 className="text-xl font-bold text-[#7C5E3C] mb-8 text-left">
+                  Qualified and Caring Babysitters for Your Children
+                </h4>
+                <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Card 1 */}
+                  <div className="bg-white p-4 rounded-lg flex flex-col items-start text-left relative h-full min-h-[320px]">
+                    <h4 className="font-semibold text-[#7C5E3C] mb-2 text-left">
+                      What We Offer
+                    </h4>
+                    <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8">
+                      <li>Babysitting for all ages</li>
+                      <li>After-school care</li>
+                      <li>Evening and weekend care</li>
+                      <li>Last-minute and emergency care</li>
+                    </ul>
+                    <div className="w-full flex justify-start mt-auto">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          (window.location.href = "/services/babysitting")
+                        }
+                        className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded font-bold shadow hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
+                      >
+                        Learn More
+                      </button>
+                    </div>
+                  </div>
+                  {/* Card 2 */}
+                  <div className="bg-white p-4 rounded-lg flex flex-col items-start text-left relative h-full min-h-[320px]">
+                    <h4 className="font-semibold text-[#7C5E3C] mb-2 text-left">
+                      Why Choose Vela Childcare
+                    </h4>
+                    <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8">
+                      <li>Background-checked, experienced sitters</li>
+                      <li>Flexible scheduling to fit your needs</li>
+                      <li>Trusted, nurturing, and reliable care</li>
+                    </ul>
+                    <div className="w-full flex justify-start mt-auto">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          (window.location.href = "/services/babysitting")
+                        }
+                        className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded font-bold shadow hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
+                      >
+                        Book Our Services
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="absolute inset-0 flex flex-col items-center justify-center z-0 group-hover:opacity-0 transition-opacity duration-300">
-                <h3 className="text-2xl font-bold text-[#FDEADB] drop-shadow">
-                  Childcare
-                </h3>
-              </div>
-            </button>
-            <div className="flex-1 mt-8 md:mt-0 md:mr-8">
-              <h3 className="text-2xl font-bold text-[#7C5E3C] mb-2">
-                Childcare
-              </h3>
-              <p className="text-[#7C5E3C] text-base md:text-lg">
-                Qualified and caring babysitters for your children. Rest easy
-                knowing your little ones are in safe, nurturing hands with our
-                trusted providers.
-              </p>
-              <button
-                type="button"
-                onClick={() => (window.location.href = "/services/babysitting")}
-                className="mt-4 bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded-full font-bold shadow hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
-              >
-                Learn More
-              </button>
             </div>
           </div>
 
           {/* Petcare Section */}
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-            <button
-              type="button"
-              onClick={() => (window.location.href = "/services/petcare")}
-              className="w-80 aspect-square relative border border-[#E2CBAA] rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden group focus:outline-none"
-              style={{
-                backgroundImage: `url(/petcare.jpg)`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}
-              aria-label="Petcare"
-            >
-              <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-[#FDEADB] hover:cursor-pointer transition-opacity duration-300 z-10 px-6 text-center">
-                <h3 className="text-2xl font-bold mb-2 text-[#FDEADB] drop-shadow group-hover:text-[#7C5E3C] transition">
+          <div>
+            <div className="bg-[#FDEADB]/50 p-8 rounded-2xl border border-[#E2CBAA] shadow-lg flex flex-col md:flex-row items-center md:items-stretch relative gap-8">
+              {/* Left: Button Picture, full height */}
+              <div className="flex-shrink-0 flex items-stretch">
+                <button
+                  type="button"
+                  onClick={() => (window.location.href = "/services/petcare")}
+                  className="w-80 h-full min-h-[320px] relative border border-[#E2CBAA] rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden group focus:outline-none flex flex-col"
+                  style={{
+                    backgroundImage: `url(/petcare.jpg)`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }}
+                  aria-label="Petcare"
+                >
+                  <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-[#FDEADB] hover:cursor-pointer transition-opacity duration-300 z-10 px-6 text-center">
+                    <h3 className="text-2xl font-bold mb-2 text-[#FDEADB] drop-shadow group-hover:text-[#7C5E3C] transition">
+                      Petcare
+                    </h3>
+                    <p className="text-base text-[#FDEADB] group-hover:text-[#7C5E3C] transition drop-shadow">
+                      Qualified and caring pet sitters for your pets.
+                    </p>
+                  </div>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center z-0 group-hover:opacity-0 transition-opacity duration-300">
+                    <h3 className="text-2xl font-bold text-[#FDEADB] drop-shadow">
+                      Petcare
+                    </h3>
+                  </div>
+                </button>
+              </div>
+              {/* Right: Title and two white cards */}
+              <div className="flex-1 flex flex-col">
+                <h3 className="text-2xl font-bold text-[#7C5E3C] mb-2 text-left">
                   Petcare
                 </h3>
-                <p className="text-base text-[#FDEADB] group-hover:text-[#7C5E3C] transition drop-shadow">
-                  Qualified and caring pet sitters for your pets.
-                </p>
+                <h4 className="text-xl font-bold text-[#7C5E3C] mb-8 text-left">
+                  Qualified and Caring Pet Sitters for Your Pets
+                </h4>
+                <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Card 1 */}
+                  <div className="bg-white p-4 rounded-lg flex flex-col items-start text-left relative h-full min-h-[320px]">
+                    <h4 className="font-semibold text-[#7C5E3C] mb-2 text-left">
+                      What We Offer
+                    </h4>
+                    <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8">
+                      <li>Dog walking and pet sitting</li>
+                      <li>Feeding and medication administration</li>
+                      <li>Overnight and vacation care</li>
+                      <li>Drop-in visits and playtime</li>
+                    </ul>
+                    <div className="w-full flex justify-start mt-auto">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          (window.location.href = "/services/petcare")
+                        }
+                        className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded font-bold shadow hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
+                      >
+                        Learn More
+                      </button>
+                    </div>
+                  </div>
+                  {/* Card 2 */}
+                  <div className="bg-white p-4 rounded-lg flex flex-col items-start text-left relative h-full min-h-[320px]">
+                    <h4 className="font-semibold text-[#7C5E3C] mb-2 text-left">
+                      Why Choose Vela Petcare
+                    </h4>
+                    <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8">
+                      <li>Experienced, animal-loving providers</li>
+                      <li>Flexible scheduling and custom care</li>
+                      <li>Peace of mind while you’re away</li>
+                    </ul>
+                    <div className="w-full flex justify-start mt-auto">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          (window.location.href = "/services/petcare")
+                        }
+                        className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded font-bold shadow hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
+                      >
+                        Book Our Services
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="absolute inset-0 flex flex-col items-center justify-center z-0 group-hover:opacity-0 transition-opacity duration-300">
-                <h3 className="text-2xl font-bold text-[#FDEADB] drop-shadow">
-                  Petcare
-                </h3>
-              </div>
-            </button>
-            <div className="flex-1 mt-8 md:mt-0 md:ml-8">
-              <h3 className="text-2xl font-bold text-[#7C5E3C] mb-2">
-                Petcare
-              </h3>
-              <p className="text-[#7C5E3C] text-base md:text-lg">
-                Qualified and caring pet sitters for your pets. Whether for a
-                walk, a visit, or overnight care, your furry friends are in
-                loving hands.
-              </p>
-              <button
-                type="button"
-                onClick={() => (window.location.href = "/services/petcare")}
-                className="mt-4 bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded-full font-bold shadow hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
-              >
-                Learn More
-              </button>
             </div>
           </div>
         </div>
