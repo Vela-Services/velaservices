@@ -36,31 +36,6 @@ export default function LandingPage() {
         <div className="absolute top-0 left-0 w-64 h-64 bg-[#BFA181]/20 rounded-full blur-3xl -z-10" />
         <div className="absolute bottom-0 right-0 w-72 h-72 bg-[#7C5E3C]/10 rounded-full blur-3xl -z-10" />
         {/* Logo Part */}
-        <div className="flex flex-col items-center justify-center mb-10 z-10">
-          <div
-            className="w-28 h-28 flex items-center justify-center mr-4 cursor-pointer transition-transform duration-200 hover:scale-105"
-            style={{
-              background:
-                "linear-gradient(135deg,#fcf5eb 60%,rgb(212, 189, 165) 100%)",
-              borderRadius: "50%",
-              boxShadow: "0 4px 16px 0 rgba(191,161,129,0.10)",
-            }}
-          >
-            <img
-              src="/VELA_WHITE_LOGO.svg"
-              alt="Véla Logo"
-              className="drop-shadow-lg"
-              style={{
-                objectFit: "contain",
-                width: "6.5rem",
-                height: "6.5rem",
-                maxWidth: "100%",
-                maxHeight: "100%",
-                display: "block",
-              }}
-            />
-          </div>
-        </div>
         <div className="max-w-3xl mx-auto z-10">
           <div className="flex flex-col items-center">
             <h1 className="text-md md:text-2xl mb-3 leading-tight text-white drop-shadow-lg font-semibold">
@@ -166,76 +141,91 @@ export default function LandingPage() {
           </p>
 
           {/* Cleaning Section */}
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-16">
-            <button
-              type="button"
-              onClick={() => (window.location.href = "/services/cleaning")}
-              className="w-80 aspect-square relative border border-[#E2CBAA] rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden group focus:outline-none"
-              style={{
-                backgroundImage: `url(/cleaning.webp)`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}
-              aria-label="Cleaning"
-            >
-              <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-[#FDEADB] hover:cursor-pointer transition-opacity duration-300 z-10 px-6 text-center">
-                <h3 className="text-2xl font-bold mb-2 text-[#FDEADB] drop-shadow group-hover:text-[#7C5E3C] transition">
-                  Cleaning Services
-                </h3>
-                <p className="text-base text-[#FDEADB] group-hover:text-[#7C5E3C] transition drop-shadow">
-                  Professional Cleaning You Can Trust.
-                </p>
-              </div>
-              <div className="absolute inset-0 flex flex-col items-center justify-center z-0 group-hover:opacity-0 transition-opacity duration-300">
-                <h3 className="text-2xl font-bold text-[#FDEADB] drop-shadow">
-                  Cleaning Services
-                </h3>
-              </div>
-            </button>
-            <div className="flex-1 mt-8 md:mt-0 md:ml-8 flex flex-col">
-              <div className="mb-4">
-                <h3 className="text-2xl font-bold text-[#7C5E3C] mb-2 text-center md:text-left">
-                  Cleaning Services
-                </h3>
-                <h4 className="text-xl font-bold text-[#7C5E3C] mb-2 text-center md:text-left">
-                  Professional Cleaning You Can Trust{" "}
-                </h4>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
-                {/* Why Choose Us Column */}
-                <div>
-                  <h4 className="font-semibold text-[#7C5E3C] mb-2">
-                    What we offer
-                  </h4>
-
-                  <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2">
-                    <li>Trusted, background-checked professionals</li>
-                    <li>Flexible scheduling to fit your needs</li>
-                    <li>Eco-friendly cleaning products available</li>
-                    <li>Consistent, high-quality service every time</li>
-                  </ul>
-                </div>
-                {/* What We Offer Column */}
-                <div>
-                  <h4 className="font-semibold text-[#7C5E3C] mb-2">
-                    What we offer
-                  </h4>
-                  <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2">
-                    <li>Standard & deep home cleaning</li>
-                    <li>Move-in/move-out cleaning</li>
-                    <li>Kitchen & bathroom detailing</li>
-                    <li>Customizable cleaning plans</li>
-                  </ul>
-                </div>
-              </div>
-              <div className="flex justify-end">
+          <div className="mb-16">
+            <div className="bg-[#FDEADB]/50 p-8 rounded-2xl border border-[#E2CBAA] shadow-lg flex flex-col md:flex-row items-center md:items-stretch relative gap-8">
+              {/* Left: Button Picture, full height */}
+              <div className="flex-shrink-0 flex items-stretch">
                 <button
                   type="button"
                   onClick={() => (window.location.href = "/services/cleaning")}
-                  className="mt-6 bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded font-bold shadow hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
+                  className="w-80 h-full min-h-[320px] relative border border-[#E2CBAA] rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden group focus:outline-none flex flex-col"
+                  style={{
+                    backgroundImage: `url(/cleaning.webp)`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }}
+                  aria-label="Cleaning"
                 >
-                  Learn More
+                  <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-[#FDEADB] hover:cursor-pointer transition-opacity duration-300 z-10 px-6 text-center">
+                    <h3 className="text-2xl font-bold mb-2 text-[#FDEADB] drop-shadow group-hover:text-[#7C5E3C] transition">
+                      Cleaning Services
+                    </h3>
+                    <p className="text-base text-[#FDEADB] group-hover:text-[#7C5E3C] transition drop-shadow">
+                      Professional Cleaning You Can Trust.
+                    </p>
+                  </div>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center z-0 group-hover:opacity-0 transition-opacity duration-300">
+                    <h3 className="text-2xl font-bold text-[#FDEADB] drop-shadow">
+                      Cleaning Services
+                    </h3>
+                  </div>
                 </button>
+              </div>
+              {/* Right: Title and two white cards */}
+              <div className="flex-1 flex flex-col">
+                <h3 className="text-2xl font-bold text-[#7C5E3C] mb-2 text-left">
+                  Cleaning Services
+                </h3>
+                <h4 className="text-xl font-bold text-[#7C5E3C] mb-8 text-left">
+                  Professional Cleaning You Can Trust
+                </h4>
+                <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Card 1 */}
+                  <div className="bg-white p-4 rounded-lg flex flex-col items-start text-left relative h-full min-h-[320px]">
+                    <h4 className="font-semibold text-[#7C5E3C] mb-2 text-left">
+                      What We Offer
+                    </h4>
+                    <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8">
+                      <li>Standard home cleaning</li>
+                      <li>Deep cleaning</li>
+                      <li>Move-in / move-out cleaning</li>
+                      <li>Office cleaning</li>
+                    </ul>
+                    <div className="w-full flex justify-start mt-auto">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          (window.location.href = "/services/cleaning")
+                        }
+                        className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded font-bold shadow hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
+                      >
+                        Learn More
+                      </button>
+                    </div>
+                  </div>
+                  {/* Card 2 */}
+                  <div className="bg-white p-4 rounded-lg flex flex-col items-start text-left relative h-full min-h-[320px]">
+                    <h4 className="font-semibold text-[#7C5E3C] mb-2 text-left">
+                      Why Choose Vela Cleaning
+                    </h4>
+                    <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8">
+                      <li>Background-checked and insured professionals</li>
+                      <li>Book one-time or recurring visits</li>
+                      <li>Transparent pricing, no hidden costs</li>
+                    </ul>
+                    <div className="w-full flex justify-start mt-auto">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          (window.location.href = "/services/cleaning")
+                        }
+                        className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded font-bold shadow hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
+                      >
+                        Book Our Services
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

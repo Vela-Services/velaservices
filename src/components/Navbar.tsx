@@ -147,7 +147,7 @@ const Navbar: React.FC = () => {
       >
         Login
       </button>
-      <button
+      {/* <button
         onClick={() => {
           setMenuOpen(false);
           router.push("/signup");
@@ -155,21 +155,16 @@ const Navbar: React.FC = () => {
         className="px-4 py-2 rounded-full bg-[#BFA181] text-white font-semibold hover:bg-[#A68A64] transition"
       >
         Sign Up
-      </button>
+      </button> */}
     </div>
   );
 
   return (
-    <nav className="w-full bg-[#fcf5eb] shadow-md px-6 py-4 flex items-center justify-between relative z-30">
+    <nav className="w-full bg-[#fcf5eb] shadow-md px-6 flex items-center justify-between relative z-30">
       <div className="flex items-center">
         <div
           onClick={() => router.push("/")}
           className="w-28 h-28 flex items-center justify-center mr-4 cursor-pointer transition-transform duration-200 hover:scale-105"
-          style={{
-            background: "linear-gradient(135deg, #F5E8D3 60%, #BFA181 100%)",
-            borderRadius: "50%",
-            boxShadow: "0 4px 16px 0 rgba(191,161,129,0.10)",
-          }}
         >
           <img
             src="/VELA_WHITE_LOGO.svg"
