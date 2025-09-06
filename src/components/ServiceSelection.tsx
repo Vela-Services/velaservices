@@ -168,7 +168,6 @@ export default function ServiceSelection({
             const selectedDate = dateByService[service.id] || "";
             const selectedTimes = timesByService[service.id] || [];
             const subserviceHours = subserviceHoursByService[service.id] || {};
-            console.log(services, "services");
 
             const startTimes = startTimesByService[service.id] || [];
             const isLoadingStart = !!loadingStartTimesByService[service.id];

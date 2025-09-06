@@ -16,7 +16,7 @@ export default function AvailabilityInfo({ provider, dayLabel }: AvailabilityInf
         <CalendarDays className="h-6 w-6 text-[#8B4513] flex-shrink-0" aria-hidden="true" />
         <span>Availability</span>
       </h3>
-      <div className="text-sm space-y-2 max-h-40 overflow-y-auto pr-2">
+      <div className="text-sm space-y-2 overflow-y-auto pr-2">
         {(!provider.availability || provider.availability.length === 0) ? (
           <p className="text-sm text-[#999999] italic text-center py-4">
             No availability listed
