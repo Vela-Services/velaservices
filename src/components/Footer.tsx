@@ -8,7 +8,6 @@ import {
   FaTiktok,
   FaLinkedin,
   FaEnvelope,
-  FaPhoneAlt,
   FaMapMarkerAlt,
 } from "react-icons/fa";
 
@@ -34,16 +33,17 @@ export default function Footer() {
             />
           </div>
           <p className="mb-2">
-            Your trusted platform for booking cleaning and home services with
-            professional providers.
+            VÉLA is Norway’s all-in-one home services platform. Book
+            professional cleaning, childcare, and petcare with one trusted
+            provider in one seamless booking. Fast, flexible, and reliable.
           </p>
         </div>
         {/* Company Info */}
         <div className="col-span-1 flex flex-col items-center md:items-start text-center md:text-left md:mb-0">
-          <h3 className="font-semibold text-base mb-2">Informations</h3>
+          <h3 className="font-semibold text-base mb-2">Information</h3>
           <div className="flex items-center gap-2 mb-1 justify-center md:justify-start">
             <FaMapMarkerAlt className="text-[#BFA181]" />
-            <span>123 Main Street, Oslo, Norway</span>
+            <span>Oslo, Norway</span>
           </div>
           <div className="flex items-center gap-2 mb-1 justify-center md:justify-start">
             <FaEnvelope className="text-[#BFA181]" />
@@ -52,12 +52,6 @@ export default function Footer() {
               className="hover:underline"
             >
               info.velaservices@gmail.com
-            </a>
-          </div>
-          <div className="flex items-center gap-2 justify-center md:justify-start">
-            <FaPhoneAlt className="text-[#BFA181]" />
-            <a href="tel:+33123456789" className="hover:underline">
-              +47 815 XX XXX
             </a>
           </div>
         </div>

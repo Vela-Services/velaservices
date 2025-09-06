@@ -103,65 +103,233 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section className="py-14 px-6 bg-[#F5E8D3]">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-2xl md:text-4xl font-extrabold text-[#7C5E3C] mb-12 tracking-tight">
+            How it works
+          </h2>
+          <div className="flex flex-col md:flex-row justify-center gap-8 mb-10">
+            {/* Card 1 */}
+            <div className="flex-1 bg-white rounded-2xl shadow-lg px-6 py-8 flex flex-col items-center border-2 border-[#E2CBAA]">
+              <div className="w-14 h-14 flex items-center justify-center rounded-full bg-[#F5E8D3] border-2 border-[#BFA181] mb-4 text-2xl font-extrabold text-[#BFA181]">
+                1
+              </div>
+              <h3 className="font-bold text-lg md:text-xl text-[#7C5E3C] mb-2">
+                Choose Your Services
+              </h3>
+              <p className="text-[#7C5E3C] text-base md:text-lg">
+                Cleaning, childcare, or petcare — or all at once.
+              </p>
+            </div>
+            {/* Card 2 */}
+            <div className="flex-1 bg-white rounded-2xl shadow-lg px-6 py-8 flex flex-col items-center border-2 border-[#E2CBAA]">
+              <div className="w-14 h-14 flex items-center justify-center rounded-full bg-[#F5E8D3] border-2 border-[#BFA181] mb-4 text-2xl font-extrabold text-[#BFA181]">
+                2
+              </div>
+              <h3 className="font-bold text-lg md:text-xl text-[#7C5E3C] mb-2">
+                Book in Minutes
+              </h3>
+              <p className="text-[#7C5E3C] text-base md:text-lg">
+                One booking, one provider, one seamless schedule.
+              </p>
+            </div>
+            {/* Card 3 */}
+            <div className="flex-1 bg-white rounded-2xl shadow-lg px-6 py-8 flex flex-col items-center border-2 border-[#E2CBAA]">
+              <div className="w-14 h-14 flex items-center justify-center rounded-full bg-[#F5E8D3] border-2 border-[#BFA181] mb-4 text-2xl font-extrabold text-[#BFA181]">
+                3
+              </div>
+              <h3 className="font-bold text-lg md:text-xl text-[#7C5E3C] mb-2">
+                Relax
+              </h3>
+              <p className="text-[#7C5E3C] text-base md:text-lg">
+                A vetted, reliable provider arrives when you need them.
+              </p>
+            </div>
+          </div>
+          <button
+            className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-8 py-4 rounded-full font-bold shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2 text-lg"
+            onClick={() => router.push("/signup")}
+          >
+            Create an Account
+          </button>
+        </div>
+      </section>
+
       {/* Services Section */}
       <section className="py-10 px-6 flex-1 bg-gradient-to-b from-[#F9F5EF] to-[#F5E8D3]">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-xl md:text-4xl font-extrabold text-center mb-14 text-[#7C5E3C] tracking-tight">
-            Véla connects you with reliable, home-based services at your
-            fingertips.
+          <h2 className="text-xl md:text-4xl font-extrabold text-center mb-4 text-[#7C5E3C] tracking-tight uppercase">
+            OUR SERVICES
           </h2>
+          <p className="text-lg md:text-2xl text-center mb-14 text-[#A68A64] font-semibold">
+            One provider. Many services. A simpler way to care for your home.
+          </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 gap-10 justify-items-center">
-            {[
-              {
-                title: "Cleaning",
-                desc: "Professional cleaners for a spotless home.",
-                image: "/cleaning.webp",
-                href: "/services/cleaning",
-              },
-              {
-                title: "Petcare",
-                desc: "Qualified and caring pet sitters for your pets.",
-                image: "/petcare.jpg",
-                href: "/services/petcare",
-              },
-              {
-                title: "Childcare",
-                desc: "Qualified and caring babysitters for your children.",
-                image: "/babysitting.webp",
-                href: "/services/babysitting",
-              },
-            ].map((service, i) => (
+          {/* Cleaning Section */}
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-16">
+            <button
+              type="button"
+              onClick={() => (window.location.href = "/services/cleaning")}
+              className="w-80 aspect-square relative border border-[#E2CBAA] rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden group focus:outline-none"
+              style={{
+                backgroundImage: `url(/cleaning.webp)`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+              aria-label="Cleaning"
+            >
+              <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-[#FDEADB] hover:cursor-pointer transition-opacity duration-300 z-10 px-6 text-center">
+                <h3 className="text-2xl font-bold mb-2 text-[#FDEADB] drop-shadow group-hover:text-[#7C5E3C] transition">
+                  Cleaning Services
+                </h3>
+                <p className="text-base text-[#FDEADB] group-hover:text-[#7C5E3C] transition drop-shadow">
+                  Professional Cleaning You Can Trust.
+                </p>
+              </div>
+              <div className="absolute inset-0 flex flex-col items-center justify-center z-0 group-hover:opacity-0 transition-opacity duration-300">
+                <h3 className="text-2xl font-bold text-[#FDEADB] drop-shadow">
+                  Cleaning Services
+                </h3>
+              </div>
+            </button>
+            <div className="flex-1 mt-8 md:mt-0 md:ml-8 flex flex-col">
+              <div className="mb-4">
+                <h3 className="text-2xl font-bold text-[#7C5E3C] mb-2 text-center md:text-left">
+                  Cleaning Services
+                </h3>
+                <h4 className="text-xl font-bold text-[#7C5E3C] mb-2 text-center md:text-left">
+                  Professional Cleaning You Can Trust{" "}
+                </h4>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
+                {/* Why Choose Us Column */}
+                <div>
+                  <h4 className="font-semibold text-[#7C5E3C] mb-2">
+                    What we offer
+                  </h4>
+
+                  <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2">
+                    <li>Trusted, background-checked professionals</li>
+                    <li>Flexible scheduling to fit your needs</li>
+                    <li>Eco-friendly cleaning products available</li>
+                    <li>Consistent, high-quality service every time</li>
+                  </ul>
+                </div>
+                {/* What We Offer Column */}
+                <div>
+                  <h4 className="font-semibold text-[#7C5E3C] mb-2">
+                    What we offer
+                  </h4>
+                  <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2">
+                    <li>Standard & deep home cleaning</li>
+                    <li>Move-in/move-out cleaning</li>
+                    <li>Kitchen & bathroom detailing</li>
+                    <li>Customizable cleaning plans</li>
+                  </ul>
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => (window.location.href = "/services/cleaning")}
+                  className="mt-6 bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded font-bold shadow hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
+                >
+                  Learn More
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Childcare Section */}
+          <div className="flex flex-col md:flex-row-reverse items-center md:items-start gap-8 mb-16">
+            <button
+              type="button"
+              onClick={() => (window.location.href = "/services/babysitting")}
+              className="w-80 aspect-square relative border border-[#E2CBAA] rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden group focus:outline-none"
+              style={{
+                backgroundImage: `url(/babysitting.webp)`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+              aria-label="Childcare"
+            >
+              <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-[#FDEADB] hover:cursor-pointer transition-opacity duration-300 z-10 px-6 text-center">
+                <h3 className="text-2xl font-bold mb-2 text-[#FDEADB] drop-shadow group-hover:text-[#7C5E3C] transition">
+                  Childcare
+                </h3>
+                <p className="text-base text-[#FDEADB] group-hover:text-[#7C5E3C] transition drop-shadow">
+                  Qualified and caring babysitters for your children.
+                </p>
+              </div>
+              <div className="absolute inset-0 flex flex-col items-center justify-center z-0 group-hover:opacity-0 transition-opacity duration-300">
+                <h3 className="text-2xl font-bold text-[#FDEADB] drop-shadow">
+                  Childcare
+                </h3>
+              </div>
+            </button>
+            <div className="flex-1 mt-8 md:mt-0 md:mr-8">
+              <h3 className="text-2xl font-bold text-[#7C5E3C] mb-2">
+                Childcare
+              </h3>
+              <p className="text-[#7C5E3C] text-base md:text-lg">
+                Qualified and caring babysitters for your children. Rest easy
+                knowing your little ones are in safe, nurturing hands with our
+                trusted providers.
+              </p>
               <button
-                key={i}
                 type="button"
-                onClick={() => (window.location.href = service.href)}
-                className="w-80 aspect-square relative border border-[#E2CBAA] rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden group focus:outline-none"
-                style={{
-                  backgroundImage: `url(${service.image})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                }}
-                aria-label={service.title}
+                onClick={() => (window.location.href = "/services/babysitting")}
+                className="mt-4 bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded-full font-bold shadow hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
               >
-                {/* Overlay for darkening the image */}
-                {/* Hover content */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-[#FDEADB] hover:cursor-pointer transition-opacity duration-300 z-10 px-6 text-center">
-                  <h3 className="text-2xl font-bold mb-2 text-[#FDEADB] drop-shadow group-hover:text-[#7C5E3C] transition">
-                    {service.title}
-                  </h3>
-                  <p className="text-base text-[#FDEADB] group-hover:text-[#7C5E3C] transition drop-shadow">
-                    {service.desc}
-                  </p>
-                </div>
-                {/* Default content (icon or title) */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center z-0 group-hover:opacity-0 transition-opacity duration-300">
-                  <h3 className="text-2xl font-bold text-[#FDEADB] drop-shadow">
-                    {service.title}
-                  </h3>
-                </div>
+                Learn More
               </button>
-            ))}
+            </div>
+          </div>
+
+          {/* Petcare Section */}
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+            <button
+              type="button"
+              onClick={() => (window.location.href = "/services/petcare")}
+              className="w-80 aspect-square relative border border-[#E2CBAA] rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden group focus:outline-none"
+              style={{
+                backgroundImage: `url(/petcare.jpg)`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+              aria-label="Petcare"
+            >
+              <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-[#FDEADB] hover:cursor-pointer transition-opacity duration-300 z-10 px-6 text-center">
+                <h3 className="text-2xl font-bold mb-2 text-[#FDEADB] drop-shadow group-hover:text-[#7C5E3C] transition">
+                  Petcare
+                </h3>
+                <p className="text-base text-[#FDEADB] group-hover:text-[#7C5E3C] transition drop-shadow">
+                  Qualified and caring pet sitters for your pets.
+                </p>
+              </div>
+              <div className="absolute inset-0 flex flex-col items-center justify-center z-0 group-hover:opacity-0 transition-opacity duration-300">
+                <h3 className="text-2xl font-bold text-[#FDEADB] drop-shadow">
+                  Petcare
+                </h3>
+              </div>
+            </button>
+            <div className="flex-1 mt-8 md:mt-0 md:ml-8">
+              <h3 className="text-2xl font-bold text-[#7C5E3C] mb-2">
+                Petcare
+              </h3>
+              <p className="text-[#7C5E3C] text-base md:text-lg">
+                Qualified and caring pet sitters for your pets. Whether for a
+                walk, a visit, or overnight care, your furry friends are in
+                loving hands.
+              </p>
+              <button
+                type="button"
+                onClick={() => (window.location.href = "/services/petcare")}
+                className="mt-4 bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded-full font-bold shadow hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
+              >
+                Learn More
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -184,19 +352,44 @@ export default function LandingPage() {
                   stroke="currentColor"
                   strokeWidth={2}
                 >
-                  <rect x="8" y="10" width="32" height="30" rx="5" fill="#FDEADB" stroke="#BFA181" />
-                  <path d="M16 6v8M32 6v8" stroke="#BFA181" strokeWidth="2" strokeLinecap="round"/>
-                  <rect x="8" y="16" width="32" height="24" rx="3" fill="none" stroke="#BFA181" />
+                  <rect
+                    x="8"
+                    y="10"
+                    width="32"
+                    height="30"
+                    rx="5"
+                    fill="#FDEADB"
+                    stroke="#BFA181"
+                  />
+                  <path
+                    d="M16 6v8M32 6v8"
+                    stroke="#BFA181"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                  <rect
+                    x="8"
+                    y="16"
+                    width="32"
+                    height="24"
+                    rx="3"
+                    fill="none"
+                    stroke="#BFA181"
+                  />
                   <circle cx="24" cy="28" r="6" fill="none" stroke="#BFA181" />
-                  <path d="M24 28v-4M24 28l3 3" stroke="#BFA181" strokeWidth="2" strokeLinecap="round"/>
+                  <path
+                    d="M24 28v-4M24 28l3 3"
+                    stroke="#BFA181"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
                 </svg>
               </div>
               <h3 className="text-xl font-bold mb-2 text-[#BFA181] text-center">
-                Fast Booking
+                One Provider, Many Services
               </h3>
               <p className="text-[#7C5E3C]/90 text-base text-center">
-                Book your service in just a few clicks. Our streamlined process
-                gets you matched with a provider quickly and easily.
+                Save time by booking multiple needs.
               </p>
             </div>
             {/* Transparent Pricing */}
@@ -211,17 +404,25 @@ export default function LandingPage() {
                   stroke="currentColor"
                   strokeWidth={2}
                 >
-                  <path d="M10 26L26 10a4 4 0 015.7 0l6.3 6.3a4 4 0 010 5.7L18 38a4 4 0 01-5.7 0l-6.3-6.3A4 4 0 016 26l4-4z" fill="#FDEADB" stroke="#BFA181"/>
-                  <circle cx="32" cy="16" r="2.5" fill="#BFA181"/>
-                  <path d="M18 38l-8-8" stroke="#BFA181" strokeWidth="2" strokeLinecap="round"/>
+                  <path
+                    d="M10 26L26 10a4 4 0 015.7 0l6.3 6.3a4 4 0 010 5.7L18 38a4 4 0 01-5.7 0l-6.3-6.3A4 4 0 016 26l4-4z"
+                    fill="#FDEADB"
+                    stroke="#BFA181"
+                  />
+                  <circle cx="32" cy="16" r="2.5" fill="#BFA181" />
+                  <path
+                    d="M18 38l-8-8"
+                    stroke="#BFA181"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
                 </svg>
               </div>
               <h3 className="text-xl font-bold mb-2 text-[#BFA181] text-center">
-                Transparent Pricing
+                Trusted & Vetted
               </h3>
               <p className="text-[#7C5E3C]/90 text-base text-center">
-                No hidden fees. See exactly what you’ll pay before you book,
-                with clear and upfront pricing for every service.
+                Every provider passes background checks and training.
               </p>
             </div>
             {/* Various Services */}
@@ -236,18 +437,49 @@ export default function LandingPage() {
                   stroke="currentColor"
                   strokeWidth={2}
                 >
-                  <rect x="8" y="8" width="12" height="12" rx="3" fill="#FDEADB" stroke="#BFA181"/>
-                  <rect x="28" y="8" width="12" height="12" rx="3" fill="#FDEADB" stroke="#BFA181"/>
-                  <rect x="8" y="28" width="12" height="12" rx="3" fill="#FDEADB" stroke="#BFA181"/>
-                  <rect x="28" y="28" width="12" height="12" rx="3" fill="#FDEADB" stroke="#BFA181"/>
+                  <rect
+                    x="8"
+                    y="8"
+                    width="12"
+                    height="12"
+                    rx="3"
+                    fill="#FDEADB"
+                    stroke="#BFA181"
+                  />
+                  <rect
+                    x="28"
+                    y="8"
+                    width="12"
+                    height="12"
+                    rx="3"
+                    fill="#FDEADB"
+                    stroke="#BFA181"
+                  />
+                  <rect
+                    x="8"
+                    y="28"
+                    width="12"
+                    height="12"
+                    rx="3"
+                    fill="#FDEADB"
+                    stroke="#BFA181"
+                  />
+                  <rect
+                    x="28"
+                    y="28"
+                    width="12"
+                    height="12"
+                    rx="3"
+                    fill="#FDEADB"
+                    stroke="#BFA181"
+                  />
                 </svg>
               </div>
               <h3 className="text-xl font-bold mb-2 text-[#BFA181] text-center">
-                Various Services
+                Simple & Transparent
               </h3>
               <p className="text-[#7C5E3C]/90 text-base text-center">
-                From cleaning and childcare to petcare and more, Véla offers a
-                wide range of trusted home services for every need.
+                Easy booking and upfront princing.
               </p>
             </div>
             {/* Maximum Safety */}
@@ -277,68 +509,13 @@ export default function LandingPage() {
                 </svg>
               </div>
               <h3 className="text-xl font-bold mb-2 text-[#BFA181] text-center">
-                Maximum Safety
+                Peace of Mind
               </h3>
               <p className="text-[#7C5E3C]/90 text-base text-center">
-                All providers are thoroughly vetted and background-checked,
-                ensuring your peace of mind and the highest standards of safety.
+                Safe, reliable, and professional support for your home and
+                family.
               </p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Providers Section */}
-      <section className="py-10 px-6 flex-1 bg-[#F5E8D3]">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-extrabold text-center mb-8 text-[#7C5E3C] tracking-tight">
-            Meet Our Top Providers
-          </h2>
-          <p className="text-[#7C5E3C]/80 text-center mb-8 text-base">
-            Handpicked, trusted, and loved by our customers. Get to know a few
-            of the amazing people who make Véla special.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mt-20">
-            {[
-              {
-                title: "Maria S.",
-                desc: "Professional cleaner with 10+ years of experience.",
-                image: "/cleaner.webp",
-              },
-              {
-                title: "Lucas P.",
-                desc: "Caring babysitter and early childhood educator.",
-                image: "/cleaner.webp",
-              },
-              {
-                title: "Sophie T.",
-                desc: "Loving pet sitter and animal enthusiast.",
-                image: "/cleaner.webp",
-              },
-            ].map((provider, i) => (
-              <div
-                key={i}
-                className="relative rounded-3xl bg-gradient-to-br from-[#FFFFFF] to-[#F1E8D3] shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col items-center group hover:-translate-y-2 border border-[#E2CBAA]/60 p-7"
-              >
-                <div className="relative -mt-16 mb-4">
-                  <div className="w-28 h-28 rounded-full bg-gradient-to-tr from-[#BFA181]/30 to-[#FDEADB]/80 flex items-center justify-center shadow-lg ring-4 ring-[#BFA181]/10 overflow-hidden">
-                    <img
-                      src={provider.image}
-                      alt={provider.title}
-                      className="w-24 h-24 object-cover rounded-full border-2 border-white shadow group-hover:scale-110 transition-transform duration-300"
-                    />
-                  </div>
-                </div>
-                <h3 className="text-lg font-semibold mb-1 text-[#7C5E3C] group-hover:text-[#A68A64] transition-colors tracking-wide">
-                  {provider.title}
-                </h3>
-                <p className="text-[#7C5E3C]/80 text-center text-sm leading-relaxed px-2">
-                  {provider.desc}
-                </p>
-                <div className="absolute top-4 right-4 w-4 h-4 bg-[#BFA181]/20 rounded-full blur-sm group-hover:scale-125 transition" />
-                <div className="absolute bottom-4 left-4 w-3 h-3 bg-[#A68A64]/10 rounded-full blur-sm group-hover:scale-110 transition" />
-              </div>
-            ))}
           </div>
         </div>
       </section>
