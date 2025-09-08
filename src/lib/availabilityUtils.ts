@@ -118,16 +118,74 @@ export function getConsecutiveAvailableSlots(
 
       if (time2 !== time1 + 30) {
         isConsecutive = false;
-        console.log(
-          `Block ${block} is not consecutive at index ${j}: ${
-            block[j - 1]
-          } to ${block[j]}`
-        );
         break;
       }
     }
 
     if (isConsecutive) {
+      // Return all slots including the end time
+      const slotsWithEnd = [...block];
+      const endTime = calculateEndTime(block[block.length - 1]);
+      slotsWithEnd.push(endTime);
+      result.push(slotsWithEnd);
+    }
+  }
+  return result;
+}
+
+// Helper function to calculate end time (adds 30 minutes to the last slot)
+function calculateEndTime(lastSlotStart: string): string {
+  const [hours, minutes] = lastSlotStart.split(":").map(Number);
+  const totalMinutes = hours * 60 + minutes + 30;
+  const endHours = Math.floor(totalMinutes / 60);
+  const endMinutes = totalMinutes % 60;
+
+  return `${endHours.toString().padStart(2, "0")}:${endMinutes
+    .toString()
+    .padStart(2, "0")}`;
+}
+
+// Alternative: Si vous voulez retourner tous les créneaux individuels
+export function getConsecutiveAvailableSlots_AllSlots(
+  availableTimes: string[],
+  bookedTimes: string[] | undefined,
+  requiredHours: number
+): string[][] {
+  // ... même code jusqu'à la partie result ...
+
+  const requiredSlots = requiredHours * 2;
+  const bookedSet: Set<string> = new Set(
+    Array.isArray(bookedTimes) ? bookedTimes : []
+  );
+
+  const available = [...availableTimes]
+    .filter((t) => !bookedSet.has(t))
+    .sort((a, b) => {
+      const [h1, m1] = a.split(":").map(Number);
+      const [h2, m2] = b.split(":").map(Number);
+      return h1 * 60 + m1 - (h2 * 60 + m2);
+    });
+
+  const result: string[][] = [];
+
+  for (let i = 0; i <= available.length - requiredSlots; i++) {
+    const block = available.slice(i, i + requiredSlots);
+    let isConsecutive = true;
+
+    for (let j = 1; j < block.length; j++) {
+      const [h1, m1] = block[j - 1].split(":").map(Number);
+      const [h2, m2] = block[j].split(":").map(Number);
+      const time1 = h1 * 60 + m1;
+      const time2 = h2 * 60 + m2;
+
+      if (time2 !== time1 + 30) {
+        isConsecutive = false;
+        break;
+      }
+    }
+
+    if (isConsecutive) {
+      // Retourne tous les créneaux individuels
       result.push(block);
     }
   }

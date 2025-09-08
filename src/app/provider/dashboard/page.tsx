@@ -317,9 +317,12 @@ export default function DashboardProviderPage() {
     setSuccessMsg(null);
     setErrorMsg(null);
     try {
+      if (!userId) {
+        throw new Error("User ID is null");
+      }
       const missionRef = doc(db, "missions", mission.id);
-      const providerRef = doc(db, "users", userId); 
-  
+      const providerRef = doc(db, "users", userId);
+
       // Update mission status
       await updateDoc(missionRef, {
         status: "assigned",

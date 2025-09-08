@@ -12,7 +12,6 @@ export async function addPendingSlot(
   times: string[]
 ) {
   const ref = collection(db, "pendingSlots");
-  console.log(customerId, "customer");
   return await addDoc(ref, {
     userId: customerId,
     providerId,

@@ -16,6 +16,9 @@ import { auth, db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged, User } from "firebase/auth";
 
+import { toast } from "react-hot-toast";
+
+
 // Stripe appearance theme must be a valid literal, not a string
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
@@ -173,6 +176,7 @@ function CheckoutForm({
     if (paymentIntent.status === "succeeded") {
       // 3) Crée les missions après succès
       await onSuccess(paymentIntentId);
+      toast.success(`Payment of ${paymentIntent.amount / 100} NOK successful!`);
       setSucceeded(true);
     } else {
       setError("Payment not completed.");
