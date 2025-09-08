@@ -250,10 +250,12 @@ export default function LandingPage() {
                 >
                   <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-[#FDEADB] hover:cursor-pointer transition-opacity duration-300 z-10 px-6 text-center">
                     <h3 className="text-2xl font-bold mb-2 text-[#FDEADB] drop-shadow group-hover:text-[#7C5E3C] transition">
-                      Childcare
+                      Safe, Flexible, Reliable Childcare
                     </h3>
                     <p className="text-base text-[#FDEADB] group-hover:text-[#7C5E3C] transition drop-shadow">
-                      Qualified and caring babysitters for your children.
+                      Because nothing matters more than your child’s well-being.
+                      Our providers are qualified caregivers with verified
+                      experience.
                     </p>
                   </div>
                   <div className="absolute inset-0 flex flex-col items-center justify-center z-0 group-hover:opacity-0 transition-opacity duration-300">
@@ -266,44 +268,24 @@ export default function LandingPage() {
               {/* Right: Title and two white cards */}
               <div className="flex-1 flex flex-col">
                 <h3 className="text-2xl font-bold text-[#7C5E3C] mb-2 text-left">
-                  Childcare
+                  Childcare Services
                 </h3>
                 <h4 className="text-xl font-bold text-[#7C5E3C] mb-8 text-left">
-                  Qualified and Caring Babysitters for Your Children
+                  Because nothing matters more than your child’s well-being. Our
+                  providers are qualified caregivers with verified experience.{" "}
                 </h4>
                 <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Card 1 */}
-                  <div className="bg-white p-4 rounded-lg flex flex-col items-start text-left relative h-full min-h-[320px]">
-                    <h4 className="font-semibold text-[#7C5E3C] mb-2 text-left">
-                      What We Offer
-                    </h4>
-                    <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8">
-                      <li>Babysitting for all ages</li>
-                      <li>After-school care</li>
-                      <li>Evening and weekend care</li>
-                      <li>Last-minute and emergency care</li>
-                    </ul>
-                    <div className="w-full flex justify-start mt-auto">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          (window.location.href = "/services/babysitting")
-                        }
-                        className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded font-bold shadow hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
-                      >
-                        Learn More
-                      </button>
-                    </div>
-                  </div>
+
                   {/* Card 2 */}
                   <div className="bg-white p-4 rounded-lg flex flex-col items-start text-left relative h-full min-h-[320px]">
                     <h4 className="font-semibold text-[#7C5E3C] mb-2 text-left">
                       Why Choose Vela Childcare
                     </h4>
                     <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8">
-                      <li>Background-checked, experienced sitters</li>
-                      <li>Flexible scheduling to fit your needs</li>
-                      <li>Trusted, nurturing, and reliable care</li>
+                      <li>Trusted babysitters with background checks</li>
+                      <li>Flexible booking — daytime, evening, weekends</li>
+                      <li>Fun, engaging, and safe environment</li>
                     </ul>
                     <div className="w-full flex justify-start mt-auto">
                       <button
@@ -314,6 +296,28 @@ export default function LandingPage() {
                         className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded font-bold shadow hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
                       >
                         Book Our Services
+                      </button>
+                    </div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg flex flex-col items-start text-left relative h-full min-h-[320px]">
+                    <h4 className="font-semibold text-[#7C5E3C] mb-2 text-left">
+                      What We Offer
+                    </h4>
+                    <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8">
+                      <li>Babysitting (occasional or regular)</li>
+                      <li>Homework help and after-school care</li>
+                      <li>Evening / event childcare</li>
+                      <li>Part-time and flexible options</li>
+                    </ul>
+                    <div className="w-full flex justify-start mt-auto">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          (window.location.href = "/services/babysitting")
+                        }
+                        className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded font-bold shadow hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
+                      >
+                        Learn More
                       </button>
                     </div>
                   </div>
@@ -356,10 +360,10 @@ export default function LandingPage() {
               {/* Right: Title and two white cards */}
               <div className="flex-1 flex flex-col">
                 <h3 className="text-2xl font-bold text-[#7C5E3C] mb-2 text-left">
-                  Petcare
+                  Petcare Services
                 </h3>
                 <h4 className="text-xl font-bold text-[#7C5E3C] mb-8 text-left">
-                  Qualified and Caring Pet Sitters for Your Pets
+                  Care for Your Pets, Peace of Mind for You{" "}
                 </h4>
                 <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Card 1 */}
@@ -368,10 +372,10 @@ export default function LandingPage() {
                       What We Offer
                     </h4>
                     <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8">
-                      <li>Dog walking and pet sitting</li>
-                      <li>Feeding and medication administration</li>
-                      <li>Overnight and vacation care</li>
-                      <li>Drop-in visits and playtime</li>
+                      <li>Dog walking</li>
+                      <li>Cat sitting</li>
+                      <li>Pet check-ins and feeding</li>
+                      <li>Overnight pet sitting</li>
                     </ul>
                     <div className="w-full flex justify-start mt-auto">
                       <button
@@ -391,9 +395,11 @@ export default function LandingPage() {
                       Why Choose Vela Petcare
                     </h4>
                     <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8">
-                      <li>Experienced, animal-loving providers</li>
-                      <li>Flexible scheduling and custom care</li>
-                      <li>Peace of mind while you’re away</li>
+                      <li>Loving, trained pet sitters</li>
+                      <li>
+                        Flexible schedules, from daily walks to overnight stays
+                      </li>
+                      <li>Tailored care for cats, dogs, and more</li>
                     </ul>
                     <div className="w-full flex justify-start mt-auto">
                       <button

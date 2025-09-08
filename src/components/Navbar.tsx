@@ -53,6 +53,13 @@ const Navbar: React.FC = () => {
       >
         Home
       </Link>
+      <Link
+        href="/becomeProvider"
+        className="text-[#7C5E3C] hover:text-[#BFA181] font-medium transition block md:inline"
+        onClick={() => setMenuOpen(false)}
+      >
+        Become a Provider
+      </Link>
       {profile && profile.role === "customer" && (
         <Link
           href="/customer/services"
