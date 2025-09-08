@@ -11,6 +11,7 @@ import {
   DocumentData,
   doc,
   updateDoc,
+  arrayUnion,
 } from "firebase/firestore";
 import {
   MdOutlineCleaningServices,
@@ -317,11 +318,26 @@ export default function DashboardProviderPage() {
     setErrorMsg(null);
     try {
       const missionRef = doc(db, "missions", mission.id);
+      const providerRef = doc(db, "users", userId); 
+  
+      // Update mission status
       await updateDoc(missionRef, {
         status: "assigned",
         providerId: userId,
       });
-
+  
+      // Update provider bookedTimes
+      if (mission.times?.length) {
+        const bookedSlots = {
+          date: mission.date,
+          times: mission.times,
+        };
+  
+        await updateDoc(providerRef, {
+          bookedTimes: arrayUnion(bookedSlots),
+        });
+      }
+  
       // Update local state
       setMissions((prev) =>
         prev.map((m) =>
@@ -336,6 +352,7 @@ export default function DashboardProviderPage() {
       setAccepting(null);
     }
   };
+  
 
   const markMissionDone = async (missionId: string) => {
     setMarking(missionId);

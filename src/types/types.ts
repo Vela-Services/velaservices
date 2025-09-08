@@ -22,6 +22,7 @@ export type Service = {
   name: string; // nom affiché (ex: "Cleaning")
   type?: string; // ex: "cleaning" (utile si tu veux catégoriser)
   subServices?: SubService[];
+  description?: string; // description optionnelle
 };
 
 /* ----------------------------- Users / Providers ----------------------------- */
@@ -43,8 +44,9 @@ export type UserProfile = {
   displayName?: string;
   phone?: string;
   address?: string;
-  services: string[]; // Pour le customer on peut garder juste les ids de services choisis
+  services: string[];
   availability: Availability[];
+  bookedSlots?: Record<string, string[]>; // Format: { "YYYY-MM-DD": ["HH:MM", "HH:MM"] }
   email?: string;
 };
 
