@@ -209,7 +209,7 @@ export default function OrdersPage() {
                 No orders found
               </h2>
               <p className="mb-4 text-[#7C5E3C]/80 text-center">
-                You haven't placed any service orders yet.
+                You haven&apos;t placed any service orders yet.
               </p>
             </div>
           )}
