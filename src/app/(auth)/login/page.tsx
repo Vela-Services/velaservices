@@ -4,8 +4,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import "../../lib/firebase"; // Ensure firebase is initialized
-import { db } from "../../lib/firebase";
+import "../../../lib/firebase"; // Ensure firebase is initialized
+import { db } from "../../../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 
 export default function LoginPage() {

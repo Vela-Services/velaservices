@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useCart } from "../../lib/CartContext";
+import { useCart } from "../../../lib/CartContext";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -9,8 +9,8 @@ import {
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
-import { useAuth } from "../../lib/useAuth";
-import { createMissionsFromCart } from "../../lib/createMission";
+import { useAuth } from "../../hooks/useAuth";
+import { createMissionsFromCart } from "../../../lib/createMission";
 import { CartItem, UserProfile } from "@/types/types";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";

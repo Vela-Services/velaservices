@@ -9,8 +9,8 @@ import {
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
-import "../../lib/firebase"; // Ensure firebase is initialized
-import { db, auth } from "../../lib/firebase";
+import "../../../lib/firebase"; // Ensure firebase is initialized
+import { db, auth } from "../../../lib/firebase";
 
 export default function SignupPage() {
   const router = useRouter();
