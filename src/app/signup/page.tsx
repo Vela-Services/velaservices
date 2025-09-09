@@ -3,7 +3,11 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  updateProfile,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import "../../lib/firebase"; // Ensure firebase is initialized
 import { db, auth } from "../../lib/firebase";
@@ -68,13 +72,9 @@ export default function SignupPage() {
       await signInWithEmailAndPassword(auth, email, password);
 
       // Optionally, reload the page to ensure all client state is synced
-      // window.location.reload();
+      window.location.reload();
 
-      if (role === "customer") {
-        router.push("/customer/services");
-      } else {
-        router.push("/provider/services");
-      }
+      router.push("/profile");
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);

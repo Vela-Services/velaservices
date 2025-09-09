@@ -20,7 +20,7 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { useAuth } from "./useAuth"; // custom hook pour l'utilisateur connecté
+import { useAuth } from "../app/hooks/useAuth"; // custom hook pour l'utilisateur connecté
 import { CartItem } from "@/types/types";
 
 import { toast } from "react-hot-toast";

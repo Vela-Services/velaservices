@@ -6,7 +6,7 @@ import { CartItem } from "@/types/types";
 import { indexToDayName } from "../lib/availabilityUtils";
 import { Loader2 } from "lucide-react"; // spinner
 
-import { useAuth } from "../lib/useAuth";
+import { useAuth } from "../app/hooks/useAuth";
 
 import { addPendingSlot } from "../app/hooks/usePendingSlots";
 

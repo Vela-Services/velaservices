@@ -13,3 +13,7 @@ export const COLORS = {
     availableBorder: "border-[#A8D5BA]/30",
     hoverShadow: "hover:shadow-[#FF6B6B]/20",
   };
+
+
+  export const PROFILE_PIC_PLACEHOLDER = 
+  "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png";
