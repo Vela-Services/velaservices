@@ -135,14 +135,15 @@ export default function LandingPage() {
           </p>
 
           {/* Cleaning Section */}
+          {/* Cleaning Section */}
           <div className="mb-16">
-            <div className="bg-[#FDEADB]/50 p-8 rounded-2xl border border-[#E2CBAA] shadow-lg flex flex-col md:flex-row items-center md:items-stretch relative gap-8">
+            <div className="bg-gradient-to-br from-[#FDEADB]/80 via-[#F9F5EF]/80 to-[#F5E8D3]/80 p-10 rounded-3xl border-2 border-[#E2CBAA] shadow-2xl flex flex-col md:flex-row items-center md:items-stretch relative gap-10 transition-all duration-300">
               {/* Left: Button Picture, full height */}
               <div className="flex-shrink-0 flex items-stretch">
                 <button
                   type="button"
                   onClick={() => (window.location.href = "/services/cleaning")}
-                  className="w-80 h-full min-h-[320px] relative border border-[#E2CBAA] rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden group focus:outline-none flex flex-col"
+                  className="w-80 h-full min-h-[320px] relative border-2 border-[#E2CBAA] rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden group focus:outline-none flex flex-col ring-2 ring-transparent hover:ring-[#BFA181]/40"
                   style={{
                     backgroundImage: `url(/cleaning.webp)`,
                     backgroundSize: "cover",
@@ -150,8 +151,8 @@ export default function LandingPage() {
                   }}
                   aria-label="Cleaning"
                 >
-                  <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-[#FDEADB] hover:cursor-pointer transition-opacity duration-300 z-10 px-6 text-center">
-                    <h3 className="text-2xl font-bold mb-2 text-[#FDEADB] drop-shadow group-hover:text-[#7C5E3C] transition">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-[#FDEADB]/80 hover:cursor-pointer transition-opacity duration-300 z-10 px-6 text-center">
+                    <h3 className="text-2xl font-extrabold mb-2 text-[#FDEADB] drop-shadow group-hover:text-[#7C5E3C] transition">
                       Cleaning Services
                     </h3>
                     <p className="text-base text-[#FDEADB] group-hover:text-[#7C5E3C] transition drop-shadow">
@@ -159,27 +160,48 @@ export default function LandingPage() {
                     </p>
                   </div>
                   <div className="absolute inset-0 flex flex-col items-center justify-center z-0 group-hover:opacity-0 transition-opacity duration-300">
-                    <h3 className="text-2xl font-bold text-[#FDEADB] drop-shadow">
-                      Cleaning Services
-                    </h3>
+                    <div className="backdrop-blur-sm bg-[#7C5E3C]/30 rounded-2xl px-4 py-2">
+                      <h3 className="text-2xl font-extrabold text-[#FDEADB] drop-shadow">
+                        Cleaning Services
+                      </h3>
+                    </div>
                   </div>
+                  <span className="absolute top-4 right-4 bg-[#BFA181]/90 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg tracking-wide uppercase z-20">
+                    Featured
+                  </span>
                 </button>
               </div>
               {/* Right: Title and two white cards */}
-              <div className="flex-1 flex flex-col">
-                <h3 className="text-2xl font-bold text-[#7C5E3C] mb-2 text-left">
+              <div className="flex-1 flex flex-col justify-center">
+                <h3 className="text-3xl font-extrabold text-[#7C5E3C] mb-2 text-left tracking-tight drop-shadow-sm">
                   Cleaning Services
                 </h3>
-                <h4 className="text-xl font-bold text-[#7C5E3C] mb-8 text-left">
+                <h4 className="text-xl font-semibold text-[#A68A64] mb-8 text-left italic">
                   Professional Cleaning You Can Trust
                 </h4>
-                <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8">
                   {/* Card 1 */}
-                  <div className="bg-white p-4 rounded-lg flex flex-col items-start text-left relative h-full min-h-[320px]">
-                    <h4 className="font-semibold text-[#7C5E3C] mb-2 text-left">
-                      What We Offer
-                    </h4>
-                    <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8">
+                  <div className="bg-gradient-to-br from-[#FFFDF8] via-[#FDEADB]/80 to-[#F5E8D3]/80 p-6 rounded-2xl flex flex-col items-start text-left relative h-full min-h-[320px] border border-[#E2CBAA] shadow-lg hover:shadow-2xl transition-all duration-200 group">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BFA181]/20 shadow">
+                        <svg
+                          className="block"
+                          width={20}
+                          height={20}
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          style={{ display: "block" }}
+                        >
+                          <path d="M3 6h18M3 12h18M3 18h18" />
+                        </svg>
+                      </span>
+                      <h4 className="font-bold text-[#7C5E3C] text-lg">What We Offer</h4>
+                    </div>
+                    <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8 pl-2">
                       <li>Standard home cleaning</li>
                       <li>Deep cleaning</li>
                       <li>Move-in / move-out cleaning</li>
@@ -191,18 +213,40 @@ export default function LandingPage() {
                         onClick={() =>
                           (window.location.href = "/services/cleaning")
                         }
-                        className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded font-bold shadow hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
+                        className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded-lg font-bold shadow-md hover:scale-105 hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
                       >
                         Learn More
                       </button>
                     </div>
+                    <div className="absolute top-4 right-4">
+                      <svg className="w-7 h-7 text-[#FDEADB]/80" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke="#BFA181" strokeOpacity="0.3" />
+                        <path d="M8 12l2 2 4-4" stroke="#BFA181" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
                   </div>
                   {/* Card 2 */}
-                  <div className="bg-white p-4 rounded-lg flex flex-col items-start text-left relative h-full min-h-[320px]">
-                    <h4 className="font-semibold text-[#7C5E3C] mb-2 text-left">
-                      Why Choose Vela Cleaning
-                    </h4>
-                    <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8">
+                  <div className="bg-gradient-to-br from-[#FFFDF8] via-[#FDEADB]/80 to-[#F5E8D3]/80 p-6 rounded-2xl flex flex-col items-start text-left relative h-full min-h-[320px] border border-[#E2CBAA] shadow-lg hover:shadow-2xl transition-all duration-200 group">
+                    <div className="flex items-center gap-2 mb-3">
+                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BFA181]/20 shadow">
+                        <svg
+                          className="block"
+                          width={20}
+                          height={20}
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          style={{ display: "block" }}
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                        </svg>
+                      </span>
+                      <h4 className="font-bold text-[#7C5E3C] text-lg">Why Choose Vela Cleaning</h4>
+                    </div>
+                    <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8 pl-2">
                       <li>Background-checked and insured professionals</li>
                       <li>Book one-time or recurring visits</li>
                       <li>Transparent pricing, no hidden costs</li>
@@ -213,10 +257,16 @@ export default function LandingPage() {
                         onClick={() =>
                           (window.location.href = "/services/cleaning")
                         }
-                        className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded font-bold shadow hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
+                        className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded-lg font-bold shadow-md hover:scale-105 hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
                       >
                         Book Our Services
                       </button>
+                    </div>
+                    <div className="absolute top-4 right-4">
+                      <svg className="w-7 h-7 text-[#FDEADB]/80" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke="#A68A64" strokeOpacity="0.3" />
+                        <path d="M16 8l-4 4-2-2" stroke="#A68A64" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
                     </div>
                   </div>
                 </div>
@@ -226,15 +276,13 @@ export default function LandingPage() {
 
           {/* Childcare Section */}
           <div className="mb-16">
-            <div className="bg-[#FDEADB]/50 p-8 rounded-2xl border border-[#E2CBAA] shadow-lg flex flex-col md:flex-row-reverse items-center md:items-stretch relative gap-8">
+            <div className="bg-gradient-to-br from-[#FDEADB]/80 via-[#F9F5EF]/80 to-[#F5E8D3]/80 p-10 rounded-3xl border-2 border-[#E2CBAA] shadow-2xl flex flex-col md:flex-row items-center md:items-stretch relative gap-10 transition-all duration-300">
               {/* Left: Button Picture, full height */}
               <div className="flex-shrink-0 flex items-stretch">
                 <button
                   type="button"
-                  onClick={() =>
-                    (window.location.href = "/services/babysitting")
-                  }
-                  className="w-80 h-full min-h-[320px] relative border border-[#E2CBAA] rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden group focus:outline-none flex flex-col"
+                  onClick={() => (window.location.href = "/services/babysitting")}
+                  className="w-80 h-full min-h-[320px] relative border-2 border-[#E2CBAA] rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden group focus:outline-none flex flex-col ring-2 ring-transparent hover:ring-[#BFA181]/40"
                   style={{
                     backgroundImage: `url(/babysitting.webp)`,
                     backgroundSize: "cover",
@@ -242,62 +290,57 @@ export default function LandingPage() {
                   }}
                   aria-label="Childcare"
                 >
-                  <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-[#FDEADB] hover:cursor-pointer transition-opacity duration-300 z-10 px-6 text-center">
-                    <h3 className="text-2xl font-bold mb-2 text-[#FDEADB] drop-shadow group-hover:text-[#7C5E3C] transition">
-                      Safe, Flexible, Reliable Childcare
+                  <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-[#FDEADB]/80 hover:cursor-pointer transition-opacity duration-300 z-10 px-6 text-center">
+                    <h3 className="text-2xl font-extrabold mb-2 text-[#FDEADB] drop-shadow group-hover:text-[#7C5E3C] transition">
+                      Childcare Services
                     </h3>
                     <p className="text-base text-[#FDEADB] group-hover:text-[#7C5E3C] transition drop-shadow">
-                      Because nothing matters more than your child’s well-being.
-                      Our providers are qualified caregivers with verified
-                      experience.
+                      Safe, Flexible, Reliable Childcare.
                     </p>
                   </div>
                   <div className="absolute inset-0 flex flex-col items-center justify-center z-0 group-hover:opacity-0 transition-opacity duration-300">
-                    <h3 className="text-2xl font-bold text-[#FDEADB] drop-shadow">
-                      Childcare
-                    </h3>
+                    <div className="backdrop-blur-sm bg-[#7C5E3C]/30 rounded-2xl px-4 py-2">
+                      <h3 className="text-2xl font-extrabold text-[#FDEADB] drop-shadow">
+                        Childcare Services
+                      </h3>
+                    </div>
                   </div>
+                  <span className="absolute top-4 right-4 bg-[#BFA181]/90 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg tracking-wide uppercase z-20">
+                    Featured
+                  </span>
                 </button>
               </div>
               {/* Right: Title and two white cards */}
-              <div className="flex-1 flex flex-col">
-                <h3 className="text-2xl font-bold text-[#7C5E3C] mb-2 text-left">
+              <div className="flex-1 flex flex-col justify-center">
+                <h3 className="text-3xl font-extrabold text-[#7C5E3C] mb-2 text-left tracking-tight drop-shadow-sm">
                   Childcare Services
                 </h3>
-                <h4 className="text-xl font-bold text-[#7C5E3C] mb-8 text-left">
-                  Because nothing matters more than your child’s well-being. Our
-                  providers are qualified caregivers with verified experience.{" "}
+                <h4 className="text-xl font-semibold text-[#A68A64] mb-8 text-left italic">
+                  Safe, Flexible, Reliable Childcare
                 </h4>
-                <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8">
                   {/* Card 1 */}
-
-                  {/* Card 2 */}
-                  <div className="bg-white p-4 rounded-lg flex flex-col items-start text-left relative h-full min-h-[320px]">
-                    <h4 className="font-semibold text-[#7C5E3C] mb-2 text-left">
-                      Why Choose Vela Childcare
-                    </h4>
-                    <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8">
-                      <li>Trusted babysitters with background checks</li>
-                      <li>Flexible booking — daytime, evening, weekends</li>
-                      <li>Fun, engaging, and safe environment</li>
-                    </ul>
-                    <div className="w-full flex justify-start mt-auto">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          (window.location.href = "/services/babysitting")
-                        }
-                        className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded font-bold shadow hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
-                      >
-                        Book Our Services
-                      </button>
+                  <div className="bg-gradient-to-br from-[#FFFDF8] via-[#FDEADB]/80 to-[#F5E8D3]/80 p-6 rounded-2xl flex flex-col items-start text-left relative h-full min-h-[320px] border border-[#E2CBAA] shadow-lg hover:shadow-2xl transition-all duration-200 group">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BFA181]/20 shadow">
+                        <svg
+                          className="block"
+                          width={20}
+                          height={20}
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          style={{ display: "block" }}
+                        >
+                          <path d="M3 6h18M3 12h18M3 18h18" />
+                        </svg>
+                      </span>
+                      <h4 className="font-bold text-[#7C5E3C] text-lg">What We Offer</h4>
                     </div>
-                  </div>
-                  <div className="bg-white p-4 rounded-lg flex flex-col items-start text-left relative h-full min-h-[320px]">
-                    <h4 className="font-semibold text-[#7C5E3C] mb-2 text-left">
-                      What We Offer
-                    </h4>
-                    <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8">
+                    <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8 pl-2">
                       <li>Babysitting (occasional or regular)</li>
                       <li>Homework help and after-school care</li>
                       <li>Evening / event childcare</li>
@@ -309,10 +352,60 @@ export default function LandingPage() {
                         onClick={() =>
                           (window.location.href = "/services/babysitting")
                         }
-                        className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded font-bold shadow hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
+                        className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded-lg font-bold shadow-md hover:scale-105 hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
                       >
                         Learn More
                       </button>
+                    </div>
+                    <div className="absolute top-4 right-4">
+                      <svg className="w-7 h-7 text-[#FDEADB]/80" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke="#BFA181" strokeOpacity="0.3" />
+                        <path d="M8 12l2 2 4-4" stroke="#BFA181" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                  </div>
+                  {/* Card 2 */}
+                  <div className="bg-gradient-to-br from-[#FFFDF8] via-[#FDEADB]/80 to-[#F5E8D3]/80 p-6 rounded-2xl flex flex-col items-start text-left relative h-full min-h-[320px] border border-[#E2CBAA] shadow-lg hover:shadow-2xl transition-all duration-200 group">
+                    <div className="flex items-center gap-2 mb-3">
+                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BFA181]/20 shadow">
+                        <svg
+                          className="block"
+                          width={20}
+                          height={20}
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          style={{ display: "block" }}
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                        </svg>
+                      </span>
+                      <h4 className="font-bold text-[#7C5E3C] text-lg">Why Choose Vela Childcare</h4>
+                    </div>
+                    <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8 pl-2">
+                      <li>Trusted babysitters with background checks</li>
+                      <li>Flexible booking — daytime, evening, weekends</li>
+                      <li>Fun, engaging, and safe environment</li>
+                    </ul>
+                    <div className="w-full flex justify-start mt-auto">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          (window.location.href = "/services/babysitting")
+                        }
+                        className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded-lg font-bold shadow-md hover:scale-105 hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
+                      >
+                        Book Our Services
+                      </button>
+                    </div>
+                    <div className="absolute top-4 right-4">
+                      <svg className="w-7 h-7 text-[#FDEADB]/80" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke="#A68A64" strokeOpacity="0.3" />
+                        <path d="M16 8l-4 4-2-2" stroke="#A68A64" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
                     </div>
                   </div>
                 </div>
@@ -321,14 +414,14 @@ export default function LandingPage() {
           </div>
 
           {/* Petcare Section */}
-          <div>
-            <div className="bg-[#FDEADB]/50 p-8 rounded-2xl border border-[#E2CBAA] shadow-lg flex flex-col md:flex-row items-center md:items-stretch relative gap-8">
+          <div className="mb-16">
+            <div className="bg-gradient-to-br from-[#FDEADB]/80 via-[#F9F5EF]/80 to-[#F5E8D3]/80 p-10 rounded-3xl border-2 border-[#E2CBAA] shadow-2xl flex flex-col md:flex-row items-center md:items-stretch relative gap-10 transition-all duration-300">
               {/* Left: Button Picture, full height */}
               <div className="flex-shrink-0 flex items-stretch">
                 <button
                   type="button"
                   onClick={() => (window.location.href = "/services/petcare")}
-                  className="w-80 h-full min-h-[320px] relative border border-[#E2CBAA] rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden group focus:outline-none flex flex-col"
+                  className="w-80 h-full min-h-[320px] relative border-2 border-[#E2CBAA] rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden group focus:outline-none flex flex-col ring-2 ring-transparent hover:ring-[#BFA181]/40"
                   style={{
                     backgroundImage: `url(/petcare.jpg)`,
                     backgroundSize: "cover",
@@ -336,36 +429,57 @@ export default function LandingPage() {
                   }}
                   aria-label="Petcare"
                 >
-                  <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-[#FDEADB] hover:cursor-pointer transition-opacity duration-300 z-10 px-6 text-center">
-                    <h3 className="text-2xl font-bold mb-2 text-[#FDEADB] drop-shadow group-hover:text-[#7C5E3C] transition">
-                      Petcare
+                  <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-[#FDEADB]/80 hover:cursor-pointer transition-opacity duration-300 z-10 px-6 text-center">
+                    <h3 className="text-2xl font-extrabold mb-2 text-[#FDEADB] drop-shadow group-hover:text-[#7C5E3C] transition">
+                      Petcare Services
                     </h3>
                     <p className="text-base text-[#FDEADB] group-hover:text-[#7C5E3C] transition drop-shadow">
                       Qualified and caring pet sitters for your pets.
                     </p>
                   </div>
                   <div className="absolute inset-0 flex flex-col items-center justify-center z-0 group-hover:opacity-0 transition-opacity duration-300">
-                    <h3 className="text-2xl font-bold text-[#FDEADB] drop-shadow">
-                      Petcare
-                    </h3>
+                    <div className="backdrop-blur-sm bg-[#7C5E3C]/30 rounded-2xl px-4 py-2">
+                      <h3 className="text-2xl font-extrabold text-[#FDEADB] drop-shadow">
+                        Petcare Services
+                      </h3>
+                    </div>
                   </div>
+                  <span className="absolute top-4 right-4 bg-[#BFA181]/90 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg tracking-wide uppercase z-20">
+                    Featured
+                  </span>
                 </button>
               </div>
               {/* Right: Title and two white cards */}
-              <div className="flex-1 flex flex-col">
-                <h3 className="text-2xl font-bold text-[#7C5E3C] mb-2 text-left">
+              <div className="flex-1 flex flex-col justify-center">
+                <h3 className="text-3xl font-extrabold text-[#7C5E3C] mb-2 text-left tracking-tight drop-shadow-sm">
                   Petcare Services
                 </h3>
-                <h4 className="text-xl font-bold text-[#7C5E3C] mb-8 text-left">
-                  Care for Your Pets, Peace of Mind for You{" "}
+                <h4 className="text-xl font-semibold text-[#A68A64] mb-8 text-left italic">
+                  Care for Your Pets, Peace of Mind for You
                 </h4>
-                <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8">
                   {/* Card 1 */}
-                  <div className="bg-white p-4 rounded-lg flex flex-col items-start text-left relative h-full min-h-[320px]">
-                    <h4 className="font-semibold text-[#7C5E3C] mb-2 text-left">
-                      What We Offer
-                    </h4>
-                    <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8">
+                  <div className="bg-gradient-to-br from-[#FFFDF8] via-[#FDEADB]/80 to-[#F5E8D3]/80 p-6 rounded-2xl flex flex-col items-start text-left relative h-full min-h-[320px] border border-[#E2CBAA] shadow-lg hover:shadow-2xl transition-all duration-200 group">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BFA181]/20 shadow">
+                        <svg
+                          className="block"
+                          width={20}
+                          height={20}
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          style={{ display: "block" }}
+                        >
+                          <path d="M3 6h18M3 12h18M3 18h18" />
+                        </svg>
+                      </span>
+                      <h4 className="font-bold text-[#7C5E3C] text-lg">What We Offer</h4>
+                    </div>
+                    <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8 pl-2">
                       <li>Dog walking</li>
                       <li>Cat sitting</li>
                       <li>Pet check-ins and feeding</li>
@@ -377,22 +491,42 @@ export default function LandingPage() {
                         onClick={() =>
                           (window.location.href = "/services/petcare")
                         }
-                        className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded font-bold shadow hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
+                        className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded-lg font-bold shadow-md hover:scale-105 hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
                       >
                         Learn More
                       </button>
                     </div>
+                    <div className="absolute top-4 right-4">
+                      <svg className="w-7 h-7 text-[#FDEADB]/80" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke="#BFA181" strokeOpacity="0.3" />
+                        <path d="M8 12l2 2 4-4" stroke="#BFA181" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
                   </div>
                   {/* Card 2 */}
-                  <div className="bg-white p-4 rounded-lg flex flex-col items-start text-left relative h-full min-h-[320px]">
-                    <h4 className="font-semibold text-[#7C5E3C] mb-2 text-left">
-                      Why Choose Vela Petcare
-                    </h4>
-                    <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8">
+                  <div className="bg-gradient-to-br from-[#FFFDF8] via-[#FDEADB]/80 to-[#F5E8D3]/80 p-6 rounded-2xl flex flex-col items-start text-left relative h-full min-h-[320px] border border-[#E2CBAA] shadow-lg hover:shadow-2xl transition-all duration-200 group">
+                    <div className="flex items-center gap-2 mb-3">
+                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BFA181]/20 shadow">
+                        <svg
+                          className="block"
+                          width={20}
+                          height={20}
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          style={{ display: "block" }}
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                        </svg>
+                      </span>
+                      <h4 className="font-bold text-[#7C5E3C] text-lg">Why Choose Vela Petcare</h4>
+                    </div>
+                    <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8 pl-2">
                       <li>Loving, trained pet sitters</li>
-                      <li>
-                        Flexible schedules, from daily walks to overnight stays
-                      </li>
+                      <li>Flexible schedules, from daily walks to overnight stays</li>
                       <li>Tailored care for cats, dogs, and more</li>
                     </ul>
                     <div className="w-full flex justify-start mt-auto">
@@ -401,10 +535,16 @@ export default function LandingPage() {
                         onClick={() =>
                           (window.location.href = "/services/petcare")
                         }
-                        className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded font-bold shadow hover:scale-105 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
+                        className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded-lg font-bold shadow-md hover:scale-105 hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
                       >
                         Book Our Services
                       </button>
+                    </div>
+                    <div className="absolute top-4 right-4">
+                      <svg className="w-7 h-7 text-[#FDEADB]/80" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke="#A68A64" strokeOpacity="0.3" />
+                        <path d="M16 8l-4 4-2-2" stroke="#A68A64" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
                     </div>
                   </div>
                 </div>
