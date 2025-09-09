@@ -14,7 +14,6 @@ import {
   FaCalendarAlt,
   FaClock,
   FaUser,
-  FaBuilding,
   FaStickyNote,
   FaMoneyBillWave,
   FaCheckCircle,

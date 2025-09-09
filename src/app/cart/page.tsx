@@ -2,7 +2,7 @@
 
 import { useCart } from "@/lib/CartContext";
 import Link from "next/link";
-import { FaTrashAlt, FaCalendarAlt, FaClock, FaUser, FaBuilding } from "react-icons/fa";
+import { FaTrashAlt, FaCalendarAlt, FaClock, FaUser } from "react-icons/fa";
 
 function formatTimes(times: string[] | string) {
   if (Array.isArray(times)) return times.join(", ");
