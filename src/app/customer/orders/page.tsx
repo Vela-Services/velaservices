@@ -10,6 +10,62 @@ import {
   where,
   DocumentData,
 } from "firebase/firestore";
+import {
+  FaCalendarAlt,
+  FaClock,
+  FaUser,
+  FaBuilding,
+  FaStickyNote,
+  FaMoneyBillWave,
+  FaCheckCircle,
+  FaHourglassHalf,
+  FaTimesCircle,
+} from "react-icons/fa";
+
+function formatTimes(times: string[] | string) {
+  if (Array.isArray(times)) return times.join(", ");
+  return times;
+}
+
+function formatStatus(status: string) {
+  if (!status) return (
+    <span className="inline-flex items-center gap-1 text-yellow-600">
+      <FaHourglassHalf className="inline" /> Pending
+    </span>
+  );
+  const s = status.charAt(0).toUpperCase() + status.slice(1);
+  if (s === "Completed" || s === "Done")
+    return (
+      <span className="inline-flex items-center gap-1 text-green-600">
+        <FaCheckCircle className="inline" /> {s}
+      </span>
+    );
+  if (s === "Cancelled")
+    return (
+      <span className="inline-flex items-center gap-1 text-red-500">
+        <FaTimesCircle className="inline" /> {s}
+      </span>
+    );
+  if (s === "Pending")
+    return (
+      <span className="inline-flex items-center gap-1 text-yellow-600">
+        <FaHourglassHalf className="inline" /> {s}
+      </span>
+    );
+  return s;
+}
+
+function formatSubservices(subservices: Record<string, number> | undefined) {
+  if (!subservices || Object.keys(subservices).length === 0) return null;
+  return (
+    <div className="mt-1 text-xs text-[#7C5E3C]/80">
+      <span className="font-semibold">Subservices:</span>{" "}
+      {Object.entries(subservices)
+        .map(([name, hours]) => `${name} (${hours}h)`)
+        .join(", ")}
+    </div>
+  );
+}
 
 export default function OrdersPage() {
   const [, setUser] = useState<User | null>(null);
@@ -30,7 +86,6 @@ export default function OrdersPage() {
           ...doc.data(),
         }));
         setOrders(missionsData);
-        // console.log(missionsData);
       } catch (error) {
         console.error("Failed to fetch orders.", error);
         setErrorMsg("Failed to fetch orders.");
@@ -77,7 +132,7 @@ export default function OrdersPage() {
 
   // Helper to get status
   function getOrderStatus(order: DocumentData) {
-    return order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : "Pending";
+    return order.status || "Pending";
   }
 
   // Helper to get provider name
@@ -86,48 +141,124 @@ export default function OrdersPage() {
   }
 
   function getOrderPrice(order: DocumentData) {
-    return order.price ? `${order.price}NOK` : "N/A";
+    return order.price ? `${order.price} NOK` : "N/A";
+  }
+
+  // Helper to get subservices
+  function getSubservices(order: DocumentData) {
+    return order.subservices || order.subServices || undefined;
   }
 
   return (
-    <div className="min-h-screen bg-[#F5E8D3]">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-[#7C5E3C] mb-6">Your Orders</h1>
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-[#7C5E3C] mb-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#F5E8D3] to-[#fcf5eb] flex flex-col items-center py-12 px-2">
+      <div className="w-full max-w-2xl mx-auto">
+        <div className="flex flex-col items-center mb-10">
+          <div className="bg-[#BFA181] rounded-full p-4 shadow-lg mb-3">
+            <svg
+              className="w-8 h-8 text-white"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 12l9-7 9 7M4 10v10a1 1 0 001 1h3m10-11v10a1 1 0 01-1 1h-3m-6 0h6"
+              />
+            </svg>
+          </div>
+          <h1 className="text-4xl font-extrabold text-[#7C5E3C] mb-1 tracking-tight">
             Your Orders
-          </h2>
-          {loading && <p>Loading...</p>}
-          {errorMsg && <p className="text-red-500">{errorMsg}</p>}
-          {!loading && !errorMsg && orders.length === 0 && <p>No orders found.</p>}
+          </h1>
+          <p className="text-[#7C5E3C]/70 text-lg text-center max-w-md">
+            Here you can review your past and upcoming service orders, their details, and status.
+          </p>
+        </div>
+
+        <div className="bg-white/80 rounded-2xl shadow-lg p-8">
+          {loading && (
+            <div className="flex items-center justify-center py-8">
+              <svg className="animate-spin h-8 w-8 text-[#BFA181]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+              <span className="ml-3 text-[#BFA181] font-medium">Loading your orders...</span>
+            </div>
+          )}
+          {errorMsg && (
+            <div className="bg-red-100 text-red-700 rounded-lg px-4 py-3 mb-4">
+              {errorMsg}
+            </div>
+          )}
+          {!loading && !errorMsg && orders.length === 0 && (
+            <div className="flex flex-col items-center py-8">
+              <svg
+                className="w-16 h-16 mb-4 text-[#BFA181]"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.5}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 12l9-7 9 7M4 10v10a1 1 0 001 1h3m10-11v10a1 1 0 01-1 1h-3m-6 0h6"
+                />
+              </svg>
+              <h2 className="text-2xl font-semibold mb-2 text-[#7C5E3C]">
+                No orders found
+              </h2>
+              <p className="mb-4 text-[#7C5E3C]/80 text-center">
+                You haven't placed any service orders yet.
+              </p>
+            </div>
+          )}
           {!loading && !errorMsg && orders.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-[#F5E8D3]">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-[#BFA181] uppercase">Service</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-[#BFA181] uppercase">Date</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-[#BFA181] uppercase">Time</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-[#BFA181] uppercase">Provider</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-[#BFA181] uppercase">Price</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-[#BFA181] uppercase">Status</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-[#BFA181] uppercase">Notes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map((order) => (
-                    <tr key={order.id} className="border-b last:border-b-0">
-                      <td className="px-4 py-3 font-semibold text-[#7C5E3C]">{getServiceName(order)}</td>
-                      <td className="px-4 py-3 text-gray-700">{getOrderDate(order)}</td>
-                      <td className="px-4 py-3 text-gray-700">{getOrderTime(order)}</td>
-                      <td className="px-4 py-3 text-gray-700">{getProviderName(order)}</td>
-                      <td className="px-4 py-3 text-gray-700">{getOrderPrice(order)}</td>
-                      <td className="px-4 py-3 text-gray-700">{getOrderStatus(order)}</td>
-                      <td className="px-4 py-3 text-gray-500">{getOrderDescription(order)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="flex flex-col gap-6">
+              {orders.map((order) => (
+                <div
+                  key={order.id}
+                  className="border border-[#F5E8D3] rounded-xl shadow-sm p-5 flex flex-col sm:flex-row sm:items-center gap-4 hover:shadow-md transition"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-lg font-bold text-[#7C5E3C]">
+                        {getServiceName(order)}
+                      </span>
+                      {formatSubservices(getSubservices(order))}
+                    </div>
+                    <div className="flex flex-wrap gap-4 text-[#7C5E3C]/90 text-sm mb-2">
+                      <span className="inline-flex items-center gap-1">
+                        <FaCalendarAlt className="inline" />
+                        {getOrderDate(order) || <span className="text-gray-400">No date</span>}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <FaClock className="inline" />
+                        {formatTimes(getOrderTime(order)) || <span className="text-gray-400">No time</span>}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <FaUser className="inline" />
+                        {getProviderName(order)}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <FaMoneyBillWave className="inline" />
+                        {getOrderPrice(order)}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        {formatStatus(getOrderStatus(order))}
+                      </span>
+                    </div>
+                    {getOrderDescription(order) && (
+                      <div className="flex items-center gap-2 text-[#7C5E3C]/80 text-xs mt-1">
+                        <FaStickyNote className="inline" />
+                        <span>{getOrderDescription(order)}</span>
+                      </div>
+                    )}
+                  </div>
+                  {/* Optionally, add more details or actions here */}
+                </div>
+              ))}
             </div>
           )}
         </div>
