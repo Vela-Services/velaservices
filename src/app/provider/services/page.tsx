@@ -136,7 +136,7 @@ export default function ServicesPage() {
         const userRef = doc(db, "users", user.uid);
         await setDoc(userRef, { availability }, { merge: true });
         setSaveMsg("Availability updated!");
-      } catch (err) {
+      } catch {
         setSaveMsg("Failed to save availability.");
       }
     }, 1000);
@@ -173,8 +173,8 @@ export default function ServicesPage() {
       const userRef = doc(db, "users", user.uid);
       await setDoc(userRef, { services: updatedServices }, { merge: true });
       setSaveMsg("Services updated!");
-    } catch (err) {
-      setSaveMsg("Failed to update services.");
+    } catch {
+      setSaveMsg("Failed to save availability.");
     } finally {
       setSaving(false);
     }
@@ -233,8 +233,8 @@ export default function ServicesPage() {
         { merge: true }
       );
       setSaveMsg("Services, prices, and availability updated successfully!");
-    } catch (err) {
-      setSaveMsg("Failed to update services and availability.");
+    } catch {
+      setSaveMsg("Failed to save availability.");
     } finally {
       setSaving(false);
     }
@@ -244,7 +244,9 @@ export default function ServicesPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5E8D3] to-[#fcf5eb]">
         <div className="flex flex-col items-center gap-4">
-          <span className="text-[#7C5E3C] text-2xl font-bold animate-pulse">Loading your profile...</span>
+          <span className="text-[#7C5E3C] text-2xl font-bold animate-pulse">
+            Loading your profile...
+          </span>
           <div className="w-12 h-12 border-4 border-[#BFA181] border-t-transparent rounded-full animate-spin"></div>
         </div>
       </div>
@@ -279,7 +281,8 @@ export default function ServicesPage() {
             Provider Profile
           </h1>
           <p className="text-center text-[#7C5E3C]/70 mb-8 text-base sm:text-lg">
-            Select the services you offer, set your hourly price, and define your weekly availability.
+            Select the services you offer, set your hourly price, and define
+            your weekly availability.
           </p>
           <form
             onSubmit={(e) => {
