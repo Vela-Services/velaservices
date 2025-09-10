@@ -10,8 +10,8 @@ import {
   browserLocalPersistence,
 } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { auth, db } from "../../lib/firebase";
-import { UserProfile } from "../../types/types";
+import { auth, db } from "../../../lib/firebase";
+import { UserProfile } from "../../../types/types";
 import { IoSettingsSharp } from "react-icons/io5";
 
 const PROFILE_PIC_PLACEHOLDER =

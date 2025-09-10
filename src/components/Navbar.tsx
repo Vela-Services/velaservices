@@ -62,7 +62,7 @@ const Navbar: React.FC = () => {
       </Link>
       {profile && profile.role === "customer" && (
         <Link
-          href="/customer/services"
+          href="/customerServices"
           className="text-[#7C5E3C] hover:text-[#BFA181] font-medium transition block md:inline"
           onClick={() => setMenuOpen(false)}
         >
@@ -71,7 +71,7 @@ const Navbar: React.FC = () => {
       )}
       {profile && profile.role === "provider" && (
         <Link
-          href="/provider/services"
+          href="/providerServices"
           className="text-[#7C5E3C] hover:text-[#BFA181] font-medium transition block md:inline"
           onClick={() => setMenuOpen(false)}
         >
@@ -80,7 +80,7 @@ const Navbar: React.FC = () => {
       )}
       {profile && profile.role === "provider" && (
         <Link
-          href="/provider/dashboard"
+          href="/dashboard"
           className="text-[#7C5E3C] hover:text-[#BFA181] font-medium transition block md:inline"
           onClick={() => setMenuOpen(false)}
         >
@@ -89,7 +89,7 @@ const Navbar: React.FC = () => {
       )}
       {profile && profile.role === "customer" && (
         <Link
-          href="/customer/orders"
+          href="/orders"
           className="text-[#7C5E3C] hover:text-[#BFA181] font-medium transition block md:inline"
           onClick={() => setMenuOpen(false)}
         >
