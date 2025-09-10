@@ -195,7 +195,7 @@ export default function CleaningServicesPage() {
             </ul>
             <div className="mt-6">
               <a
-                href="/customer/services"
+                href="/customerServices"
                 className="inline-block px-8 py-3 rounded-full bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white font-bold shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-200"
               >
                 Book a Cleaning Now

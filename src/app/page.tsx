@@ -46,7 +46,7 @@ export default function LandingPage() {
             </h1>
           </div>
           <p className="text-xl md:text-2xl mb-10 text-white font-medium italic drop-shadow-lg">
-          Your Time, Our Priority.
+            Your Time, Our Priority.
           </p>
           {user ? (
             <div>
@@ -199,7 +199,9 @@ export default function LandingPage() {
                           <path d="M3 6h18M3 12h18M3 18h18" />
                         </svg>
                       </span>
-                      <h4 className="font-bold text-[#7C5E3C] text-lg">What We Offer</h4>
+                      <h4 className="font-bold text-[#7C5E3C] text-lg">
+                        What We Offer
+                      </h4>
                     </div>
                     <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8 pl-2">
                       <li>Standard home cleaning</li>
@@ -219,16 +221,34 @@ export default function LandingPage() {
                       </button>
                     </div>
                     <div className="absolute top-4 right-4">
-                      <svg className="w-7 h-7 text-[#FDEADB]/80" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10" stroke="#BFA181" strokeOpacity="0.3" />
-                        <path d="M8 12l2 2 4-4" stroke="#BFA181" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <svg
+                        className="w-7 h-7 text-[#FDEADB]/80"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={1.5}
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="#BFA181"
+                          strokeOpacity="0.3"
+                        />
+                        <path
+                          d="M8 12l2 2 4-4"
+                          stroke="#BFA181"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
                       </svg>
                     </div>
                   </div>
                   {/* Card 2 */}
                   <div className="bg-gradient-to-br from-[#FFFDF8] via-[#FDEADB]/80 to-[#F5E8D3]/80 p-6 rounded-2xl flex flex-col items-start text-left relative h-full min-h-[320px] border border-[#E2CBAA] shadow-lg hover:shadow-2xl transition-all duration-200 group">
                     <div className="flex items-center gap-2 mb-3">
-                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BFA181]/20 shadow">
+                      <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BFA181]/20 shadow">
                         <svg
                           className="block"
                           width={20}
@@ -241,10 +261,16 @@ export default function LandingPage() {
                           strokeLinejoin="round"
                           style={{ display: "block" }}
                         >
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                          />
                         </svg>
                       </span>
-                      <h4 className="font-bold text-[#7C5E3C] text-lg">Why Choose Vela Cleaning</h4>
+                      <h4 className="font-bold text-[#7C5E3C] text-lg">
+                        Why Choose Vela Cleaning
+                      </h4>
                     </div>
                     <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8 pl-2">
                       <li>Background-checked and insured professionals</li>
@@ -255,7 +281,7 @@ export default function LandingPage() {
                       <button
                         type="button"
                         onClick={() =>
-                          (window.location.href = "/services/cleaning")
+                          (window.location.href = "/customerServices")
                         }
                         className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded-lg font-bold shadow-md hover:scale-105 hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
                       >
@@ -263,9 +289,27 @@ export default function LandingPage() {
                       </button>
                     </div>
                     <div className="absolute top-4 right-4">
-                      <svg className="w-7 h-7 text-[#FDEADB]/80" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10" stroke="#A68A64" strokeOpacity="0.3" />
-                        <path d="M16 8l-4 4-2-2" stroke="#A68A64" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <svg
+                        className="w-7 h-7 text-[#FDEADB]/80"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={1.5}
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="#A68A64"
+                          strokeOpacity="0.3"
+                        />
+                        <path
+                          d="M16 8l-4 4-2-2"
+                          stroke="#A68A64"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
                       </svg>
                     </div>
                   </div>
@@ -281,7 +325,9 @@ export default function LandingPage() {
               <div className="flex-shrink-0 flex items-stretch">
                 <button
                   type="button"
-                  onClick={() => (window.location.href = "/services/babysitting")}
+                  onClick={() =>
+                    (window.location.href = "/services/babysitting")
+                  }
                   className="w-80 h-full min-h-[320px] relative border-2 border-[#E2CBAA] rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden group focus:outline-none flex flex-col ring-2 ring-transparent hover:ring-[#BFA181]/40"
                   style={{
                     backgroundImage: `url(/babysitting.webp)`,
@@ -338,7 +384,9 @@ export default function LandingPage() {
                           <path d="M3 6h18M3 12h18M3 18h18" />
                         </svg>
                       </span>
-                      <h4 className="font-bold text-[#7C5E3C] text-lg">What We Offer</h4>
+                      <h4 className="font-bold text-[#7C5E3C] text-lg">
+                        What We Offer
+                      </h4>
                     </div>
                     <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8 pl-2">
                       <li>Babysitting (occasional or regular)</li>
@@ -358,16 +406,34 @@ export default function LandingPage() {
                       </button>
                     </div>
                     <div className="absolute top-4 right-4">
-                      <svg className="w-7 h-7 text-[#FDEADB]/80" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10" stroke="#BFA181" strokeOpacity="0.3" />
-                        <path d="M8 12l2 2 4-4" stroke="#BFA181" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <svg
+                        className="w-7 h-7 text-[#FDEADB]/80"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={1.5}
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="#BFA181"
+                          strokeOpacity="0.3"
+                        />
+                        <path
+                          d="M8 12l2 2 4-4"
+                          stroke="#BFA181"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
                       </svg>
                     </div>
                   </div>
                   {/* Card 2 */}
                   <div className="bg-gradient-to-br from-[#FFFDF8] via-[#FDEADB]/80 to-[#F5E8D3]/80 p-6 rounded-2xl flex flex-col items-start text-left relative h-full min-h-[320px] border border-[#E2CBAA] shadow-lg hover:shadow-2xl transition-all duration-200 group">
                     <div className="flex items-center gap-2 mb-3">
-                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BFA181]/20 shadow">
+                      <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BFA181]/20 shadow">
                         <svg
                           className="block"
                           width={20}
@@ -380,10 +446,16 @@ export default function LandingPage() {
                           strokeLinejoin="round"
                           style={{ display: "block" }}
                         >
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                          />
                         </svg>
                       </span>
-                      <h4 className="font-bold text-[#7C5E3C] text-lg">Why Choose Vela Childcare</h4>
+                      <h4 className="font-bold text-[#7C5E3C] text-lg">
+                        Why Choose Vela Childcare
+                      </h4>
                     </div>
                     <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8 pl-2">
                       <li>Trusted babysitters with background checks</li>
@@ -394,7 +466,7 @@ export default function LandingPage() {
                       <button
                         type="button"
                         onClick={() =>
-                          (window.location.href = "/services/babysitting")
+                          (window.location.href = "/customerServices")
                         }
                         className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded-lg font-bold shadow-md hover:scale-105 hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
                       >
@@ -402,9 +474,27 @@ export default function LandingPage() {
                       </button>
                     </div>
                     <div className="absolute top-4 right-4">
-                      <svg className="w-7 h-7 text-[#FDEADB]/80" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10" stroke="#A68A64" strokeOpacity="0.3" />
-                        <path d="M16 8l-4 4-2-2" stroke="#A68A64" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <svg
+                        className="w-7 h-7 text-[#FDEADB]/80"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={1.5}
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="#A68A64"
+                          strokeOpacity="0.3"
+                        />
+                        <path
+                          d="M16 8l-4 4-2-2"
+                          stroke="#A68A64"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
                       </svg>
                     </div>
                   </div>
@@ -477,7 +567,9 @@ export default function LandingPage() {
                           <path d="M3 6h18M3 12h18M3 18h18" />
                         </svg>
                       </span>
-                      <h4 className="font-bold text-[#7C5E3C] text-lg">What We Offer</h4>
+                      <h4 className="font-bold text-[#7C5E3C] text-lg">
+                        What We Offer
+                      </h4>
                     </div>
                     <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8 pl-2">
                       <li>Dog walking</li>
@@ -497,16 +589,34 @@ export default function LandingPage() {
                       </button>
                     </div>
                     <div className="absolute top-4 right-4">
-                      <svg className="w-7 h-7 text-[#FDEADB]/80" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10" stroke="#BFA181" strokeOpacity="0.3" />
-                        <path d="M8 12l2 2 4-4" stroke="#BFA181" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <svg
+                        className="w-7 h-7 text-[#FDEADB]/80"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={1.5}
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="#BFA181"
+                          strokeOpacity="0.3"
+                        />
+                        <path
+                          d="M8 12l2 2 4-4"
+                          stroke="#BFA181"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
                       </svg>
                     </div>
                   </div>
                   {/* Card 2 */}
                   <div className="bg-gradient-to-br from-[#FFFDF8] via-[#FDEADB]/80 to-[#F5E8D3]/80 p-6 rounded-2xl flex flex-col items-start text-left relative h-full min-h-[320px] border border-[#E2CBAA] shadow-lg hover:shadow-2xl transition-all duration-200 group">
                     <div className="flex items-center gap-2 mb-3">
-                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BFA181]/20 shadow">
+                      <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[#BFA181]/20 shadow">
                         <svg
                           className="block"
                           width={20}
@@ -519,21 +629,29 @@ export default function LandingPage() {
                           strokeLinejoin="round"
                           style={{ display: "block" }}
                         >
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                          />
                         </svg>
                       </span>
-                      <h4 className="font-bold text-[#7C5E3C] text-lg">Why Choose Vela Petcare</h4>
+                      <h4 className="font-bold text-[#7C5E3C] text-lg">
+                        Why Choose Vela Petcare
+                      </h4>
                     </div>
                     <ul className="list-disc list-inside text-[#7C5E3C] text-base md:text-lg space-y-2 text-left mb-8 pl-2">
                       <li>Loving, trained pet sitters</li>
-                      <li>Flexible schedules, from daily walks to overnight stays</li>
+                      <li>
+                        Flexible schedules, from daily walks to overnight stays
+                      </li>
                       <li>Tailored care for cats, dogs, and more</li>
                     </ul>
                     <div className="w-full flex justify-start mt-auto">
                       <button
                         type="button"
                         onClick={() =>
-                          (window.location.href = "/services/petcare")
+                          (window.location.href = "/customerServices")
                         }
                         className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-6 py-2 rounded-lg font-bold shadow-md hover:scale-105 hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
                       >
@@ -541,9 +659,27 @@ export default function LandingPage() {
                       </button>
                     </div>
                     <div className="absolute top-4 right-4">
-                      <svg className="w-7 h-7 text-[#FDEADB]/80" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10" stroke="#A68A64" strokeOpacity="0.3" />
-                        <path d="M16 8l-4 4-2-2" stroke="#A68A64" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <svg
+                        className="w-7 h-7 text-[#FDEADB]/80"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={1.5}
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="#A68A64"
+                          strokeOpacity="0.3"
+                        />
+                        <path
+                          d="M16 8l-4 4-2-2"
+                          stroke="#A68A64"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
                       </svg>
                     </div>
                   </div>
