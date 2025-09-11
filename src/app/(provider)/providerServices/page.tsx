@@ -535,7 +535,7 @@ export default function ServicesPage() {
 
         <div className="mt-10 flex justify-center">
           <Link
-            href="/provider/dashboard"
+            href="/dashboard"
             className="inline-block px-8 py-3 bg-[#7C5E3C] text-white rounded-full font-semibold shadow hover:bg-[#BFA181] transition text-lg"
           >
             Go to your Dashboard

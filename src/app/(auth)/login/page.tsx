@@ -49,9 +49,9 @@ export default function LoginPage() {
       // window.location.reload();
 
       if (realRole === "customer") {
-        router.push("/customer/services");
+        router.push("/customerServices");
       } else {
-        router.push("/provider/services");
+        router.push("/providerServices");
       }
     } catch (err: unknown) {
       if (err instanceof Error) {

@@ -77,7 +77,7 @@ export default function CartPage() {
               Add services to your cart before proceeding to payment.
             </p>
             <Link
-              href="/customer/services"
+              href="/customerServices"
               className="mt-2 px-6 py-2 rounded-full bg-[#BFA181] text-white font-semibold hover:bg-[#A68A64] transition"
             >
               Back to the services
@@ -178,7 +178,7 @@ export default function CartPage() {
                 <p className="mt-1">
                   Need to add more services?{" "}
                   <Link
-                    href="/customer/services"
+                    href="/customerServices"
                     className="underline hover:text-[#BFA181] transition"
                   >
                     Browse services

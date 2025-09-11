@@ -92,12 +92,12 @@ export default function Footer() {
           <h3 className="font-semibold text-base mb-2">For Providers</h3>
           <ul className="space-y-1">
             <li>
-              <Link href="/login" className="hover:underline">
+              <Link href="/becomeProvider" className="hover:underline">
                 Become a Provider
               </Link>
             </li>
             <li>
-              <Link href="/provider/dashboard" className="hover:underline">
+              <Link href="/dashboard" className="hover:underline">
                 Provider Dashboard
               </Link>
             </li>
@@ -107,7 +107,7 @@ export default function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/provider/faq" className="hover:underline">
+              <Link href="/providerFaq" className="hover:underline">
                 Provider FAQ
               </Link>
             </li>
