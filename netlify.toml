@@ -1,3 +1,7 @@
 [build]
-  command = "npm run build"
+  command = "next build"
   publish = ".next"
+
+# Force les API routes en serverless functions
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
