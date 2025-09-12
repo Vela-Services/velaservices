@@ -69,7 +69,6 @@ export default function ServicesPage() {
 
         if (isMounted) setServices(servicesArr);
       } catch (err) {
-        // eslint-disable-next-line
         console.error("❌ Failed to fetch services from Firestore", err);
       }
     }
@@ -112,7 +111,6 @@ export default function ServicesPage() {
           setProviderServices([]);
         }
       } catch (error) {
-        // eslint-disable-next-line
         console.error("❌ Error loading provider services:", error);
         setProfile(null);
         setProviderServices([]);

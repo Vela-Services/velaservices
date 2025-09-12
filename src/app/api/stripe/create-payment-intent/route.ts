@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2025-07-30.basil" });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2025-07-30.basil",
+});
 
 type CartItem = {
   serviceId: string;
   serviceName: string;
-  price: number;          // en euros dans ton code, on convertit en cents
+  price: number;
   date: string;
   times: string[];
   providerId: string;
@@ -16,9 +18,11 @@ type CartItem = {
 
 export async function POST(req: Request) {
   try {
-    const { cart, customerId } = await req.json() as { cart: CartItem[]; customerId: string };
+    const { cart, customerId } = (await req.json()) as {
+      cart: CartItem[];
+      customerId: string;
+    };
 
-    // ⚠️ Idéalement, recalculer le total côté serveur depuis Firestore (prix officiels)
     const totalNOK = cart.reduce((sum, it) => sum + (it.price || 0), 0);
     const amount = Math.max(50, Math.round(totalNOK * 100));
 
@@ -31,7 +35,10 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({ clientSecret: paymentIntent.client_secret, paymentIntentId: paymentIntent.id });
+    return NextResponse.json({
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
+    });
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : String(e);
     console.error("PI create error:", e);

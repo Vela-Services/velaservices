@@ -13,13 +13,10 @@ import { useAuth } from "../../hooks/useAuth";
 import { createMissionsFromCart } from "../../../lib/createMission";
 import { CartItem, UserProfile } from "@/types/types";
 import { auth, db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { onAuthStateChanged, User } from "firebase/auth";
-
 import { toast } from "react-hot-toast";
 
-
-// Stripe appearance theme must be a valid literal, not a string
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 );
@@ -46,7 +43,6 @@ export default function PaymentPage() {
     return () => unsub();
   }, []);
 
-  // Fix: theme must be a literal, not a string
   const options = useMemo(
     () => ({
       appearance: { theme: "flat" as const },
@@ -82,6 +78,9 @@ export default function PaymentPage() {
                     <div className="text-sm text-gray-500">
                       {item.date} — {item.times?.join(", ")}
                     </div>
+                    <div className="text-xs text-gray-400">
+                      Prestataire: {item.providerName || "Non défini"}
+                    </div>
                   </div>
                   <div className="font-semibold text-[#BFA181]">
                     {item.price}NOK
@@ -96,7 +95,6 @@ export default function PaymentPage() {
           </section>
 
           <section>
-            {/* Fix: Only render Elements if stripePromise is loaded */}
             {stripePromise && (
               <Elements stripe={stripePromise} options={options}>
                 <CheckoutForm
@@ -104,6 +102,7 @@ export default function PaymentPage() {
                   userId={user?.uid ?? ""}
                   profile={profile}
                   onSuccess={async (paymentIntentId: string) => {
+                    // Créer les missions avec le paymentIntentId
                     await createMissionsFromCart(
                       cart,
                       user?.uid ?? "",
@@ -113,6 +112,13 @@ export default function PaymentPage() {
                       profile?.email ?? "Anonymous",
                       paymentIntentId
                     );
+
+                    // Sauvegarder les infos de paiement pour les transferts futurs
+                    await savePaymentForTransfers(
+                      cart,
+                      paymentIntentId,
+                    );
+
                     await clearCart();
                   }}
                 />
@@ -123,6 +129,53 @@ export default function PaymentPage() {
       </div>
     </div>
   );
+}
+
+// Nouvelle fonction pour sauvegarder les infos de paiement
+async function savePaymentForTransfers(
+  cart: CartItem[],
+  paymentIntentId: string,
+) {
+  try {
+    // Grouper par providerId pour créer les transferts futurs
+    const providerGroups = cart.reduce((acc, item) => {
+      const providerId = item.providerId;
+      if (!acc[providerId]) {
+        acc[providerId] = {
+          providerId,
+          providerName: item.providerName,
+          items: [],
+          totalAmount: 0,
+        };
+      }
+      acc[providerId].items.push(item);
+      acc[providerId].totalAmount += item.price;
+      return acc;
+    }, {} as Record<string, {
+      providerId: string;
+      providerName: string;
+      items: CartItem[];
+      totalAmount: number;
+    }>);
+
+    // Sauvegarder les informations pour les transferts futurs
+    for (const group of Object.values(providerGroups)) {
+      await updateDoc(
+        doc(db, "pending_transfers", `${paymentIntentId}_${group.providerId}`),
+        {
+          paymentIntentId,
+          providerId: group.providerId,
+          providerName: group.providerName,
+          amount: group.totalAmount,
+          items: group.items,
+          status: "pending_validation", // En attente de validation de la mission
+          createdAt: new Date(),
+        }
+      );
+    }
+  } catch (error) {
+    console.error("Erreur sauvegarde transfert:", error);
+  }
 }
 
 function CheckoutForm({
@@ -189,7 +242,6 @@ function CheckoutForm({
       <h2 className="text-xl font-semibold text-[#7C5E3C] mb-2">
         Payment Details
       </h2>
-      {/* Fix: Ensure CardElement is always rendered and visible */}
       <div className="rounded-md border p-3 bg-white">
         <CardElement
           options={{
