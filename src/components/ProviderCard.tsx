@@ -11,6 +11,8 @@ interface ProviderCardProps {
 }
 
 export function ProviderCard({ provider }: ProviderCardProps) {
+  const profilePicUrl = provider.photoURL ?? null;
+
   return (
     <Card
       className={`rounded-xl shadow-lg border ${COLORS.primaryBorder} bg-white w-full h-full max-w-[400px] mx-auto flex flex-col font-sans transition-all duration-300 hover:shadow-xl hover:scale-[1.01] focus-within:shadow-xl focus-within:scale-[1.01]`}
@@ -22,10 +24,20 @@ export function ProviderCard({ provider }: ProviderCardProps) {
         {/* Header */}
         <div className="flex items-center gap-4">
           <div 
-            className="bg-[#366760]/10 rounded-full p-3 flex items-center justify-center transition-colors hover:bg-[#FF6B6B]/20 focus:bg-[#FF6B6B]/20"
+            className="bg-[#366760]/10 rounded-full flex items-center justify-center transition-colors hover:bg-[#FF6B6B]/20 focus:bg-[#FF6B6B]/20"
             aria-hidden="true"
+            style={{ width: 80, height: 80, minWidth: 80, minHeight: 80 }}
           >
-            <User className="h-8 w-8 text-[#8B4513]" aria-label="Provider icon" />
+            {profilePicUrl ? (
+              <img
+                src={profilePicUrl}
+                alt={`${provider.displayName}'s profile`}
+                className="rounded-full object-cover w-full h-full"
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            ) : (
+              <User className="h-12 w-12 text-[#8B4513]" aria-label="Provider icon" />
+            )}
           </div>
           <div className="flex-1">
             <h2

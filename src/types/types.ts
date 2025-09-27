@@ -48,6 +48,7 @@ export type UserProfile = {
   availability: Availability[];
   bookedSlots?: Record<string, string[]>; // Format: { "YYYY-MM-DD": ["HH:MM", "HH:MM"] }
   email?: string;
+  photoURL?: string;
 };
 
 export type Provider = {
@@ -59,6 +60,7 @@ export type Provider = {
   availability: Availability[];
   address?: string;
   why?: string;
+  photoURL?: string;
 };
 
 /* ----------------------------- Cart & Missions ----------------------------- */

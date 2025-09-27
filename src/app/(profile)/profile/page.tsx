@@ -8,9 +8,10 @@ import {
   setPersistence,
   browserSessionPersistence,
   browserLocalPersistence,
+  updateProfile,
 } from "firebase/auth";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { auth, db } from "../../../lib/firebase";
+import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db, storage } from "../../../lib/firebase";
 import { UserProfile } from "../../../types/types";
 import { IoSettingsSharp } from "react-icons/io5";
 import {
@@ -19,8 +20,16 @@ import {
   IoLocationOutline,
   IoShareSocialOutline,
 } from "react-icons/io5";
-import { MdEdit, MdOutlineVerified } from "react-icons/md";
+import { MdEdit, MdOutlineVerified, MdPhotoCamera } from "react-icons/md";
+import { getApp } from "firebase/app";
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from "firebase/storage";
 
+import imageCompression from "browser-image-compression";
 
 // Color palette
 const COLORS = {
@@ -57,6 +66,9 @@ export default function ProfilePage() {
   const [bioError, setBioError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Prevent running on server (window is not defined)
+    if (typeof window === "undefined") return;
+
     let unsubscribe: (() => void) | undefined;
     setPersistence(auth, browserLocalPersistence)
       .catch(() => setPersistence(auth, browserSessionPersistence))
@@ -67,15 +79,19 @@ export default function ProfilePage() {
             try {
               const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
               if (userDoc.exists()) {
-                setProfile(userDoc.data() as UserProfile);
+                const data = userDoc.data() as UserProfile;
+                setProfile(data);
               } else {
                 setProfile(null);
+                console.log("No userDoc found for user");
               }
-            } catch {
+            } catch (err) {
               setProfile(null);
+              console.error("Error loading userDoc:", err);
             }
           } else {
             setProfile(null);
+            console.log("No firebaseUser in onAuthStateChanged");
           }
           setLoading(false);
         });
@@ -86,6 +102,8 @@ export default function ProfilePage() {
   }, []);
 
   const clearAllAuthData = () => {
+    // Only run in browser
+    if (typeof window === "undefined") return;
     try {
       localStorage.removeItem(
         "firebase:authUser:" + auth.app.options.apiKey + ":" + auth.name
@@ -134,7 +152,9 @@ export default function ProfilePage() {
     try {
       await signOut(auth);
       clearAllAuthData();
-      window.location.href = "/login";
+      if (typeof window !== "undefined") {
+        window.location.href = "/login";
+      }
     } catch (err: unknown) {
       if (err instanceof Error) {
         console.error(err.message);
@@ -216,11 +236,133 @@ export default function ProfilePage() {
       }
       setEditingBio(false);
     } catch (err: unknown) {
-      setBioError(
-        err instanceof Error ? err.message : "Failed to update bio."
-      );
+      setBioError(err instanceof Error ? err.message : "Failed to update bio.");
     }
     setSavingBio(false);
+  };
+
+  const convertToJpeg = async (file: File) => {
+    if (typeof window === "undefined") return file; // ne rien faire côté serveur
+    if (file.type === "image/heic" || file.type === "image/heif") {
+      const { default: heic2any } = await import("heic2any");
+      const blob = await heic2any({ blob: file, toType: "image/jpeg" });
+      return new File([blob as Blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+        type: "image/jpeg",
+      });
+    }
+    return file;
+  };
+
+  const changeProfilePicture = async () => {
+    // Only run in browser
+    if (typeof window === "undefined" || typeof document === "undefined")
+      return;
+
+    const fileInput = document.getElementById(
+      "profilePicture"
+    ) as HTMLInputElement;
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+      console.error("No file selected");
+      return;
+    }
+
+    const file = fileInput.files[0];
+    const jpegFile = await convertToJpeg(file);
+    const fileName = `${Date.now()}_${jpegFile.name}`; // Add timestamp to filename
+    const userId = user?.uid;
+    if (!userId) {
+      if (typeof window !== "undefined") {
+        alert("User not found.");
+      }
+      return;
+    }
+    const storageRef = ref(
+      storage,
+      `users/${userId}/profilePicture/${fileName}`
+    );
+    const userRef = doc(db, "users", userId);
+    const userSnap = await getDoc(userRef);
+
+    if (userSnap.exists()) {
+      const lastUpload = userSnap.data().lastProfilePictureUpdate;
+      if (lastUpload) {
+        const lastUploadDate = lastUpload.toDate();
+        const now = new Date();
+        const hoursSinceLastUpload =
+          (now.getTime() - lastUploadDate.getTime()) / (1000 * 60 * 60);
+
+        if (hoursSinceLastUpload < 24) {
+          console.error("Tu ne peux changer ta photo qu'une fois par jour.");
+          if (typeof window !== "undefined") {
+            alert("Tu ne peux changer ta photo qu'une fois par jour.");
+          }
+          return;
+        }
+      }
+    }
+
+    try {
+      const oldPhotoURL = userSnap.data()?.photoURL;
+      if (oldPhotoURL) {
+        try {
+          // Try to delete the old photo if it was in our bucket
+          // Only delete if the URL contains our bucket
+          const bucket =
+            process.env.NEXT_PUBLIC_STORAGE_BUCKET ||
+            getApp().options.storageBucket ||
+            "";
+          if (
+            bucket &&
+            oldPhotoURL.includes(bucket) &&
+            oldPhotoURL.startsWith("https://")
+          ) {
+            // Extract the path after the bucket domain
+            const url = new URL(oldPhotoURL);
+            // Firebase Storage URLs are like:
+            // https://firebasestorage.googleapis.com/v0/b/<bucket>/o/users%2F<uid>%2FprofilePicture%2Ffilename.jpg?...
+            // We want the path after /o/ and before ?
+            const pathMatch = url.pathname.match(/\/o\/(.+)$/);
+            let filePath = "";
+            if (pathMatch && pathMatch[1]) {
+              filePath = decodeURIComponent(pathMatch[1].split("?")[0]);
+            }
+            if (filePath) {
+              const oldPhotoRef = ref(storage, filePath);
+              await deleteObject(oldPhotoRef);
+            }
+          }
+        } catch (error) {
+          console.error("Impossible de supprimer l'ancienne photo:", error);
+        }
+      }
+
+      const options = {
+        maxSizeMB: 0.2,
+        maxWidthOrHeight: 500,
+        useWebWorker: true,
+      };
+      const compressedFile = await imageCompression(jpegFile, options);
+
+      const snapshot = await uploadBytes(storageRef, compressedFile);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+
+      await updateProfile(user, { photoURL: downloadURL });
+      await updateDoc(userRef, {
+        photoURL: downloadURL,
+        lastProfilePictureUpdate: serverTimestamp(),
+      });
+
+      if (typeof window !== "undefined") {
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("Error updating profile picture:", error);
+      if (typeof window !== "undefined") {
+        alert(
+          "There was an error updating your profile picture. Please try again later."
+        );
+      }
+    }
   };
 
   if (loading) {
@@ -370,15 +512,32 @@ export default function ProfilePage() {
 
             {/* Profile Picture */}
             <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2">
-              <div className="w-24 h-24 rounded-full bg-white p-1 shadow-xl">
+              <div className="w-24 h-24 rounded-full bg-white p-1 shadow-xl relative group flex items-center justify-center">
                 <img
                   src={
                     user.photoURL ||
+                    profile?.photoURL ||
                     "https://cdn-icons-png.flaticon.com/512/149/149071.png"
                   }
                   alt="Profile"
                   className="w-full h-full rounded-full object-cover"
                 />
+                {/* Change Picture Button - now a nice circular overlay */}
+                <label
+                  htmlFor="profilePicture"
+                  className="absolute -top-1 -left-1 w-8 h-8 bg-[#3d676d] rounded-full flex items-center justify-center border-2 border-white"
+                  title="Changer la photo de profil"
+                  style={{ boxShadow: "0 2px 8px 0 rgba(61,103,109,0.15)" }}
+                >
+                  <MdPhotoCamera size={18} className="text-white" />
+                  <input
+                    type="file"
+                    id="profilePicture"
+                    onChange={changeProfilePicture}
+                    className="hidden"
+                    accept="image/*"
+                  />
+                </label>
               </div>
               {user.emailVerified && (
                 <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#3d676d] rounded-full flex items-center justify-center border-2 border-white">
