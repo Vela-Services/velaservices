@@ -289,11 +289,12 @@ export default function ServicesPage() {
             }}
           >
             <div className="mb-8">
-              <h2 className="text-lg sm:text-xl font-semibold text-[#7C5E3C] mb-3 flex items-center gap-2">
-                <span className="inline-block w-7 h-7 bg-[#BFA181] rounded-full flex items-center justify-center text-white">
+              <h2 className="text-lg sm:text-xl font-semibold text-[#7C5E3C] mb-3 flex flex-col items-center gap-2">
+                {/* Centered Icon */}
+                <span className="inline-flex w-12 h-12 bg-[#BFA181] rounded-full items-center justify-center text-white text-2xl shadow-lg mb-1">
                   <FaCheckCircle />
                 </span>
-                Services You Provide
+                <span>Services You Provide</span>
               </h2>
               <div className="flex flex-col gap-4">
                 {/* Dynamic Service List */}
@@ -309,7 +310,7 @@ export default function ServicesPage() {
                       className={`flex flex-col gap-2 text-[#7C5E3C] font-medium px-4 py-3 rounded-xl border transition
                         ${
                           serviceSelected
-                            ? "bg-[#F5E8D3] border-[#BFA181] shadow"
+                            ? "bg-[#F5E8D3] border-[#BFA181] shadow-lg"
                             : "bg-white border-gray-200"
                         }
                         hover:shadow-md
@@ -405,7 +406,7 @@ export default function ServicesPage() {
             </div>
             <button
               type="submit"
-              className={`mt-2 w-full bg-[#BFA181] text-white py-3 rounded-lg hover:bg-[#A68A64] transition font-semibold text-lg shadow ${
+              className={`mt-2 w-full bg-gradient-to-r from-[#BFA181] to-[#7C5E3C] text-white py-3 rounded-lg hover:from-[#A68A64] hover:to-[#BFA181] transition font-semibold text-lg shadow-lg ${
                 saving ? "opacity-70 cursor-not-allowed" : ""
               }`}
               disabled={saving}
@@ -450,18 +451,18 @@ export default function ServicesPage() {
           </form>
           {/* Show current selected services */}
           <div className="mt-10">
-            <h2 className="text-base sm:text-lg font-semibold text-[#7C5E3C] mb-2 flex items-center gap-2">
-              <span className="inline-block w-5 h-5 bg-[#BFA181] rounded-full flex items-center justify-center text-white">
-                <FaCheckCircle className="text-xs" />
+            <h2 className="text-base sm:text-lg font-semibold text-[#7C5E3C] mb-2 flex flex-col items-center gap-2">
+              <span className="inline-flex w-8 h-8 bg-[#BFA181] rounded-full items-center justify-center text-white">
+                <FaCheckCircle className="text-base" />
               </span>
-              Your Current Services
+              <span>Your Current Services</span>
             </h2>
             {providerServices.length === 0 ? (
-              <div className="text-gray-400 text-sm italic">
+              <div className="text-gray-400 text-sm italic text-center">
                 No services selected yet.
               </div>
             ) : (
-              <ul className="flex flex-wrap gap-2">
+              <ul className="flex flex-wrap gap-2 justify-center">
                 {providerServices?.map((svc) => {
                   const serviceName =
                     services.find((s) => s.id === svc.serviceId)?.name ||
@@ -469,7 +470,7 @@ export default function ServicesPage() {
                   return (
                     <li
                       key={svc.serviceId}
-                      className="bg-[#BFA181] text-white px-3 py-1 rounded-full text-sm flex items-center gap-2 shadow"
+                      className="bg-gradient-to-r from-[#BFA181] to-[#7C5E3C] text-white px-4 py-1.5 rounded-full text-sm flex items-center gap-2 shadow-lg"
                     >
                       {capitalize(serviceName)}
                       {svc.subServices?.some((sub) => sub.price) && (
@@ -490,10 +491,10 @@ export default function ServicesPage() {
         </div>
         {/* Availability Section */}
         <div className="mt-12 bg-white rounded-3xl shadow-2xl p-6 sm:p-10 border border-[#f3e6d0]">
-          <h2 className="text-xl sm:text-2xl font-bold text-[#7C5E3C] mb-4 flex items-center gap-2">
-            <span className="inline-block w-7 h-7 bg-[#BFA181] rounded-full flex items-center justify-center text-white">
+          <h2 className="text-xl sm:text-2xl font-bold text-[#7C5E3C] mb-4 flex flex-col items-center gap-2">
+            <span className="inline-flex w-12 h-12 bg-[#BFA181] rounded-full items-center justify-center text-white shadow-lg">
               <svg
-                className="w-4 h-4"
+                className="w-6 h-6"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth={2}
@@ -516,9 +517,9 @@ export default function ServicesPage() {
                 />
               </svg>
             </span>
-            Weekly Availability
+            <span>Weekly Availability</span>
           </h2>
-          <p className="text-[#7C5E3C]/70 mb-4 text-base">
+          <p className="text-[#7C5E3C]/70 mb-4 text-base text-center">
             Let customers know when you are available for missions.
           </p>
           <div className="bg-[#F5E8D3] rounded-xl p-4">
@@ -534,7 +535,7 @@ export default function ServicesPage() {
         <div className="mt-10 flex justify-center">
           <Link
             href="/dashboard"
-            className="inline-block px-8 py-3 bg-[#7C5E3C] text-white rounded-full font-semibold shadow hover:bg-[#BFA181] transition text-lg"
+            className="inline-block px-8 py-3 bg-gradient-to-r from-[#7C5E3C] to-[#BFA181] text-white rounded-full font-semibold shadow-lg hover:from-[#BFA181] hover:to-[#7C5E3C] transition text-lg"
           >
             Go to your Dashboard
           </Link>

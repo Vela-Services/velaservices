@@ -1,20 +1,43 @@
 // app/login/page.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import "../../../lib/firebase"; // Ensure firebase is initialized
+import "../../../lib/firebase";
 import { db } from "../../../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
+import { FiMail, FiLock } from "react-icons/fi";
+import { FaSpinner } from "react-icons/fa";
+
+const COLORS = {
+  background: "#F8F6F2",
+  card: "#FFFDF8",
+  accent: "#BFA181",
+  accentDark: "#A68A64",
+  accentLight: "#E8D8C3",
+  text: "#3E2C18",
+  textSecondary: "#7C5E3C",
+  border: "#E5D3B3",
+  error: "#E57373",
+  inputBg: "#F5E8D3",
+  inputBorder: "#BFA181",
+  shadow: "0 4px 24px 0 rgba(191,161,129,0.10)",
+};
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [role, setRole] = useState<"customer" | "provider">("customer");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const emailInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    // Focus email input on mount for accessibility
+    emailInputRef.current?.focus();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -23,7 +46,6 @@ export default function LoginPage() {
     const auth = getAuth();
 
     try {
-      // Sign in the user
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
@@ -31,22 +53,15 @@ export default function LoginPage() {
       );
       const user = userCredential.user;
 
-      // Get the real role from Firestore
       const userDoc = await getDoc(doc(db, "users", user.uid));
       const userData = userDoc.data();
       const realRole = userData?.role;
 
       if (!realRole) throw new Error("User role not found");
 
-      // 🍪 Store the role in a cookie readable by middleware
-      document.cookie = `role=${realRole}; path=/; max-age=604800`; // 1 week
+      document.cookie = `role=${realRole}; path=/; max-age=604800`;
 
-      // Force a re-login to ensure auth state is fresh and cookies/session are set
-      // This helps with SSR/Next.js edge cases where the user is not recognized as logged in
       await signInWithEmailAndPassword(auth, email, password);
-
-      // Optionally, reload the page to ensure all client state is synced
-      // window.location.reload();
 
       if (realRole === "customer") {
         router.push("/customerServices");
@@ -65,88 +80,184 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F5E8D3] px-4">
-      <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg">
-        <h2 className="text-2xl font-bold mb-6 text-center text-[#7C5E3C]">
-          Sign In
+    <div
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{
+        background: "radial-gradient(ellipse at 60% 40%, #F5E8D3 60%, #FFFDF8 100%)",
+      }}
+    >
+      <div
+        className="w-full max-w-md bg-white/90 rounded-3xl shadow-2xl px-8 py-10 relative"
+        style={{
+          boxShadow: COLORS.shadow,
+          border: `1.5px solid ${COLORS.border}`,
+        }}
+      >
+        {/* Decorative Accent */}
+        <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-20 h-20 bg-[#BFA181]/20 rounded-full blur-2xl pointer-events-none" />
+        <h2
+          className="text-3xl font-extrabold mb-8 text-center"
+          style={{ color: COLORS.textSecondary, letterSpacing: "-0.5px" }}
+        >
+          Welcome Back
         </h2>
-
-        {/* Role Selector */}
-        <div className="flex justify-center gap-4 mb-6">
-          {["customer", "provider"].map((r) => (
-            <button
-              key={r}
-              className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
-                role === r
-                  ? "bg-[#BFA181] text-white"
-                  : "bg-gray-100 text-gray-700"
-              }`}
-              onClick={() => setRole(r as "customer" | "provider")}
-              type="button"
-            >
-              {r === "customer" ? "Customer" : "Provider"}
-            </button>
-          ))}
-        </div>
+        <p className="text-center text-[#7C5E3C] mb-8 text-sm">
+          Sign in to your account to continue
+        </p>
 
         {/* Error Message */}
         {error && (
-          <div className="mb-4 text-center text-red-600 text-sm">{error}</div>
+          <div
+            className="mb-5 text-center px-4 py-2 rounded-xl text-sm"
+            style={{
+              background: "#FFF0F0",
+              color: COLORS.error,
+              border: `1px solid ${COLORS.error}33`,
+            }}
+            role="alert"
+          >
+            {error}
+          </div>
         )}
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-[#7C5E3C]">
+            <label
+              htmlFor="email"
+              className="block text-xs font-semibold mb-1"
+              style={{ color: COLORS.textSecondary }}
+            >
               Email
             </label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setEmail(e.target.value)
-              }
-              className="mt-1 w-full border rounded-md px-3 py-2 text-sm text-[#7C5E3C] focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
-              autoComplete="email"
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#BFA181]">
+                <FiMail size={18} />
+              </span>
+              <input
+                id="email"
+                ref={emailInputRef}
+                type="email"
+                required
+                value={email}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setEmail(e.target.value)
+                }
+                className="pl-10 pr-3 py-3 w-full rounded-xl border border-[#E5D3B3] bg-[#F8F6F2] text-[#3E2C18] placeholder-[#BFA181] text-sm focus:outline-none focus:ring-2 focus:ring-[#BFA181] transition"
+                placeholder="you@email.com"
+                autoComplete="email"
+                disabled={loading}
+                aria-label="Email"
+              />
+            </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#7C5E3C]">
+            <label
+              htmlFor="password"
+              className="block text-xs font-semibold mb-1"
+              style={{ color: COLORS.textSecondary }}
+            >
               Password
             </label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setPassword(e.target.value)
-              }
-              className="mt-1 w-full border rounded-md px-3 py-2 text-sm text-[#7C5E3C] focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
-              autoComplete="current-password"
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#BFA181]">
+                <FiLock size={18} />
+              </span>
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                required
+                value={password}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setPassword(e.target.value)
+                }
+                className="pl-10 pr-10 py-3 w-full rounded-xl border border-[#E5D3B3] bg-[#F8F6F2] text-[#3E2C18] placeholder-[#BFA181] text-sm focus:outline-none focus:ring-2 focus:ring-[#BFA181] transition"
+                placeholder="Your password"
+                autoComplete="current-password"
+                disabled={loading}
+                aria-label="Password"
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#BFA181] hover:text-[#A68A64] focus:outline-none"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                disabled={loading}
+              >
+                {showPassword ? (
+                  <svg width="20" height="20" fill="none" viewBox="0 0 20 20">
+                    <path
+                      d="M2 2l16 16M10 4c-4.418 0-8 4-8 6s3.582 6 8 6 8-4 8-6c0-1.09-.57-2.36-1.54-3.54M10 14a4 4 0 100-8 4 4 0 000 8z"
+                      stroke="#BFA181"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" fill="none" viewBox="0 0 20 20">
+                    <path
+                      d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"
+                      stroke="#BFA181"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <circle
+                      cx="10"
+                      cy="10"
+                      r="3"
+                      stroke="#BFA181"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
 
           <button
             type="submit"
-            className="w-full bg-[#BFA181] text-white py-2 rounded-md hover:bg-[#A68A64] transition disabled:opacity-60"
+            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white py-3 rounded-xl font-semibold text-base shadow-md hover:from-[#A68A64] hover:to-[#BFA181] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#BFA181] disabled:opacity-60"
             disabled={loading}
+            aria-busy={loading}
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading ? (
+              <>
+                <FaSpinner className="animate-spin" />
+                Logging in...
+              </>
+            ) : (
+              "Login"
+            )}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-[#7C5E3C]">
-          No account yet?{" "}
+        <div className="mt-8 flex flex-col items-center gap-2">
+          <p className="text-sm text-[#7C5E3C]">
+            No account yet?{" "}
+            <button
+              onClick={() => router.push("/signup")}
+              className="text-[#BFA181] font-semibold hover:underline focus:underline focus:outline-none transition"
+              type="button"
+              tabIndex={0}
+            >
+              Create an account
+            </button>
+          </p>
           <button
-            onClick={() => router.push("/signup")}
-            className="text-[#BFA181] hover:underline"
             type="button"
+            className="text-xs text-[#BFA181] hover:underline focus:underline focus:outline-none transition"
+            onClick={() => router.push("/forgot-password")}
+            tabIndex={0}
           >
-            Create an account
+            Forgot password?
           </button>
-        </p>
+        </div>
       </div>
     </div>
   );

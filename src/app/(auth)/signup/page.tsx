@@ -7,6 +7,7 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
   signInWithEmailAndPassword,
+  sendEmailVerification,
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import "../../../lib/firebase"; // Ensure firebase is initialized
@@ -52,12 +53,16 @@ export default function SignupPage() {
         displayName: name,
       });
 
-      // Save user in Firestore
+      // Send email verification
+      await sendEmailVerification(userCredential.user);
+
+      // Save user in Firestore, include emailVerified field
       await setDoc(doc(db, "users", userCredential.user.uid), {
         uid: userCredential.user.uid,
         displayName: name,
         email,
         role,
+        emailVerified: false, // Set to false initially, will be updated after verification
         ...(role === "provider" ? { why } : {}),
         createdAt: new Date().toISOString(),
       });

@@ -13,11 +13,16 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db } from "../../../lib/firebase";
 import { UserProfile } from "../../../types/types";
 import { IoSettingsSharp } from "react-icons/io5";
+import {
+  IoMailOutline,
+  IoCallOutline,
+  IoLocationOutline,
+  IoShareSocialOutline,
+} from "react-icons/io5";
+import { MdEdit, MdOutlineVerified } from "react-icons/md";
 
-const PROFILE_PIC_PLACEHOLDER =
-  "https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png";
 
-// Color palette for improved style and accessibility
+// Color palette
 const COLORS = {
   background: "#F8F6F2",
   card: "#FFFDF8",
@@ -44,6 +49,12 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+
+  // New state for editing bio
+  const [editingBio, setEditingBio] = useState(false);
+  const [bioValue, setBioValue] = useState<string>(""); // for editing bio
+  const [savingBio, setSavingBio] = useState(false);
+  const [bioError, setBioError] = useState<string | null>(null);
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
@@ -76,12 +87,24 @@ export default function ProfilePage() {
 
   const clearAllAuthData = () => {
     try {
-      localStorage.removeItem("firebase:authUser:" + auth.app.options.apiKey + ":" + auth.name);
-      localStorage.removeItem("firebase:authUser:" + auth.app.options.apiKey + ":DEFAULT");
-      localStorage.removeItem("firebase:redirectEvent:" + auth.app.options.apiKey + ":DEFAULT");
-      sessionStorage.removeItem("firebase:authUser:" + auth.app.options.apiKey + ":" + auth.name);
-      sessionStorage.removeItem("firebase:authUser:" + auth.app.options.apiKey + ":DEFAULT");
-      sessionStorage.removeItem("firebase:redirectEvent:" + auth.app.options.apiKey + ":DEFAULT");
+      localStorage.removeItem(
+        "firebase:authUser:" + auth.app.options.apiKey + ":" + auth.name
+      );
+      localStorage.removeItem(
+        "firebase:authUser:" + auth.app.options.apiKey + ":DEFAULT"
+      );
+      localStorage.removeItem(
+        "firebase:redirectEvent:" + auth.app.options.apiKey + ":DEFAULT"
+      );
+      sessionStorage.removeItem(
+        "firebase:authUser:" + auth.app.options.apiKey + ":" + auth.name
+      );
+      sessionStorage.removeItem(
+        "firebase:authUser:" + auth.app.options.apiKey + ":DEFAULT"
+      );
+      sessionStorage.removeItem(
+        "firebase:redirectEvent:" + auth.app.options.apiKey + ":DEFAULT"
+      );
       Object.keys(localStorage).forEach((key) => {
         if (key.startsWith("firebase:")) localStorage.removeItem(key);
       });
@@ -89,15 +112,19 @@ export default function ProfilePage() {
         if (key.startsWith("firebase:")) sessionStorage.removeItem(key);
       });
       if (typeof document !== "undefined") {
-        document.cookie
-          .split(";")
-          .forEach((c) => {
-            if (c.trim().startsWith("__session") || c.trim().startsWith("firebase")) {
-              document.cookie = c
-                .replace(/^ +/, "")
-                .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-            }
-          });
+        document.cookie.split(";").forEach((c) => {
+          if (
+            c.trim().startsWith("__session") ||
+            c.trim().startsWith("firebase")
+          ) {
+            document.cookie = c
+              .replace(/^ +/, "")
+              .replace(
+                /=.*/,
+                "=;expires=" + new Date().toUTCString() + ";path=/"
+              );
+          }
+        });
       }
     } catch {}
   };
@@ -155,9 +182,45 @@ export default function ProfilePage() {
       }
       setEditing(false);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to update profile.");
+      setError(
+        err instanceof Error ? err.message : "Failed to update profile."
+      );
     }
     setSaving(false);
+  };
+
+  // New: handle edit bio
+  const handleEditBio = () => {
+    setBioValue(profile?.why || "");
+    setEditingBio(true);
+    setBioError(null);
+  };
+
+  const handleBioChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setBioValue(e.target.value);
+  };
+
+  const handleBioSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    setSavingBio(true);
+    setBioError(null);
+    try {
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(userRef, {
+        why: bioValue,
+      });
+      const userDoc = await getDoc(userRef);
+      if (userDoc.exists()) {
+        setProfile(userDoc.data() as UserProfile);
+      }
+      setEditingBio(false);
+    } catch (err: unknown) {
+      setBioError(
+        err instanceof Error ? err.message : "Failed to update bio."
+      );
+    }
+    setSavingBio(false);
   };
 
   if (loading) {
@@ -192,7 +255,10 @@ export default function ProfilePage() {
             border: `1.5px solid ${COLORS.border}`,
           }}
         >
-          <h2 className="text-2xl font-bold mb-4" style={{ color: COLORS.textSecondary }}>
+          <h2
+            className="text-2xl font-bold mb-4"
+            style={{ color: COLORS.textSecondary }}
+          >
             Not signed in
           </h2>
           <p className="mb-4" style={{ color: COLORS.textSecondary }}>
@@ -214,65 +280,51 @@ export default function ProfilePage() {
     );
   }
 
-  // Settings modal (for password, notification, etc.)
+  // Settings modal
   const SettingsModal = () => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.25)" }}>
-      <div
-        className="rounded-2xl shadow-xl p-8 w-full max-w-md relative"
-        style={{
-          background: COLORS.card,
-          boxShadow: COLORS.shadow,
-          border: `1.5px solid ${COLORS.border}`,
-        }}
-      >
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ background: "rgba(0,0,0,0.25)" }}
+    >
+      <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl p-8 w-full max-w-md relative border border-white/20">
         <button
-          className="absolute top-3 right-3 text-2xl"
-          style={{ color: COLORS.accent, transition: "color 0.2s" }}
+          className="absolute top-3 right-3 text-2xl text-gray-600 hover:text-gray-800"
           onClick={() => setShowSettings(false)}
           aria-label="Close"
         >
           &times;
         </button>
-        <h3 className="text-xl font-bold mb-4" style={{ color: COLORS.textSecondary }}>
+        <h3 className="text-xl font-bold mb-6 text-gray-800">
           Account Settings
         </h3>
         <ul className="space-y-4">
           <li>
-            <span className="block text-sm font-medium mb-1" style={{ color: COLORS.textSecondary }}>
-              Change Password
-            </span>
             <a
-              href="profile/password"
-              className="hover:underline"
-              style={{ color: COLORS.accent }}
+              href="/password"
+              className="block py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors"
+              style={{ color: "#3d676d" }}
             >
-              Reset your password
+              Change Password
             </a>
           </li>
           <li>
-            <span className="block text-sm font-medium mb-1" style={{ color: COLORS.textSecondary }}>
-              Privacy
-            </span>
             <a
               href="/privacy"
-              className="hover:underline"
-              style={{ color: COLORS.accent }}
+              className="block py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors"
+              style={{ color: "#3d676d" }}
               target="_blank"
               rel="noopener noreferrer"
             >
-              View Privacy Policy
+              Privacy Policy
             </a>
           </li>
           <li>
-            <span className="block text-sm font-medium mb-1" style={{ color: COLORS.textSecondary }}>
-              Delete Account
-            </span>
             <a
               href="/contact"
-              className="hover:underline"
-              style={{ color: COLORS.accent }}
+              className="block py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors"
+              style={{ color: "#3d676d" }}
             >
-              Contact support to delete your account
+              Delete Account
             </a>
           </li>
         </ul>
@@ -280,7 +332,6 @@ export default function ProfilePage() {
     </div>
   );
 
-  // Profile completion logic
   const profileFields = [
     user.displayName,
     user.email,
@@ -291,375 +342,326 @@ export default function ProfilePage() {
     (profileFields.filter(Boolean).length / profileFields.length) * 100;
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center px-2 sm:px-4"
-      style={{ background: COLORS.background }}
-    >
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center px-4 py-8">
       {showSettings && <SettingsModal />}
-      <div
-        className="w-full max-w-3xl rounded-3xl shadow-2xl relative overflow-hidden"
-        style={{
-          background: COLORS.card,
-          boxShadow: COLORS.shadow,
-          border: `1.5px solid ${COLORS.border}`,
-        }}
-      >
-        {/* Top Accent Bar */}
-        <div
-          className="h-3 w-full"
-          style={{
-            background: `linear-gradient(90deg, ${COLORS.accent} 0%, ${COLORS.accentLight} 100%)`,
-          }}
-        />
-        {/* Settings button */}
-        <button
-          className="absolute top-6 right-6 text-2xl p-2 rounded-full hover:bg-[#F5E8D3] transition"
-          style={{ color: COLORS.accent, background: "transparent" }}
-          onClick={() => setShowSettings(true)}
-          aria-label="Settings"
-          title="Account Settings"
-        >
-          <IoSettingsSharp />
-        </button>
-        <div className="flex flex-col md:flex-row items-center md:items-start gap-10 px-8 py-10">
-          {/* Profile Picture */}
-          <div className="flex flex-col items-center w-full md:w-auto">
-            <div
-              className="w-36 h-36 rounded-full border-4 shadow-lg flex items-center justify-center overflow-hidden mb-3"
-              style={{
-                background: COLORS.inputBg,
-                borderColor: COLORS.accentLight,
-                boxShadow: "0 2px 16px 0 rgba(191,161,129,0.10)",
-              }}
-            >
-              <img
-                src={user.photoURL || PROFILE_PIC_PLACEHOLDER}
-                alt="Profile"
-                className="w-full h-full object-cover"
-              />
-            </div>
+
+      <div className="w-full max-w-md">
+        {/* Main Profile Card */}
+        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/20 relative">
+          {/* Elegant Header */}
+          <div
+            className="h-32 relative "
+            style={{
+              background:
+                "linear-gradient(135deg, #3d676d 0%, #527278 50%, #6b8388 100%)",
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-black/10"></div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-16 translate-x-16"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
+
+            {/* Settings Button */}
             <button
-              className="text-xs underline font-medium"
-              style={{
-                color: COLORS.accent,
-                cursor: "not-allowed",
-                opacity: 0.6,
-              }}
-              disabled
-              title="Profile picture upload coming soon"
+              onClick={() => setShowSettings(true)}
+              className="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-all duration-300 hover:scale-105"
             >
-              Change Photo
+              <IoSettingsSharp size={18} />
             </button>
+
+            {/* Profile Picture */}
+            <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2">
+              <div className="w-24 h-24 rounded-full bg-white p-1 shadow-xl">
+                <img
+                  src={
+                    user.photoURL ||
+                    "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                  }
+                  alt="Profile"
+                  className="w-full h-full rounded-full object-cover"
+                />
+              </div>
+              {user.emailVerified && (
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#3d676d] rounded-full flex items-center justify-center border-2 border-white">
+                  <MdOutlineVerified size={14} className="text-white" />
+                </div>
+              )}
+            </div>
           </div>
-          {/* Profile Info */}
-          <div className="flex-1 w-full">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-              <h2 className="text-3xl font-bold" style={{ color: COLORS.text }}>
+
+          {/* Content */}
+          <div className="pt-16 px-6 pb-6">
+            {/* Name & Role */}
+            <div className="text-center mb-6">
+              <h1 className="text-2xl font-bold text-gray-800 mb-2">
                 {profile?.displayName || "Your Name"}
-              </h2>
-              <span
-                className="text-xs px-3 py-1 rounded-full font-semibold"
+              </h1>
+              <div
+                className="inline-flex items-center px-4 py-1.5 text-white text-sm font-medium rounded-full"
                 style={{
-                  background: COLORS.accentLight,
-                  color: COLORS.accent,
-                  marginLeft: "0.5rem",
-                  letterSpacing: "0.03em",
+                  background:
+                    "linear-gradient(135deg, #3d676d 0%, #527278 100%)",
                 }}
               >
                 {profile?.role
                   ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1)
                   : "User"}
-              </span>
-            </div>
-            <div className="space-y-1 mb-2">
-              <div className="flex items-center gap-2">
-                <span className="font-medium" style={{ color: COLORS.textSecondary }}>
-                  Email:
-                </span>
-                <span style={{ color: COLORS.text }}>{user.email}</span>
               </div>
+            </div>
+
+            {/* Bio */}
+            <div className="mb-6 px-2">
+              {editingBio ? (
+                <form onSubmit={handleBioSave}>
+                  <textarea
+                    name="why"
+                    value={bioValue}
+                    onChange={handleBioChange}
+                    rows={3}
+                    className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all mb-2"
+                    placeholder="This is your short bio. Write 2–3 sentences to describe yourself."
+                    disabled={savingBio}
+                  />
+                  {bioError && (
+                    <div className="bg-red-50 text-red-600 p-2 rounded-xl mb-2 text-sm">
+                      {bioError}
+                    </div>
+                  )}
+                  <div className="flex space-x-2 justify-end">
+                    <button
+                      type="submit"
+                      disabled={savingBio}
+                      className="text-white py-2 px-4 rounded-xl font-medium disabled:opacity-50 hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, #3d676d 0%, #527278 100%)",
+                      }}
+                    >
+                      {savingBio ? "Saving..." : "Save Bio"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingBio(false)}
+                      disabled={savingBio}
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="flex flex-col items-center">
+                  <p className="text-gray-600 text-center text-sm leading-relaxed mb-2 w-full">
+                    {profile?.why ||
+                      "This is your short bio. Write 2–3 sentences to describe yourself."}
+                  </p>
+                  <button
+                    onClick={handleEditBio}
+                    className="flex items-center text-xs text-[#3d676d] hover:underline hover:text-[#527278] transition mb-2"
+                  >
+                    <MdEdit size={16} className="mr-1" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Contact Info */}
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <IoMailOutline size={16} className="text-blue-600" />
+                </div>
+                <span className="text-gray-700 text-sm">{user.email}</span>
+              </div>
+
               {profile?.phone && (
-                <div className="flex items-center gap-2">
-                  <span className="font-medium" style={{ color: COLORS.textSecondary }}>
-                    Phone:
-                  </span>
-                  <span style={{ color: COLORS.text }}>{profile.phone}</span>
+                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <IoCallOutline size={16} className="text-green-600" />
+                  </div>
+                  <span className="text-gray-700 text-sm">{profile.phone}</span>
                 </div>
               )}
+
               {profile?.address && (
-                <div className="flex items-center gap-2">
-                  <span className="font-medium" style={{ color: COLORS.textSecondary }}>
-                    Address:
+                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                    <IoLocationOutline size={16} className="text-purple-600" />
+                  </div>
+                  <span className="text-gray-700 text-sm">
+                    {profile.address}
                   </span>
-                  <span style={{ color: COLORS.text }}>{profile.address}</span>
                 </div>
               )}
-              <div className="flex items-center gap-2">
-                <span className="font-medium" style={{ color: COLORS.textSecondary }}>
-                  Account Created:
-                </span>
-                <span style={{ color: COLORS.text }}>
-                  {profile?.createdAt
-                    ? new Date(profile.createdAt).toLocaleString()
-                    : "N/A"}
-                </span>
-              </div>
             </div>
-            {/* Profile Completion Bar */}
-            <div className="mt-4 mb-2">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs font-medium" style={{ color: COLORS.textSecondary }}>
-                  Profile Completion
-                </span>
-                <span
-                  className="text-xs font-semibold"
-                  style={{
-                    color:
-                      profileCompletion === 100
-                        ? COLORS.success
-                        : COLORS.accent,
-                  }}
-                >
-                  {Math.round(profileCompletion)}%
-                </span>
-              </div>
-              <div className="w-full h-2 rounded-full bg-[#F5E8D3] overflow-hidden">
-                <div
-                  className="h-2 rounded-full transition-all"
-                  style={{
-                    width: `${profileCompletion}%`,
-                    background:
-                      profileCompletion === 100
-                        ? COLORS.success
-                        : `linear-gradient(90deg, ${COLORS.accent} 60%, ${COLORS.accentLight} 100%)`,
-                  }}
-                />
-              </div>
+
+            {/* Action Buttons */}
+            <div className="flex space-x-3 mb-4">
+              <button
+                onClick={handleEdit}
+                className="flex-1 text-white py-3 px-4 rounded-xl font-medium flex items-center justify-center space-x-2 hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #3d676d 0%, #527278 100%)",
+                }}
+              >
+                <MdEdit size={18} />
+                <span>Edit Profile</span>
+              </button>
+              <button
+                onClick={() => alert("Share profile coming soon!")}
+                className="px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transform hover:scale-[1.02] transition-all duration-200"
+              >
+                <IoShareSocialOutline size={18} />
+              </button>
             </div>
-            {/* Edit Profile Button */}
-            <button
-              onClick={handleEdit}
-              className="mt-4 px-5 py-2 rounded-full font-semibold transition"
-              style={{
-                background: COLORS.accent,
-                color: "#fff",
-                boxShadow: "0 2px 8px 0 rgba(191,161,129,0.10)",
-              }}
-            >
-              Edit Profile
-            </button>
           </div>
         </div>
-        {/* Editable Form */}
+
+        {/* Edit Form */}
         {editing && (
-          <form
-            className="px-8 pb-8 border-t pt-6 space-y-4"
-            style={{ borderColor: COLORS.border }}
-            onSubmit={handleEditSave}
-          >
-            <h3 className="text-lg font-bold mb-2" style={{ color: COLORS.textSecondary }}>
+          <div className="mt-4 bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/20 p-6">
+            <h3 className="text-lg font-bold mb-4 text-gray-800">
               Edit Profile
             </h3>
+
             {error && (
-              <div className="text-sm mb-2" style={{ color: COLORS.error }}>
+              <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm">
                 {error}
               </div>
             )}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: COLORS.textSecondary }}>
-                  Name
-                </label>
-                <input
-                  type="text"
-                  name="displayName"
-                  className="w-full rounded-lg px-3 py-2"
-                  style={{
-                    background: COLORS.inputBg,
-                    color: COLORS.text,
-                    border: `1.5px solid ${COLORS.inputBorder}`,
-                  }}
-                  value={editData.displayName || ""}
-                  onChange={handleEditChange}
-                  placeholder="Your Name"
-                  autoComplete="name"
-                />
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    name="displayName"
+                    value={editData.displayName || ""}
+                    onChange={handleEditChange}
+                    className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all"
+                    placeholder="Your Name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={editData.phone || ""}
+                    onChange={handleEditChange}
+                    className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all"
+                    placeholder="Your phone number"
+                  />
+                </div>
               </div>
+
               <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: COLORS.textSecondary }}>
-                  Phone
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  className="w-full rounded-lg px-3 py-2"
-                  style={{
-                    background: COLORS.inputBg,
-                    color: COLORS.text,
-                    border: `1.5px solid ${COLORS.inputBorder}`,
-                  }}
-                  value={editData.phone || ""}
-                  onChange={handleEditChange}
-                  placeholder="Your phone number"
-                  autoComplete="tel"
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="block text-sm font-medium mb-1" style={{ color: COLORS.textSecondary }}>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Address
                 </label>
                 <input
                   type="text"
                   name="address"
-                  className="w-full rounded-lg px-3 py-2"
-                  style={{
-                    background: COLORS.inputBg,
-                    color: COLORS.text,
-                    border: `1.5px solid ${COLORS.inputBorder}`,
-                  }}
                   value={editData.address || ""}
                   onChange={handleEditChange}
+                  className="w-full px-4 py-3 bg-gray-50 border-0 rounded-xl text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all"
                   placeholder="Your address"
-                  autoComplete="street-address"
                 />
               </div>
-            </div>
-            <div className="flex gap-4 mt-4">
-              <button
-                type="submit"
-                className="px-5 py-2 rounded-full font-semibold transition disabled:opacity-60"
-                style={{
-                  background: COLORS.accent,
-                  color: "#fff",
-                  boxShadow: "0 2px 8px 0 rgba(191,161,129,0.10)",
-                }}
-                disabled={saving}
-              >
-                {saving ? "Saving..." : "Save"}
-              </button>
-              <button
-                type="button"
-                className="px-5 py-2 rounded-full font-semibold transition"
-                style={{
-                  background: COLORS.inputBg,
-                  color: COLORS.textSecondary,
-                  border: `1.5px solid ${COLORS.border}`,
-                }}
-                onClick={() => setEditing(false)}
-                disabled={saving}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        )}
-        {/* Divider */}
-        <div className="border-t px-8 py-8 flex flex-col md:flex-row gap-8 items-start" style={{ borderColor: COLORS.border }}>
-          {/* Account Info */}
-          <div className="flex-1 w-full">
-            <h4 className="text-lg font-bold mb-2" style={{ color: COLORS.textSecondary }}>
-              Account Info
-            </h4>
-            <ul className="text-sm space-y-1">
-              <li>
-                <span className="font-medium" style={{ color: COLORS.textSecondary }}>
-                  User ID:
-                </span>{" "}
-                <span style={{ color: COLORS.text }}>{user.uid}</span>
-              </li>
-              <li>
-                <span className="font-medium" style={{ color: COLORS.textSecondary }}>
-                  Email Verified:
-                </span>{" "}
-                <span style={{ color: user.emailVerified ? COLORS.success : COLORS.error }}>
-                  {user.emailVerified ? "Yes" : "No"}
-                </span>
-              </li>
-              <li>
-                <span className="font-medium" style={{ color: COLORS.textSecondary }}>
-                  Last Sign-in:
-                </span>{" "}
-                <span style={{ color: COLORS.text }}>
-                  {user.metadata?.lastSignInTime
-                    ? new Date(user.metadata.lastSignInTime).toLocaleString()
-                    : "N/A"}
-                </span>
-              </li>
-              <li>
-                <span className="font-medium" style={{ color: COLORS.textSecondary }}>
-                  Creation Time:
-                </span>{" "}
-                <span style={{ color: COLORS.text }}>
-                  {user.metadata?.creationTime
-                    ? new Date(user.metadata.creationTime).toLocaleString()
-                    : "N/A"}
-                </span>
-              </li>
-            </ul>
-          </div>
-          {/* Profile Status */}
-          <div className="flex-1 w-full">
-            <h4 className="text-lg font-bold mb-2" style={{ color: COLORS.textSecondary }}>
-              Profile Status
-            </h4>
-            <ul className="text-sm space-y-1">
-              <li>
-                <span className="font-medium" style={{ color: COLORS.textSecondary }}>
-                  Profile Completion:
-                </span>{" "}
-                <span
+
+              <div className="flex space-x-3 pt-2">
+                <button
+                  type="button"
+                  onClick={handleEditSave}
+                  disabled={saving}
+                  className="flex-1 text-white py-3 px-4 rounded-xl font-medium disabled:opacity-50 hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200"
                   style={{
-                    color:
-                      profileCompletion === 100
-                        ? COLORS.success
-                        : COLORS.accent,
+                    background:
+                      "linear-gradient(135deg, #3d676d 0%, #527278 100%)",
                   }}
                 >
+                  {saving ? "Saving..." : "Save Changes"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditing(false)}
+                  disabled={saving}
+                  className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Additional Info Card */}
+        <div className="mt-4 bg-white/60 backdrop-blur-xl rounded-3xl shadow-xl border border-white/20 overflow-hidden">
+          <details className="group">
+            {/* Stats/Completion */}
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-4 mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">
+                  Profile Completion
+                </span>
+                <span className="text-sm font-bold text-green-600">
                   {Math.round(profileCompletion)}%
                 </span>
-              </li>
-              <li>
-                <span className="font-medium" style={{ color: COLORS.textSecondary }}>
-                  Photo:
-                </span>{" "}
-                <span style={{ color: COLORS.text }}>
-                  {user.photoURL ? "Set" : "Not set"}
-                </span>
-              </li>
-              <li>
-                <span className="font-medium" style={{ color: COLORS.textSecondary }}>
-                  Role:
-                </span>{" "}
-                <span style={{ color: COLORS.text }}>
-                  {profile?.role
-                    ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1)
-                    : "N/A"}
-                </span>
-              </li>
-              <li>
-                <span className="font-medium" style={{ color: COLORS.textSecondary }}>
-                  Notifications:
-                </span>{" "}
-                <span style={{ color: COLORS.accent }}>Coming soon</span>
-              </li>
-            </ul>
-          </div>
+              </div>
+              <div className="w-full bg-green-100 rounded-full h-2">
+                <div
+                  className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full transition-all duration-500"
+                  style={{ width: `${profileCompletion}%` }}
+                ></div>
+              </div>
+            </div>
+            <summary className="p-6 cursor-pointer hover:bg-white/40 transition-all duration-200">
+              <span className="font-medium text-gray-800">Account Details</span>
+            </summary>
+            <div className="px-6 pb-6 border-t border-gray-100">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">Account</h4>
+                  <div className="space-y-1 text-gray-600">
+                    <div>ID: {user.uid.substring(0, 8)}...</div>
+                    <div>Verified: {user.emailVerified ? "Yes" : "No"}</div>
+                    <div>
+                      Member since:{" "}
+                      {user.metadata?.creationTime
+                        ? new Date(
+                            user.metadata.creationTime
+                          ).toLocaleDateString()
+                        : "Unknown"}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">Settings</h4>
+                  <div className="space-y-1 text-gray-600">
+                    <div>Role: {profile?.role || "N/A"}</div>
+                    {/* <div>
+                      Notifications: {profile?.notifications ? "On" : "Off"}
+                    </div> */}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </details>
         </div>
-        {/* Sign Out Button */}
-        <div className="px-8 pb-8">
+
+        {/* Sign Out */}
+        <div className="mt-4 flex justify-center">
           <button
             onClick={handleSignOut}
-            className="w-full py-3 rounded-full font-semibold transition disabled:opacity-60"
-            style={{
-              background: COLORS.accent,
-              color: "#fff",
-              fontSize: "1.1rem",
-              boxShadow: "0 2px 8px 0 rgba(191,161,129,0.10)",
-              marginTop: "1.5rem",
-            }}
             disabled={signingOut}
+            className="bg-red-500 hover:bg-red-600 text-white py-3 px-8 rounded-xl font-medium disabled:opacity-50 hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200"
           >
-            {signingOut ? "Disconnecting..." : "Disconnect"}
+            {signingOut ? "Signing Out..." : "Sign Out"}
           </button>
         </div>
       </div>
