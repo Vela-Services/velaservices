@@ -19,7 +19,7 @@ export default function ProviderStripeSetupPage() {
     if (!user?.uid) return;
     
     try {
-      const providerDoc = await getDoc(doc(db, "providers", user.uid));
+      const providerDoc = await getDoc(doc(db, "users", user.uid));
       if (providerDoc.exists()) {
         const data = providerDoc.data();
         setStripeStatus({
@@ -51,7 +51,7 @@ export default function ProviderStripeSetupPage() {
         body: JSON.stringify({
           email: user.email,
           providerId: user.uid,
-          country: "FR", // ou "NO" selon ton besoin
+          country: "NO", // ou "NO" selon ton besoin
         }),
       });
 

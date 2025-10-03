@@ -50,12 +50,14 @@ export default function ServicesPage() {
                 name: string;
                 price: number;
                 baseDuration: number;
+                description?: string;
               };
               return {
                 id: s.id,
                 name: s.name,
                 price: s.price,
                 baseDuration: s.baseDuration,
+                description: s.description || undefined,
               };
             }
           );
@@ -351,6 +353,8 @@ export default function ServicesPage() {
                                 key={sub.id}
                                 className="flex items-center gap-2"
                               >
+                              
+                            
                                 <input
                                   type="checkbox"
                                   checked={!!subSelected}
@@ -366,6 +370,27 @@ export default function ServicesPage() {
                                 >
                                   {capitalize(sub.name)}
                                 </label>
+                                {/* Optionally, keep the info button for longer descriptions */}
+                                {sub.description && (
+                                  <span className="relative inline-flex items-center">
+                                    <span className="relative group">
+                                      {/* Info button */}
+                                      <span
+                                        tabIndex={0}
+                                        role="button"
+                                        aria-label={`Service description for ${sub.name}`}
+                                        className="flex items-center justify-center w-5 h-5 rounded-full bg-[#FFF7E6] border border-[#8B4513]/70 text-[#8B4513] text-[12px] font-bold hover:bg-[#FFE4B5] focus:bg-[#FFE4B5] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B] cursor-pointer transition-colors duration-150 z-20"
+                                      >
+                                        i
+                                      </span>
+                                      {/* Tooltip */}
+                                      <div className="absolute left-0 top-full mt-2 w-64 max-w-[80vw] bg-white border border-[#8B4513]/40 rounded-lg shadow-lg p-3 text-sm text-[#4A3728] opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto transition-opacity duration-200 z-30 sm:left-1/2 sm:-translate-x-1/2">
+                                        {sub.description}
+                                      </div>
+                                    </span>
+                                  </span>
+                                )}
+
 
                                 {/* Optional price */}
                                 {subSelected && (

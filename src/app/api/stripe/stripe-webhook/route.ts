@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { db } from "@/lib/firebase";
-import { doc, updateDoc } from "firebase/firestore";
+import { collection, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-07-30.basil",  // Version stable 2025 ; change si besoin
@@ -41,10 +41,24 @@ export async function POST(req: Request) {
       case "account.updated":
         await handleAccountUpdated(event.data.object as Stripe.Account);
         break;
-      case "payment_intent.succeeded":
-        console.log("Payment succeeded:", event.data.object);
-        // Ajoute ici : update mission payée, ex. updateDoc pour commande
-        break;
+        case "payment_intent.succeeded": {
+          const pi = event.data.object as Stripe.PaymentIntent;
+          const paymentIntentId = pi.id;
+        
+          const transfersSnap = await getDocs(
+            query(collection(db, "pending_transfers"), where("paymentIntentId", "==", paymentIntentId))
+          );
+        
+          for (const docSnap of transfersSnap.docs) {
+            await updateDoc(docSnap.ref, {
+              status: "paid",
+              paidAt: new Date(),
+            });
+          }
+        
+          break;
+        }
+        
       case "transfer.created":
         await handleTransferCreated(event.data.object as Stripe.Transfer);
         break;

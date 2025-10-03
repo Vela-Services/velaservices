@@ -13,10 +13,11 @@ import { useAuth } from "../../hooks/useAuth";
 import { createMissionsFromCart } from "../../../lib/createMission";
 import { CartItem, UserProfile } from "@/types/types";
 import { auth, db } from "@/lib/firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { toast } from "react-hot-toast";
 
+// Stripe (clé publique)
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 );
@@ -27,8 +28,10 @@ export default function PaymentPage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [, setUser] = useState<User | null>(null);
   const [, setLoading] = useState(true);
+
   const totalPrice = cart.reduce((acc, item) => acc + item.price, 0);
 
+  // 🔹 Charger le profil user Firestore
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
@@ -50,7 +53,8 @@ export default function PaymentPage() {
     []
   );
 
-  if (cart.length === 0) {
+  // Si panier vide
+  if (cart.length === 0)
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="bg-white rounded-xl p-8 shadow">
@@ -58,14 +62,13 @@ export default function PaymentPage() {
         </div>
       </div>
     );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F5E8D3] to-[#fcf5eb] flex items-center justify-center p-6">
       <div className="w-full max-w-2xl">
         <h1 className="text-3xl font-bold text-[#7C5E3C] mb-6">Payment</h1>
-
         <div className="bg-white rounded-2xl shadow-xl p-8 grid md:grid-cols-2 gap-8">
+          {/* Résumé commande */}
           <section>
             <h2 className="text-xl font-semibold text-[#7C5E3C] mb-4">
               Order Summary
@@ -79,21 +82,22 @@ export default function PaymentPage() {
                       {item.date} — {item.times?.join(", ")}
                     </div>
                     <div className="text-xs text-gray-400">
-                      Prestataire: {item.providerName || "Non défini"}
+                      Provider: {item.providerName || "N/A"}
                     </div>
                   </div>
                   <div className="font-semibold text-[#BFA181]">
-                    {item.price}NOK
+                    {item.price} NOK
                   </div>
                 </li>
               ))}
             </ul>
             <div className="flex justify-between border-t pt-3">
               <span className="font-semibold text-[#7C5E3C]">Total</span>
-              <span className="font-bold text-[#BFA181]">{totalPrice}NOK</span>
+              <span className="font-bold text-[#BFA181]">{totalPrice} NOK</span>
             </div>
           </section>
 
+          {/* Paiement */}
           <section>
             {stripePromise && (
               <Elements stripe={stripePromise} options={options}>
@@ -101,26 +105,7 @@ export default function PaymentPage() {
                   cart={cart}
                   userId={user?.uid ?? ""}
                   profile={profile}
-                  onSuccess={async (paymentIntentId: string) => {
-                    // Créer les missions avec le paymentIntentId
-                    await createMissionsFromCart(
-                      cart,
-                      user?.uid ?? "",
-                      profile?.displayName ?? "",
-                      profile?.address ?? "",
-                      profile?.phone ?? "",
-                      profile?.email ?? "Anonymous",
-                      paymentIntentId
-                    );
-
-                    // Sauvegarder les infos de paiement pour les transferts futurs
-                    await savePaymentForTransfers(
-                      cart,
-                      paymentIntentId,
-                    );
-
-                    await clearCart();
-                  }}
+                  clearCart={clearCart}
                 />
               </Elements>
             )}
@@ -131,117 +116,133 @@ export default function PaymentPage() {
   );
 }
 
-// Nouvelle fonction pour sauvegarder les infos de paiement
-async function savePaymentForTransfers(
-  cart: CartItem[],
-  paymentIntentId: string,
-) {
-  try {
-    // Grouper par providerId pour créer les transferts futurs
-    const providerGroups = cart.reduce((acc, item) => {
-      const providerId = item.providerId;
-      if (!acc[providerId]) {
-        acc[providerId] = {
-          providerId,
-          providerName: item.providerName,
-          items: [],
-          totalAmount: 0,
-        };
-      }
-      acc[providerId].items.push(item);
-      acc[providerId].totalAmount += item.price;
-      return acc;
-    }, {} as Record<string, {
-      providerId: string;
-      providerName: string;
-      items: CartItem[];
-      totalAmount: number;
-    }>);
-
-    // Sauvegarder les informations pour les transferts futurs
-    for (const group of Object.values(providerGroups)) {
-      await updateDoc(
-        doc(db, "pending_transfers", `${paymentIntentId}_${group.providerId}`),
-        {
-          paymentIntentId,
-          providerId: group.providerId,
-          providerName: group.providerName,
-          amount: group.totalAmount,
-          items: group.items,
-          status: "pending_validation", // En attente de validation de la mission
-          createdAt: new Date(),
-        }
-      );
-    }
-  } catch (error) {
-    console.error("Erreur sauvegarde transfert:", error);
-  }
-}
-
+// --------------------------------------------------------
+// 💳 CheckoutForm — Gère le paiement et la post-validation
+// --------------------------------------------------------
 function CheckoutForm({
   cart,
   userId,
-  onSuccess,
+  profile,
+  clearCart,
 }: {
   cart: CartItem[];
   userId: string;
-  profile: UserProfile | null;
-  onSuccess: (paymentIntentId: string) => Promise<void>;
+  profile?: UserProfile | null;
+  clearCart: () => void;
 }) {
   const stripe = useStripe();
   const elements = useElements();
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [succeeded, setSucceeded] = useState(false);
 
-  const pay = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!stripe || !elements) return;
+
+    if (!stripe || !elements) {
+      setError("Stripe is not loaded yet");
+      return;
+    }
+
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) {
+      setError("Card element not found");
+      return;
+    }
 
     setProcessing(true);
     setError(null);
 
-    // 1) Crée le PaymentIntent sur le serveur
-    const piRes = await fetch("/api/stripe/create-payment-intent", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cart, customerId: userId }),
-    });
-    const { clientSecret, paymentIntentId, error: piErr } = await piRes.json();
-    if (piErr || !clientSecret) {
-      setProcessing(false);
-      setError(piErr || "Failed to start payment.");
-      return;
-    }
-
-    // 2) Confirme le paiement côté client
-    const { error: confirmErr, paymentIntent } =
-      await stripe.confirmCardPayment(clientSecret, {
-        payment_method: { card: elements.getElement(CardElement)! },
+    try {
+      // 1️⃣ Créer le PaymentIntent
+      const res = await fetch("/api/stripe/create-payment-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cart, customerId: userId }),
       });
 
-    if (confirmErr || !paymentIntent) {
-      setProcessing(false);
-      setError(confirmErr?.message || "Payment failed.");
-      return;
-    }
+      const { clientSecret, paymentIntentId } = await res.json();
 
-    if (paymentIntent.status === "succeeded") {
-      // 3) Crée les missions après succès
-      await onSuccess(paymentIntentId);
+      if (!res.ok || !clientSecret) {
+        throw new Error("Failed to create payment intent");
+      }
+
+      // 2️⃣ Confirmer le paiement
+      const { error: stripeErr, paymentIntent } =
+        await stripe.confirmCardPayment(clientSecret, {
+          payment_method: {
+            card: cardElement,
+            billing_details: {
+              name: profile?.displayName || "Anonymous",
+              email: profile?.email || undefined,
+            },
+          },
+        });
+
+      if (stripeErr) throw new Error(stripeErr.message || "Payment failed");
+      if (!paymentIntent || paymentIntent.status !== "succeeded") {
+        throw new Error("Payment not succeeded");
+      }
+
+      // 3️⃣ Créer les missions (client → Firestore)
+      await createMissionsFromCart(
+        cart,
+        userId,
+        profile?.displayName ?? "",
+        profile?.address ?? "",
+        profile?.phone ?? "",
+        profile?.email ?? "Anonymous",
+        paymentIntent.id
+      );
+
+      // 4️⃣ Créer les pending_transfers (serveur → via admin SDK)
+      const afterSuccessRes = await fetch("/api/stripe/after-success", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cart,
+          paymentIntentId: paymentIntent.id,
+        }),
+      });
+
+      if (!afterSuccessRes.ok) {
+        const data = await afterSuccessRes.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to create pending transfers");
+      }
+
+      console.log(profile?.email, "email");
+
+      await fetch(`/api/email/send-receipt`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: profile?.email,
+          cart,
+          totalAmount: cart.reduce((a, i) => a + i.price, 0),
+          paymentIntentId,
+        }),
+      });
+      // 5️⃣ Nettoyer le panier et toast
+      await clearCart();
       toast.success(`Payment of ${paymentIntent.amount / 100} NOK successful!`);
-      setSucceeded(true);
-    } else {
-      setError("Payment not completed.");
+    } catch (err) {
+      console.error("💥 Payment error:", err);
+      let message = "Payment failed";
+      if (err && typeof err === "object" && "message" in err && typeof (err as { message?: unknown }).message === "string") {
+        message = (err as { message: string }).message;
+      }
+      setError(message);
+      toast.error(message);
+    } finally {
+      setProcessing(false);
     }
-    setProcessing(false);
   };
 
   return (
-    <form onSubmit={pay} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <h2 className="text-xl font-semibold text-[#7C5E3C] mb-2">
         Payment Details
       </h2>
+
       <div className="rounded-md border p-3 bg-white">
         <CardElement
           options={{
@@ -249,33 +250,34 @@ function CheckoutForm({
             style: {
               base: {
                 fontSize: "16px",
-                color: "#3B2F1E",
-                "::placeholder": { color: "#BFA181" },
-                fontFamily: "inherit",
+                color: "#424770",
+                "::placeholder": { color: "#aab7c4" },
               },
-              invalid: {
-                color: "#e5424d",
-                iconColor: "#e5424d",
-              },
+              invalid: { color: "#9e2146" },
             },
           }}
         />
       </div>
-      {error && <div className="text-red-600 text-sm">{error}</div>}
+
+      {error && (
+        <div className="text-red-600 text-sm bg-red-50 p-3 rounded">
+          {error}
+        </div>
+      )}
+
       <button
         type="submit"
-        disabled={processing || !stripe}
-        className={`w-full py-3 rounded-full font-bold text-lg shadow-md transition ${
-          processing
-            ? "bg-[#BFA181]/60 text-white cursor-not-allowed"
-            : "bg-[#BFA181] text-white hover:bg-[#A68A64]"
-        }`}
+        disabled={processing || !stripe || !elements}
+        className="w-full py-3 rounded-full font-bold text-lg shadow-md transition bg-[#BFA181] text-white hover:bg-[#A68A64] disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {processing ? "Processing..." : "Pay"}
+        {processing
+          ? "Processing..."
+          : `Pay ${cart.reduce((acc, item) => acc + item.price, 0)} NOK`}
       </button>
-      {succeeded && (
-        <div className="text-green-600 text-sm mt-2">Payment successful!</div>
-      )}
+
+      <div className="text-xs text-gray-500 text-center mt-2">
+        Test card: 4242 4242 4242 4242 | Any future date | Any 3 digits
+      </div>
     </form>
   );
 }

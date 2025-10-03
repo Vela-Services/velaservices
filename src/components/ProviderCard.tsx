@@ -15,7 +15,7 @@ export function ProviderCard({ provider }: ProviderCardProps) {
 
   return (
     <Card
-      className={`rounded-xl shadow-lg border ${COLORS.primaryBorder} bg-white w-full h-full max-w-[400px] mx-auto flex flex-col font-sans transition-all duration-300 hover:shadow-xl hover:scale-[1.01] focus-within:shadow-xl focus-within:scale-[1.01]`}
+      className={`group rounded-xl shadow-lg border ${COLORS.primaryBorder} bg-white w-full h-full max-w-[400px] mx-auto flex flex-col font-sans transition-all duration-300 hover:shadow-xl hover:scale-[1.01] focus-within:shadow-xl focus-within:scale-[1.01]`}
       style={{ fontFamily: "'Inter', sans-serif" }}
       aria-label={`Provider card for ${provider.displayName}`}
       tabIndex={0}
