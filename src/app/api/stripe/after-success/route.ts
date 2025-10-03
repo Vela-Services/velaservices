@@ -1,6 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
 import { CartItem } from "@/types/types";
-import { adminDb } from "@/lib/firebaseAdmin";
+import admin from "firebase-admin";
+
+// --- Ensure service account object has string 'project_id' property ---
+const serviceAccount = {
+  type: process.env.FIREBASE_TYPE || "",
+  project_id: process.env.FIREBASE_PROJECT_ID || "",
+  private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID || "",
+  private_key: (process.env.FIREBASE_PRIVATE_KEY || "").replace(/\\n/g, '\n'),
+  client_email: process.env.FIREBASE_CLIENT_EMAIL || "",
+  client_id: process.env.FIREBASE_CLIENT_ID || "",
+  auth_uri: process.env.FIREBASE_AUTH_URI || "",
+  token_uri: process.env.FIREBASE_TOKEN_URI || "",
+  auth_provider_x509_cert_url: process.env.FIREBASE_AUTH_PROVIDER_X509_CERT_URL || "",
+  client_x509_cert_url: process.env.FIREBASE_CLIENT_X509_CERT_URL || "",
+  universe_domain: process.env.FIREBASE_UNIVERSE_DOMAIN || "",
+};
+
+// Validate project_id is present and is a string
+if (
+  !serviceAccount.project_id ||
+  typeof serviceAccount.project_id !== "string"
+) {
+  throw new Error(
+    "Service account object must contain a string 'project_id' property"
+  );
+}
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
+  });
+}
+
+const adminDb = admin.firestore();
 
 type ProviderGroup = {
   providerId: string;
