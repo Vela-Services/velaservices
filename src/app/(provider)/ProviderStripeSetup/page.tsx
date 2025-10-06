@@ -17,7 +17,7 @@ export default function ProviderStripeSetupPage() {
 
   const loadStripeStatus = useCallback(async () => {
     if (!user?.uid) return;
-    
+
     try {
       const providerDoc = await getDoc(doc(db, "users", user.uid));
       if (providerDoc.exists()) {
@@ -29,7 +29,7 @@ export default function ProviderStripeSetupPage() {
         });
       }
     } catch (error) {
-      console.error("Erreur chargement statut Stripe:", error);
+      console.error("Error loading Stripe status:", error);
     }
   }, [user?.uid]);
 
@@ -39,7 +39,7 @@ export default function ProviderStripeSetupPage() {
 
   const startOnboarding = async () => {
     if (!user?.email) {
-      toast.error("Email utilisateur requis");
+      toast.error("User email required");
       return;
     }
 
@@ -51,18 +51,18 @@ export default function ProviderStripeSetupPage() {
         body: JSON.stringify({
           email: user.email,
           providerId: user.uid,
-          country: "NO", // ou "NO" selon ton besoin
+          country: "NO", // or "NO" as needed
         }),
       });
 
       const data = await response.json();
       if (data.error) throw new Error(data.error);
 
-      // Rediriger vers l'onboarding Stripe
+      // Redirect to Stripe onboarding
       window.location.href = data.onboardingUrl;
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Erreur inconnue";
+        error instanceof Error ? error.message : "Unknown error";
       toast.error(message);
     } finally {
       setLoading(false);
@@ -81,8 +81,8 @@ export default function ProviderStripeSetupPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           accountId: stripeStatus.accountId,
-          refreshUrl: `${baseUrl}/provider/onboarding/refresh`,
-          returnUrl: `${baseUrl}/provider/onboarding/success`,
+          refreshUrl: `${baseUrl}/onboarding/refresh`,
+          returnUrl: `${baseUrl}/onboarding/success`,
         }),
       });
 
@@ -92,7 +92,7 @@ export default function ProviderStripeSetupPage() {
       window.location.href = data.onboardingUrl;
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Erreur inconnue";
+        error instanceof Error ? error.message : "Unknown error";
       toast.error(message);
     } finally {
       setLoading(false);
@@ -118,12 +118,10 @@ export default function ProviderStripeSetupPage() {
           </div>
           <div className="ml-3">
             <h3 className="text-lg font-medium text-gray-900">
-              Configuration des paiements requise
+              Payment setup required
             </h3>
             <p className="mt-2 text-sm text-gray-600">
-              Pour recevoir vos paiements, vous devez configurer votre compte
-              Stripe Connect. Ce processus est sécurisé et ne prend que quelques
-              minutes.
+              To receive your payments, you need to set up your Stripe Connect account. This process is secure and only takes a few minutes.
             </p>
             <div className="mt-4">
               <button
@@ -131,7 +129,7 @@ export default function ProviderStripeSetupPage() {
                 disabled={loading}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
               >
-                {loading ? "Configuration..." : "Configurer les paiements"}
+                {loading ? "Setting up..." : "Set up payments"}
               </button>
             </div>
           </div>
@@ -141,8 +139,7 @@ export default function ProviderStripeSetupPage() {
   }
 
   if (
-    stripeStatus.onboardingStatus === "pending" ||
-    !stripeStatus.chargesEnabled
+    stripeStatus.onboardingStatus === "pending"
   ) {
     return (
       <div className="bg-white rounded-lg p-6 shadow-md border-l-4 border-orange-400">
@@ -162,12 +159,10 @@ export default function ProviderStripeSetupPage() {
           </div>
           <div className="ml-3">
             <h3 className="text-lg font-medium text-gray-900">
-              Configuration en cours
+              Setup in progress
             </h3>
             <p className="mt-2 text-sm text-gray-600">
-              Votre compte Stripe est en cours de configuration. Vous pourrez
-              recevoir des paiements une fois que toutes les informations seront
-              validées.
+              Your Stripe account setup is in progress. You will be able to receive payments once all information is validated.
             </p>
             <div className="mt-4">
               <button
@@ -175,7 +170,7 @@ export default function ProviderStripeSetupPage() {
                 disabled={loading}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 disabled:opacity-50"
               >
-                {loading ? "Redirection..." : "Terminer la configuration"}
+                {loading ? "Redirecting..." : "Complete setup"}
               </button>
             </div>
           </div>
@@ -202,12 +197,10 @@ export default function ProviderStripeSetupPage() {
         </div>
         <div className="ml-3">
           <h3 className="text-lg font-medium text-gray-900">
-            Paiements configurés
+            Payments set up
           </h3>
           <p className="mt-2 text-sm text-gray-600">
-            Votre compte Stripe est configuré et vous pouvez recevoir des
-            paiements. Les transferts seront effectués automatiquement après
-            validation des missions.
+            Your Stripe account is set up and you can receive payments. Transfers will be made automatically after job validation.
           </p>
         </div>
       </div>

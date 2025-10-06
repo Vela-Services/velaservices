@@ -1,28 +1,50 @@
 // app/signup/page.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   createUserWithEmailAndPassword,
   updateProfile,
-  signInWithEmailAndPassword,
   sendEmailVerification,
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
-import "../../../lib/firebase"; // Ensure firebase is initialized
+import "../../../lib/firebase";
 import { db, auth } from "../../../lib/firebase";
 
 export default function SignupPage() {
   const router = useRouter();
-  const [role, setRole] = useState<"customer" | "provider">("customer");
+  // Only allow "customer" role for now
+  const role = "customer" as const;
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  const [why, setWhy] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  // For accessibility: focus error message
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.focus();
+    }
+  }, [error]);
+
+  // Password strength check (simple)
+  const passwordStrength = (() => {
+    if (!password) return "";
+    if (password.length < 8) return "Password must be at least 8 characters.";
+    if (!/[A-Z]/.test(password)) return "Add at least one uppercase letter.";
+    if (!/[a-z]/.test(password)) return "Add at least one lowercase letter.";
+    if (!/[0-9]/.test(password)) return "Add at least one number.";
+    if (!/[^A-Za-z0-9]/.test(password)) return "Add at least one special character.";
+    return "";
+  })();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,12 +54,10 @@ export default function SignupPage() {
       setError("Passwords do not match.");
       return;
     }
-
-    if (role === "provider" && !why.trim()) {
-      setError("Please tell us why you want to work at Vela Services.");
+    if (passwordStrength) {
+      setError(passwordStrength);
       return;
     }
-
     try {
       setLoading(true);
 
@@ -62,24 +82,14 @@ export default function SignupPage() {
         displayName: name,
         email,
         role,
-        emailVerified: false, // Set to false initially, will be updated after verification
-        ...(role === "provider" ? { why } : {}),
+        emailVerified: false,
         createdAt: new Date().toISOString(),
       });
 
-      if (!role) throw new Error("User role not found");
-
       // 🍪 Store the role in a cookie readable by middleware
-      document.cookie = `role=${role}; path=/; max-age=604800`; // 1 week
+      document.cookie = `role=${role}; path=/; max-age=604800`;
 
-      // Force a re-login to ensure auth state is fresh and cookies/session are set
-      // This helps with SSR/Next.js edge cases where the user is not recognized as logged in
-      await signInWithEmailAndPassword(auth, email, password);
-
-      // Optionally, reload the page to ensure all client state is synced
-      window.location.reload();
-
-      router.push("/profile");
+      setVerificationSent(true);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -92,133 +102,271 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F5E8D3] px-4">
-      <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg">
-        <h2 className="text-2xl font-bold mb-6 text-center text-[#7C5E3C]">
-          Sign Up
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5E8D3] to-[#E8D9C1] px-4">
+      <div className="max-w-md w-full bg-white/90 p-8 rounded-3xl shadow-2xl border border-[#E5D3B3]">
+        <h2 className="text-3xl font-extrabold mb-6 text-center text-[#7C5E3C] tracking-tight">
+          Create your Vela account
         </h2>
 
         {/* Error Message */}
         {error && (
-          <div className="mb-4 text-center text-red-600 text-sm">{error}</div>
+          <div
+            ref={errorRef}
+            tabIndex={-1}
+            className="mb-4 text-center text-red-700 bg-red-50 border border-red-200 rounded-lg px-4 py-2 text-sm font-medium shadow-sm animate-shake"
+            aria-live="assertive"
+          >
+            {error}
+          </div>
         )}
 
-        {/* Role Selector */}
+        {/* Success Message for Verification */}
+        {verificationSent && (
+          <div className="mb-4 text-center text-green-800 bg-green-50 border border-green-200 rounded-lg px-4 py-2 text-sm font-medium shadow-sm">
+            <span>
+              A verification email has been sent to <b>{email}</b>.<br />
+              Please check your inbox and verify your email before logging in.
+            </span>
+          </div>
+        )}
+
+        {/* Role Selector (disabled for provider) */}
         <div className="flex justify-center gap-4 mb-6">
-          {["customer", "provider"].map((r) => (
-            <button
-              key={r}
-              className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
-                role === r
-                  ? "bg-[#BFA181] text-white"
-                  : "bg-gray-100 text-gray-700"
-              }`}
-              onClick={() => setRole(r as "customer" | "provider")}
-              type="button"
-            >
-              {r === "customer" ? "Customer" : "Provider"}
-            </button>
-          ))}
+          <button
+            className="px-5 py-2 rounded-full text-base font-semibold transition bg-[#BFA181] text-white shadow-md cursor-default"
+            type="button"
+            disabled
+            aria-pressed="true"
+          >
+            Customer
+          </button>
+          <button
+            className="px-5 py-2 rounded-full text-base font-semibold transition bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed"
+            type="button"
+            disabled
+            aria-disabled="true"
+            title="Provider sign up is handled manually. Please contact us."
+          >
+            Provider
+          </button>
+        </div>
+        <div className="mb-6 text-center text-xs text-gray-500">
+          Want to become a provider?{" "}
+          <a
+            href="mailto:hello@velaservices.com"
+            className="text-[#BFA181] hover:underline font-medium"
+          >
+            Contact us
+          </a>
         </div>
 
         {/* Signup Form */}
-        <form onSubmit={handleSignup} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-[#7C5E3C]">
-              Name
-            </label>
-            <input
-              type="name"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="mt-1 w-full border rounded-md px-3 py-2 text-sm text-[#7C5E3C] focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
-              autoComplete="name"
-              disabled={loading}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-[#7C5E3C]">
-              Email
-            </label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full border rounded-md px-3 py-2 text-sm text-[#7C5E3C] focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
-              autoComplete="email"
-              disabled={loading}
-            />
-          </div>
-
-          {role === "provider" && (
+        {!verificationSent && (
+          <form
+            onSubmit={handleSignup}
+            className="space-y-5"
+            autoComplete="off"
+            aria-label="Sign up form"
+          >
             <div>
-              <label className="block text-sm font-medium text-[#7C5E3C]">
-                Why do you want to work at Vela Services?
+              <label
+                htmlFor="name"
+                className="block text-sm font-semibold text-[#7C5E3C] mb-1"
+              >
+                Name
               </label>
               <input
+                id="name"
                 type="text"
                 required
-                value={why}
-                onChange={(e) => setWhy(e.target.value)}
-                className="mt-1 w-full border rounded-md px-3 py-2 text-sm text-[#7C5E3C] focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full border border-[#E5D3B3] rounded-lg px-4 py-2 text-base text-[#7C5E3C] bg-[#F9F6F1] focus:outline-none focus:ring-2 focus:ring-[#BFA181] focus:bg-white transition"
+                autoComplete="name"
                 disabled={loading}
+                placeholder="Your full name"
+                maxLength={50}
               />
             </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-[#7C5E3C]">
-              Password
-            </label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full border rounded-md px-3 py-2 text-sm text-[#7C5E3C] focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
-              autoComplete="new-password"
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-semibold text-[#7C5E3C] mb-1"
+              >
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full border border-[#E5D3B3] rounded-lg px-4 py-2 text-base text-[#7C5E3C] bg-[#F9F6F1] focus:outline-none focus:ring-2 focus:ring-[#BFA181] focus:bg-white transition"
+                autoComplete="email"
+                disabled={loading}
+                placeholder="you@email.com"
+                maxLength={100}
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-semibold text-[#7C5E3C] mb-1"
+              >
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full border border-[#E5D3B3] rounded-lg px-4 py-2 text-base text-[#7C5E3C] bg-[#F9F6F1] focus:outline-none focus:ring-2 focus:ring-[#BFA181] focus:bg-white transition pr-12"
+                  autoComplete="new-password"
+                  disabled={loading}
+                  placeholder="Create a password"
+                  minLength={8}
+                  maxLength={64}
+                  aria-describedby="passwordHelp"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#BFA181] hover:text-[#7C5E3C] focus:outline-none"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  disabled={loading}
+                >
+                  {showPassword ? (
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
+                      <path stroke="currentColor" strokeWidth="2" d="M3 3l18 18M1 12s4-7 11-7 11 7 11 7-4 7-11 7c-2.5 0-4.7-.6-6.6-1.6M9.5 9.5a3 3 0 104.2 4.2"/>
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
+                      <path stroke="currentColor" strokeWidth="2" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
+                      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/>
+                    </svg>
+                  )}
+                </button>
+              </div>
+              <div
+                id="passwordHelp"
+                className={`mt-1 text-xs ${
+                  passwordStrength ? "text-red-500" : "text-gray-400"
+                }`}
+                aria-live="polite"
+              >
+                {passwordStrength
+                  ? passwordStrength
+                  : "At least 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character."}
+              </div>
+            </div>
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-semibold text-[#7C5E3C] mb-1"
+              >
+                Confirm Password
+              </label>
+              <div className="relative">
+                <input
+                  id="confirmPassword"
+                  type={showConfirm ? "text" : "password"}
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full border border-[#E5D3B3] rounded-lg px-4 py-2 text-base text-[#7C5E3C] bg-[#F9F6F1] focus:outline-none focus:ring-2 focus:ring-[#BFA181] focus:bg-white transition pr-12"
+                  autoComplete="new-password"
+                  disabled={loading}
+                  placeholder="Re-enter your password"
+                  minLength={8}
+                  maxLength={64}
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#BFA181] hover:text-[#7C5E3C] focus:outline-none"
+                  onClick={() => setShowConfirm((v) => !v)}
+                  aria-label={showConfirm ? "Hide password" : "Show password"}
+                  disabled={loading}
+                >
+                  {showConfirm ? (
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
+                      <path stroke="currentColor" strokeWidth="2" d="M3 3l18 18M1 12s4-7 11-7 11 7 11 7-4 7-11 7c-2.5 0-4.7-.6-6.6-1.6M9.5 9.5a3 3 0 104.2 4.2"/>
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
+                      <path stroke="currentColor" strokeWidth="2" d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/>
+                      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/>
+                    </svg>
+                  )}
+                </button>
+              </div>
+              {confirmPassword && password !== confirmPassword && (
+                <div className="mt-1 text-xs text-red-500" aria-live="polite">
+                  Passwords do not match.
+                </div>
+              )}
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white py-3 rounded-xl font-semibold text-lg shadow-md hover:from-[#A68A64] hover:to-[#BFA181] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#BFA181] disabled:opacity-60 disabled:cursor-not-allowed"
               disabled={loading}
-            />
-          </div>
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg
+                    className="animate-spin h-5 w-5 text-white"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8z"
+                    />
+                  </svg>
+                  Creating account...
+                </span>
+              ) : (
+                "Create Account"
+              )}
+            </button>
+          </form>
+        )}
 
-          <div>
-            <label className="block text-sm font-medium text-[#7C5E3C]">
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="mt-1 w-full border rounded-md px-3 py-2 text-sm text-[#7C5E3C] focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
-              autoComplete="new-password"
-              disabled={loading}
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full bg-[#BFA181] text-white py-2 rounded-md hover:bg-[#A68A64] transition disabled:opacity-60"
-            disabled={loading}
-          >
-            {loading ? "Creating account..." : "Create an account"}
-          </button>
-        </form>
-
-        <p className="mt-6 text-center text-sm text-[#7C5E3C]">
-          Already have an account ?{" "}
+        <p className="mt-8 text-center text-sm text-[#7C5E3C]">
+          Already have an account?{" "}
           <button
             onClick={() => router.push("/login")}
-            className="text-[#BFA181] hover:underline"
+            className="text-[#BFA181] hover:underline font-semibold"
             type="button"
             disabled={loading}
           >
-            Login
+            Log in
           </button>
         </p>
       </div>
+      <style jsx global>{`
+        @keyframes shake {
+          10%, 90% { transform: translateX(-1px); }
+          20%, 80% { transform: translateX(2px); }
+          30%, 50%, 70% { transform: translateX(-4px); }
+          40%, 60% { transform: translateX(4px); }
+        }
+        .animate-shake {
+          animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+      `}</style>
     </div>
   );
 }

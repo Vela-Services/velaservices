@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import {
   onAuthStateChanged,
   User,
@@ -19,6 +19,9 @@ import {
   IoCallOutline,
   IoLocationOutline,
   IoShareSocialOutline,
+  IoCheckmarkCircleOutline,
+  IoCloseCircleOutline,
+  IoAlertCircleOutline,
 } from "react-icons/io5";
 import { MdEdit, MdOutlineVerified, MdPhotoCamera } from "react-icons/md";
 import { getApp } from "firebase/app";
@@ -30,6 +33,12 @@ import {
 } from "firebase/storage";
 
 import imageCompression from "browser-image-compression";
+
+const ProviderStripeSetup = React.lazy(() =>
+  import("../../(provider)/ProviderStripeSetup/page").then((mod) => ({
+    default: mod.default,
+  }))
+);
 
 // Color palette
 const COLORS = {
@@ -65,8 +74,24 @@ export default function ProfilePage() {
   const [savingBio, setSavingBio] = useState(false);
   const [bioError, setBioError] = useState<string | null>(null);
 
+  // Stripe status for provider onboarding
+  const [stripeStatus, setStripeStatus] = useState<{
+    accountId?: string;
+    onboardingStatus?: "pending" | "active";
+    chargesEnabled?: boolean;
+  }>({});
+  const [, setStripeLoading] = useState(false);
+
+  // Simulate services and availability for demo
+  // In a real app, fetch these from Firestore or API
+  const [services, setServices] = useState<string[]>([]);
+  const [availability, setAvailability] = useState<boolean>(false);
+
+  // For walkthrough step highlighting
+  const [showWalkthrough, setShowWalkthrough] = useState(true);
+
+  // --- Fetch user, profile, and provider Stripe status ---
   useEffect(() => {
-    // Prevent running on server (window is not defined)
     if (typeof window === "undefined") return;
 
     let unsubscribe: (() => void) | undefined;
@@ -81,16 +106,45 @@ export default function ProfilePage() {
               if (userDoc.exists()) {
                 const data = userDoc.data() as UserProfile;
                 setProfile(data);
+
+                // Simulate services and availability
+                setServices(data.services || []);
+                setAvailability(!!data.availability);
+
+                // If provider, fetch Stripe status
+                if (data.role === "provider") {
+                  setStripeLoading(true);
+                  try {
+                    // Simulate fetching Stripe status from Firestore
+                    setStripeStatus({
+                      accountId: data.stripeAccountId,
+                      onboardingStatus: data.stripeOnboardingStatus,
+                      chargesEnabled: data.stripeChargesEnabled,
+                    });
+                  } catch {
+                    setStripeStatus({});
+                  }
+                  setStripeLoading(false);
+                }
               } else {
                 setProfile(null);
+                setServices([]);
+                setAvailability(false);
+                setStripeStatus({});
                 console.log("No userDoc found for user");
               }
             } catch (err) {
               setProfile(null);
+              setServices([]);
+              setAvailability(false);
+              setStripeStatus({});
               console.error("Error loading userDoc:", err);
             }
           } else {
             setProfile(null);
+            setServices([]);
+            setAvailability(false);
+            setStripeStatus({});
             console.log("No firebaseUser in onAuthStateChanged");
           }
           setLoading(false);
@@ -102,7 +156,6 @@ export default function ProfilePage() {
   }, []);
 
   const clearAllAuthData = () => {
-    // Only run in browser
     if (typeof window === "undefined") return;
     try {
       localStorage.removeItem(
@@ -242,7 +295,7 @@ export default function ProfilePage() {
   };
 
   const convertToJpeg = async (file: File) => {
-    if (typeof window === "undefined") return file; // ne rien faire côté serveur
+    if (typeof window === "undefined") return file;
     if (file.type === "image/heic" || file.type === "image/heif") {
       const { default: heic2any } = await import("heic2any");
       const blob = await heic2any({ blob: file, toType: "image/jpeg" });
@@ -254,7 +307,6 @@ export default function ProfilePage() {
   };
 
   const changeProfilePicture = async () => {
-    // Only run in browser
     if (typeof window === "undefined" || typeof document === "undefined")
       return;
 
@@ -268,7 +320,7 @@ export default function ProfilePage() {
 
     const file = fileInput.files[0];
     const jpegFile = await convertToJpeg(file);
-    const fileName = `${Date.now()}_${jpegFile.name}`; // Add timestamp to filename
+    const fileName = `${Date.now()}_${jpegFile.name}`;
     const userId = user?.uid;
     if (!userId) {
       if (typeof window !== "undefined") {
@@ -305,8 +357,6 @@ export default function ProfilePage() {
       const oldPhotoURL = userSnap.data()?.photoURL;
       if (oldPhotoURL) {
         try {
-          // Try to delete the old photo if it was in our bucket
-          // Only delete if the URL contains our bucket
           const bucket =
             process.env.NEXT_PUBLIC_STORAGE_BUCKET ||
             getApp().options.storageBucket ||
@@ -316,11 +366,7 @@ export default function ProfilePage() {
             oldPhotoURL.includes(bucket) &&
             oldPhotoURL.startsWith("https://")
           ) {
-            // Extract the path after the bucket domain
             const url = new URL(oldPhotoURL);
-            // Firebase Storage URLs are like:
-            // https://firebasestorage.googleapis.com/v0/b/<bucket>/o/users%2F<uid>%2FprofilePicture%2Ffilename.jpg?...
-            // We want the path after /o/ and before ?
             const pathMatch = url.pathname.match(/\/o\/(.+)$/);
             let filePath = "";
             if (pathMatch && pathMatch[1]) {
@@ -364,6 +410,226 @@ export default function ProfilePage() {
       }
     }
   };
+
+  // --- Profile Completion Calculation & Walkthrough Steps ---
+  // Steps: name, email, phone, address, bio, photo, (provider: Stripe, services, availability)
+  const steps: {
+    key: string;
+    label: string;
+    description: string;
+    completed: boolean;
+    action?: () => void;
+    highlight?: boolean;
+    providerOnly?: boolean;
+    stripeStep?: boolean;
+  }[] = [
+    {
+      key: "displayName",
+      label: "Add your name",
+      description: "Let clients know who you are.",
+      completed: !!profile?.displayName,
+      action: handleEdit,
+      highlight: !profile?.displayName,
+    },
+    {
+      key: "email",
+      label: "Verify your email",
+      description: user?.emailVerified
+        ? "Your email is verified."
+        : "Verify your email to secure your account.",
+      completed: !!user?.email && user?.emailVerified,
+      action: () => {
+        if (!user?.emailVerified) {
+          alert("Check your inbox for a verification email.");
+        }
+      },
+      highlight: !!user?.email && !user?.emailVerified,
+    },
+    {
+      key: "phone",
+      label: "Add your phone number",
+      description: "Clients can contact you easily.",
+      completed: !!profile?.phone,
+      action: handleEdit,
+      highlight: !profile?.phone,
+    },
+    {
+      key: "address",
+      label: "Add your address",
+      description: "Let clients know where you are based.",
+      completed: !!profile?.address,
+      action: handleEdit,
+      highlight: !profile?.address,
+    },
+    {
+      key: "bio",
+      label: "Write a short bio",
+      description: "Tell clients about yourself.",
+      completed: !!profile?.why,
+      action: handleEditBio,
+      highlight: !profile?.why,
+    },
+    {
+      key: "photo",
+      label: "Add a profile picture",
+      description: "A friendly face builds trust.",
+      completed: !!user?.photoURL || !!profile?.photoURL,
+      action: () => {
+        const input = document.getElementById("profilePicture");
+        if (input) input.click();
+      },
+      highlight: !(user?.photoURL || profile?.photoURL),
+    },
+    // Provider-specific steps
+    {
+      key: "stripe",
+      label: "Set up payments (Stripe)",
+      description: "Enable payments and payouts.",
+      completed:
+        profile?.role === "provider"
+          ? !!stripeStatus.accountId &&
+            stripeStatus.onboardingStatus === "active"
+          : true,
+      action: undefined, // handled in Stripe card
+      providerOnly: true,
+      stripeStep: true,
+      highlight:
+        profile?.role === "provider" &&
+        (!stripeStatus.accountId ||
+          stripeStatus.onboardingStatus !== "active" ||
+          !stripeStatus.chargesEnabled),
+    },
+    {
+      key: "services",
+      label: "Add your services",
+      description: "Let clients know what you offer.",
+      completed:
+        profile?.role === "provider" ? services && services.length > 0 : true,
+      action: () => alert("Service management coming soon!"),
+      providerOnly: true,
+      highlight:
+        profile?.role === "provider" && (!services || services.length === 0),
+    },
+    {
+      key: "availability",
+      label: "Set your availability",
+      description: "Let clients know when you are available.",
+      completed: profile?.role === "provider" ? !!availability : true,
+      action: () => alert("Availability management coming soon!"),
+      providerOnly: true,
+      highlight: profile?.role === "provider" && !availability,
+    },
+  ];
+
+  // Only show provider steps if user is provider
+  const visibleSteps = steps.filter(
+    (step) => !step.providerOnly || profile?.role === "provider"
+  );
+
+  const completedSteps = visibleSteps.filter((step) => step.completed).length;
+  const profileCompletion = Math.round(
+    (completedSteps / visibleSteps.length) * 100
+  );
+
+  // --- Walkthrough Card ---
+  const WalkthroughCard = () => (
+    <div className="mb-6 bg-white/90 rounded-2xl shadow-lg border border-white/30 p-5">
+      <div className="flex items-center mb-3">
+        <IoAlertCircleOutline className="text-yellow-500 mr-2" size={22} />
+        <h3 className="text-lg font-bold text-gray-800">
+          Complete your profile
+        </h3>
+      </div>
+      <p className="text-gray-600 mb-4 text-sm">
+        To unlock all features and get the most out of the platform, please
+        complete your profile. Follow the steps below:
+      </p>
+      <ol className="space-y-3">
+        {visibleSteps.map((step) => (
+          <li
+            key={step.key}
+            className={`flex items-start space-x-3 ${
+              step.highlight ? "bg-yellow-50 border-l-4 border-yellow-300" : ""
+            } rounded-xl px-2 py-2`}
+          >
+            <div className="pt-1">
+              {step.completed ? (
+                <IoCheckmarkCircleOutline
+                  className="text-green-500"
+                  size={20}
+                />
+              ) : (
+                <IoCloseCircleOutline className="text-gray-300" size={20} />
+              )}
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center">
+                <span
+                  className={`font-medium ${
+                    step.completed
+                      ? "text-green-700"
+                      : step.highlight
+                      ? "text-yellow-800"
+                      : "text-gray-700"
+                  }`}
+                >
+                  {step.label}
+                </span>
+                {step.highlight && !step.completed && step.action && (
+                  <button
+                    onClick={step.action}
+                    className="ml-2 text-xs px-2 py-1 rounded bg-yellow-200 text-yellow-900 hover:bg-yellow-300 transition"
+                  >
+                    Complete
+                  </button>
+                )}
+              </div>
+              <span className="text-xs text-gray-500">{step.description}</span>
+              {/* Stripe step: show inline Stripe onboarding if not complete */}
+              {step.stripeStep &&
+                profile?.role === "provider" &&
+                !step.completed && (
+                  <div className="mt-2">
+                    <Suspense
+                      fallback={
+                        <div className="flex items-center justify-center py-2">
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900 mr-2"></div>
+                          <span className="text-gray-600 text-xs">
+                            Loading Stripe...
+                          </span>
+                        </div>
+                      }
+                    >
+                      <ProviderStripeSetup />
+                    </Suspense>
+                  </div>
+                )}
+            </div>
+          </li>
+        ))}
+      </ol>
+      {profileCompletion === 100 ? (
+        <div className="mt-4 flex items-center text-green-700 font-semibold">
+          <IoCheckmarkCircleOutline className="mr-2" size={20} />
+          Your profile is 100% complete! You`&apos;`re ready to go.
+        </div>
+      ) : (
+        <div className="mt-4 flex items-center text-yellow-700 font-semibold">
+          <IoAlertCircleOutline className="mr-2" size={20} />
+          {100 - profileCompletion}% left to complete your profile.
+        </div>
+      )}
+      {showWalkthrough && (
+        <button
+          className="absolute top-2 right-3 text-gray-400 hover:text-gray-600 text-xl"
+          onClick={() => setShowWalkthrough(false)}
+          aria-label="Close"
+        >
+          &times;
+        </button>
+      )}
+    </div>
+  );
 
   if (loading) {
     return (
@@ -474,20 +740,14 @@ export default function ProfilePage() {
     </div>
   );
 
-  const profileFields = [
-    user.displayName,
-    user.email,
-    profile?.phone,
-    profile?.address,
-  ];
-  const profileCompletion =
-    (profileFields.filter(Boolean).length / profileFields.length) * 100;
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center px-4 py-8">
       {showSettings && <SettingsModal />}
 
       <div className="w-full max-w-md">
+        {/* Walkthrough Card */}
+        {profileCompletion !== 100 && <WalkthroughCard />}
+
         {/* Main Profile Card */}
         <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/20 relative">
           {/* Elegant Header */}
@@ -653,6 +913,23 @@ export default function ProfilePage() {
               )}
             </div>
 
+            {/* Provider Stripe Setup, Services, Availability - now handled in walkthrough */}
+            <div>
+              {profile?.role === "provider" && (
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                  <>
+                    <div className="mt-2">
+                      <React.Suspense
+                        fallback={<span>Loading Stripe setup...</span>}
+                      >
+                        <ProviderStripeSetup />
+                      </React.Suspense>
+                    </div>
+                  </>
+                </div>
+              )}
+            </div>
+
             {/* Action Buttons */}
             <div className="flex space-x-3 mb-4">
               <button
@@ -769,7 +1046,7 @@ export default function ProfilePage() {
                   Profile Completion
                 </span>
                 <span className="text-sm font-bold text-green-600">
-                  {Math.round(profileCompletion)}%
+                  {profileCompletion}%
                 </span>
               </div>
               <div className="w-full bg-green-100 rounded-full h-2">
@@ -803,9 +1080,6 @@ export default function ProfilePage() {
                   <h4 className="font-semibold text-gray-800 mb-2">Settings</h4>
                   <div className="space-y-1 text-gray-600">
                     <div>Role: {profile?.role || "N/A"}</div>
-                    {/* <div>
-                      Notifications: {profile?.notifications ? "On" : "Off"}
-                    </div> */}
                   </div>
                 </div>
               </div>

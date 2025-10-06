@@ -49,6 +49,9 @@ export type UserProfile = {
   bookedSlots?: Record<string, string[]>; // Format: { "YYYY-MM-DD": ["HH:MM", "HH:MM"] }
   email?: string;
   photoURL?: string;
+  stripeAccountId? : string;
+  stripeOnboardingStatus?: "pending" | "active";
+  stripeChargesEnabled? : boolean
 };
 
 export type Provider = {
