@@ -11,7 +11,7 @@ export default function ProviderStripeSetupPage() {
   const [loading, setLoading] = useState(false);
   const [stripeStatus, setStripeStatus] = useState<{
     accountId?: string;
-    onboardingStatus?: "pending" | "active";
+    onboardingStatus?: "pending" | "active" | "incomplete";
     chargesEnabled?: boolean;
   }>({});
 
@@ -139,7 +139,8 @@ export default function ProviderStripeSetupPage() {
   }
 
   if (
-    stripeStatus.onboardingStatus === "pending"
+    stripeStatus.onboardingStatus === "pending" ||
+    stripeStatus.onboardingStatus === "incomplete"
   ) {
     return (
       <div className="bg-white rounded-lg p-6 shadow-md border-l-4 border-orange-400">
@@ -159,10 +160,14 @@ export default function ProviderStripeSetupPage() {
           </div>
           <div className="ml-3">
             <h3 className="text-lg font-medium text-gray-900">
-              Setup in progress
+              {stripeStatus.onboardingStatus === "incomplete"
+                ? "Additional info required"
+                : "Setup in progress"}
             </h3>
             <p className="mt-2 text-sm text-gray-600">
-              Your Stripe account setup is in progress. You will be able to receive payments once all information is validated.
+              {stripeStatus.onboardingStatus === "incomplete"
+                ? "Stripe requires additional details to complete your account setup. Click below to continue."
+                : "Your Stripe account setup is in progress. You’ll be able to receive payments once verified."}
             </p>
             <div className="mt-4">
               <button
@@ -178,6 +183,7 @@ export default function ProviderStripeSetupPage() {
       </div>
     );
   }
+  
 
   return (
     <div className="bg-white rounded-lg p-6 shadow-md border-l-4 border-green-400">

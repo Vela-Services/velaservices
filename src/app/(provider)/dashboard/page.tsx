@@ -12,6 +12,7 @@ import {
   doc,
   updateDoc,
   arrayUnion,
+  getDoc,
 } from "firebase/firestore";
 import {
   MdOutlineCleaningServices,
@@ -360,20 +361,62 @@ export default function DashboardProviderPage() {
     setMarking(missionId);
     setSuccessMsg(null);
     setErrorMsg(null);
+  
     try {
       const missionRef = doc(db, "missions", missionId);
+      const missionSnap = await getDoc(missionRef);
+  
+      if (!missionSnap.exists()) {
+        throw new Error("Mission not found");
+      }
+  
+      const mission = missionSnap.data();
+  
+      // Step 1: Update provider status
       await updateDoc(missionRef, {
-        status: "completed",
+        status: "completed_by_provider",
+        providerMarkedDoneAt: new Date(),
       });
-      setMissions((prev) => prev.filter((m) => m.id !== missionId));
-      // After marking as completed, refetch completed missions
+  
+      // Step 2: Check if customer has already marked done
+      if (mission.status === "completed_by_customer") {
+        // ✅ Both confirmed — trigger payout
+        const payoutRes = await fetch("/api/transfer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            amount: mission.price,
+            stripeAccountId: mission.providerStripeAccountId,
+            missionId: missionId,
+            paymentIntentId: mission.paymentIntentId,
+            description: `Mission ${missionId} payout`,
+          }),
+        });
+  
+        const payoutData = await payoutRes.json();
+        if (!payoutRes.ok) throw new Error(payoutData.error || "Payout failed");
+  
+        // Step 3: Update Firestore
+        await updateDoc(missionRef, {
+          status: "paid_out",
+          transferId: payoutData.transferId,
+          payoutAt: new Date(),
+        });
+  
+        setSuccessMsg("Mission completed and payment released!");
+      } else {
+        // Customer not yet confirmed
+        setSuccessMsg("Mission marked as completed! Waiting for customer confirmation.");
+      }
+  
+      // Optional: refresh completed missions
       if (userId) {
         setCompletedLoading(true);
         const completedSnapshot = await getDocs(
           query(
             collection(db, "missions"),
             where("providerId", "==", userId),
-            where("status", "==", "completed")
+            where("status", "in", ["completed_by_provider", "paid_out"])
           )
         );
         const completedData = completedSnapshot.docs.map((doc) => ({
@@ -383,7 +426,6 @@ export default function DashboardProviderPage() {
         setCompletedMissions(completedData);
         setCompletedLoading(false);
       }
-      setSuccessMsg("Mission marked as completed!");
     } catch (error) {
       console.error("Failed to mark mission as completed.", error);
       setErrorMsg("Failed to mark mission as completed.");
@@ -391,7 +433,7 @@ export default function DashboardProviderPage() {
       setMarking(null);
     }
   };
-
+  
   // Group missions by date (yyyy-mm-dd)
   const missionsByDate = useMemo(() => {
     const map: { [date: string]: DocumentData[] } = {};

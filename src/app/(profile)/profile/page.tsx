@@ -77,7 +77,7 @@ export default function ProfilePage() {
   // Stripe status for provider onboarding
   const [stripeStatus, setStripeStatus] = useState<{
     accountId?: string;
-    onboardingStatus?: "pending" | "active";
+    onboardingStatus?: "pending" | "active" | "incomplete";
     chargesEnabled?: boolean;
   }>({});
   const [, setStripeLoading] = useState(false);

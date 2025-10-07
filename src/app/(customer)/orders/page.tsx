@@ -21,17 +21,21 @@ import {
   FaTimesCircle,
 } from "react-icons/fa";
 
+import { doc, updateDoc, getDoc } from "firebase/firestore";
+import { toast } from "react-hot-toast";
+
 function formatTimes(times: string[] | string) {
   if (Array.isArray(times)) return times.join(", ");
   return times;
 }
 
 function formatStatus(status: string) {
-  if (!status) return (
-    <span className="inline-flex items-center gap-1 text-yellow-600">
-      <FaHourglassHalf className="inline" /> Pending
-    </span>
-  );
+  if (!status)
+    return (
+      <span className="inline-flex items-center gap-1 text-yellow-600">
+        <FaHourglassHalf className="inline" /> Pending
+      </span>
+    );
   const s = status.charAt(0).toUpperCase() + status.slice(1);
   if (s === "Completed" || s === "Done")
     return (
@@ -71,6 +75,8 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [orders, setOrders] = useState<DocumentData[]>([]);
+  const [marking, setMarking] = useState<string | null>(null);
+  const [, setSuccessMsg] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchMissions = async (user: User) => {
@@ -121,12 +127,7 @@ export default function OrdersPage() {
 
   // Helper to get a description/notes
   function getOrderDescription(order: DocumentData) {
-    return (
-      order.notes ||
-      order.missionDescription ||
-      order.description ||
-      ""
-    );
+    return order.notes || order.missionDescription || order.description || "";
   }
 
   // Helper to get status
@@ -147,6 +148,97 @@ export default function OrdersPage() {
   function getSubservices(order: DocumentData) {
     return order.subservices || order.subServices || undefined;
   }
+
+  // Only customer validation, with confirmation dialog
+  const markMissionDone = async (missionId: string) => {
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm("Are you sure you want to validate this order as completed?")
+    ) {
+      return;
+    }
+  
+    setMarking(missionId);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+  
+    console.log("🟡 [markMissionDone] Called for missionId:", missionId);
+  
+    try {
+      const missionRef = doc(db, "missions", missionId);
+      const missionSnap = await getDoc(missionRef);
+      const mission = missionSnap.data();
+  
+      console.log("🟢 [markMissionDone] Mission data fetched:", mission);
+  
+      if (!mission) {
+        console.error("❌ [markMissionDone] Mission not found for id:", missionId);
+        toast.error("Mission not found");
+        throw new Error("Mission not found");
+      }
+  
+      // Step 1: Mark mission as completed_by_customer
+      console.log("📦 [markMissionDone] Updating mission status to completed_by_customer:", missionId);
+      await updateDoc(missionRef, {
+        status: "completed_by_customer",
+        customerMarkedDoneAt: new Date(),
+      });
+      console.log("✅ [markMissionDone] Firestore updated to completed_by_customer");
+  
+      // Step 2: Log Stripe transfer call
+      console.log("💰 [markMissionDone] Sending payout request:", {
+        amount: mission.price,
+        stripeAccountId: mission.stripeAccountId,
+        missionId,
+        paymentIntentId: mission.stripePaymentIntentId,
+        description: `Mission ${missionId} payout`,
+      });
+
+  
+      const payoutRes = await fetch("/api/stripe/transfer-to-provider", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: mission.price,
+          stripeAccountId: mission.stripeAccountId,
+          missionId: missionId,
+          paymentIntentId: mission.stripePaymentIntentId,
+          description: `Mission ${missionId} payout`,
+        }),
+      });
+  
+      console.log("📡 [markMissionDone] Response status:", payoutRes.status);
+      const payoutData = await payoutRes.json();
+      console.log("📩 [markMissionDone] Response JSON:", payoutData);
+  
+      if (!payoutRes.ok) {
+        console.error("❌ [markMissionDone] Payout failed:", payoutData);
+        throw new Error(payoutData.error || "Payout failed");
+      }
+  
+      // Step 3: Update Firestore with transfer info
+      console.log("🧾 [markMissionDone] Updating Firestore with payout result:", {
+        transferId: payoutData.transferId,
+      });
+      await updateDoc(missionRef, {
+        status: "paid_out",
+        transferId: payoutData.transferId,
+        payoutAt: new Date(),
+      });
+  
+      console.log("✅ [markMissionDone] Mission marked as paid_out in Firestore");
+      setSuccessMsg("Mission marked as completed! And payment sent.");
+      toast.success("Mission marked as completed! And payment sent.");
+    } catch (err) {
+      console.error("🔥 [markMissionDone] Error:", err);
+      setErrorMsg((err as Error).message || "Failed to mark mission as done");
+      toast.error((err as Error).message || "Failed to mark mission as done");
+    } finally {
+      console.log("⚪ [markMissionDone] Finished for missionId:", missionId);
+      setMarking(null);
+    }
+  };
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F5E8D3] to-[#fcf5eb] flex flex-col items-center py-12 px-2">
@@ -171,18 +263,37 @@ export default function OrdersPage() {
             Your Orders
           </h1>
           <p className="text-[#7C5E3C]/70 text-lg text-center max-w-md">
-            Here you can review your past and upcoming service orders, their details, and status.
+            Here you can review your past and upcoming service orders, their
+            details, and status.
           </p>
         </div>
 
         <div className="bg-white/80 rounded-2xl shadow-lg p-8">
           {loading && (
             <div className="flex items-center justify-center py-8">
-              <svg className="animate-spin h-8 w-8 text-[#BFA181]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+              <svg
+                className="animate-spin h-8 w-8 text-[#BFA181]"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"
+                ></path>
               </svg>
-              <span className="ml-3 text-[#BFA181] font-medium">Loading your orders...</span>
+              <span className="ml-3 text-[#BFA181] font-medium">
+                Loading your orders...
+              </span>
             </div>
           )}
           {errorMsg && (
@@ -230,11 +341,15 @@ export default function OrdersPage() {
                     <div className="flex flex-wrap gap-4 text-[#7C5E3C]/90 text-sm mb-2">
                       <span className="inline-flex items-center gap-1">
                         <FaCalendarAlt className="inline" />
-                        {getOrderDate(order) || <span className="text-gray-400">No date</span>}
+                        {getOrderDate(order) || (
+                          <span className="text-gray-400">No date</span>
+                        )}
                       </span>
                       <span className="inline-flex items-center gap-1">
                         <FaClock className="inline" />
-                        {formatTimes(getOrderTime(order)) || <span className="text-gray-400">No time</span>}
+                        {formatTimes(getOrderTime(order)) || (
+                          <span className="text-gray-400">No time</span>
+                        )}
                       </span>
                       <span className="inline-flex items-center gap-1">
                         <FaUser className="inline" />
@@ -248,6 +363,18 @@ export default function OrdersPage() {
                         {formatStatus(getOrderStatus(order))}
                       </span>
                     </div>
+                    {getOrderStatus(order) !== "paid_out" && (
+                      <button
+                        disabled={marking === order.id}
+                        onClick={() => markMissionDone(order.id)}
+                        className="bg-[#BFA181] text-white px-4 py-2 rounded-lg hover:bg-[#A68A6E] transition disabled:opacity-50"
+                      >
+                        {marking === order.id
+                          ? "Processing..."
+                          : "Mark as Done"}
+                      </button>
+                    )}
+
                     {getOrderDescription(order) && (
                       <div className="flex items-center gap-2 text-[#7C5E3C]/80 text-xs mt-1">
                         <FaStickyNote className="inline" />

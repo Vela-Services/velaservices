@@ -50,7 +50,7 @@ export type UserProfile = {
   email?: string;
   photoURL?: string;
   stripeAccountId? : string;
-  stripeOnboardingStatus?: "pending" | "active";
+  stripeOnboardingStatus?: "pending" | "active" | "incomplete";
   stripeChargesEnabled? : boolean
 };
 
@@ -79,6 +79,7 @@ export type CartItem = {
   providerName: string;
   providerEmail?: string;
   subservices?: Record<string, number>; // subservices avec leur quantité
+
 };
 
 export type Missions = {

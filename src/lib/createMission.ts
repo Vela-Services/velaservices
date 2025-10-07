@@ -9,17 +9,12 @@ export async function createMissionsFromCart(
   address: string,
   phone: string,
   customerEmail: string,
-  paymentIntentId: string
-
+  paymentIntentId: string,
+  providerStripeAccountId: string
 ) {
   const missionsRef = collection(db, "missions");
 
   const promises = cart.map(async (item) => {
-    const safeSubservices = Object.fromEntries(
-      Object.entries(item.subservices || {}).map(([k, v]) => [k, v ?? 0])
-    );
-
-    // Create the mission
     const docRef = await addDoc(missionsRef, {
       userId: customerId,
       userName: displayName,
@@ -34,12 +29,11 @@ export async function createMissionsFromCart(
       status: "pending",
       providerId: item.providerId,
       providerName: item.providerName,
-      subservices: safeSubservices,
-      stripePaymentIntentId: paymentIntentId, // ⬅️ important pour le transfer
-
+      stripePaymentIntentId: paymentIntentId,
+      stripeAccountId: providerStripeAccountId,
     });
 
-    // Email to provider
+    // ✅ Envoi email Provider
     if (item.providerEmail) {
       await fetch("/api/send-email", {
         method: "POST",
@@ -53,7 +47,7 @@ You have received a new mission request:
 
 Service: ${item.serviceName}
 Date: ${item.date}
-Time(s): ${item.times && item.times.length > 0 ? item.times.join(", ") : "N/A"}
+Time(s): ${item.times?.join(", ") || "N/A"}
 Customer: ${displayName}
 Address: ${address}
 Phone: ${phone}
@@ -61,14 +55,13 @@ Email: ${customerEmail}
 
 Please log in to your account to accept or decline this mission.
 
-Thank you,
-The Team
-`,
+Best regards,
+The Team`,
         }),
       });
     }
 
-    // Email to customer
+    // ✅ Envoi email Customer
     await fetch("/api/send-email", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -77,20 +70,17 @@ The Team
         subject: "Your Mission Request Has Been Received",
         text: `Hello ${displayName},
 
-Thank you for booking the following service:
+Thank you for booking:
 
 Service: ${item.serviceName}
 Date: ${item.date}
-Time(s): ${item.times && item.times.length > 0 ? item.times.join(", ") : "N/A"}
+Time(s): ${item.times?.join(", ") || "N/A"}
 Provider: ${item.providerName}
 
-Your request has been received and is pending confirmation from your provider. You will be notified once your provider accepts the mission.
-
-If you have any questions, feel free to contact us.
+Your provider will confirm soon.
 
 Best regards,
-The Team
-`,
+The Team`,
       }),
     });
 
