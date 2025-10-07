@@ -12,7 +12,6 @@ import {
   doc,
   updateDoc,
   arrayUnion,
-  getDoc,
 } from "firebase/firestore";
 import {
   MdOutlineCleaningServices,
@@ -20,8 +19,51 @@ import {
   MdChildCare,
 } from "react-icons/md";
 import { LuCookingPot } from "react-icons/lu";
+import { FiPhone, FiMapPin, FiUser, FiMail, FiFileText, FiClock, FiDollarSign } from "react-icons/fi";
 
-// Simple calendar grid for the month
+// --- Confirmation Modal ---
+type ConfirmModalProps = {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  mission?: unknown;
+};
+
+function ConfirmModal({ open, onClose, onConfirm }: ConfirmModalProps) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+      <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
+        <h3 className="text-lg font-semibold text-[#7C5E3C] mb-2 flex items-center gap-2">
+          <svg className="w-6 h-6 text-[#BFA181]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01" />
+            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+          </svg>
+          Confirm Mission Acceptance
+        </h3>
+        <p className="text-[#7C5E3C] mb-4">
+          Are you sure you want to accept this mission? This action cannot be undone.
+        </p>
+        <div className="flex justify-end gap-2">
+          <button
+            className="px-4 py-2 rounded-lg bg-gray-100 text-[#7C5E3C] font-semibold hover:bg-gray-200 transition"
+            onClick={onClose}
+          >
+            Cancel
+          </button>
+          <button
+            className="px-4 py-2 rounded-lg bg-[#BFA181] text-white font-semibold hover:bg-[#A68A64] transition"
+            onClick={onConfirm}
+          >
+            Yes, Accept
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- Calendar (unchanged) ---
 function Calendar({
   missionsByDate,
   selectedDate,
@@ -31,10 +73,6 @@ function Calendar({
   selectedDate: string;
   setSelectedDate: (date: string) => void;
 }) {
-  // ... (unchanged)
-  // [Calendar code omitted for brevity, unchanged from original]
-  // ... (unchanged)
-  // (Keep the Calendar function as in the original)
   // ... (unchanged)
   const today = new Date();
   const selected = selectedDate ? new Date(selectedDate) : today;
@@ -163,7 +201,7 @@ function getServiceIcon(serviceName: string) {
   }
 }
 
-// --- New: Simple Bar Chart for Completed Missions by Service ---
+// --- Simple Bar Chart for Completed Missions by Service ---
 function CompletedMissionsBarChart({
   completedMissions,
 }: {
@@ -222,9 +260,12 @@ export default function DashboardProviderPage() {
   const [loading, setLoading] = useState(true);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [marking, setMarking] = useState<string | null>(null);
   const [accepting, setAccepting] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+
+  // Modal state for confirmation
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [missionToAccept, setMissionToAccept] = useState<DocumentData | null>(null);
 
   // Calendar state
   const [selectedDate, setSelectedDate] = useState(() => {
@@ -235,7 +276,7 @@ export default function DashboardProviderPage() {
     )}-${String(today.getDate()).padStart(2, "0")}`;
   });
 
-  // --- New: Completed missions state ---
+  // Completed missions state
   const [completedMissions, setCompletedMissions] = useState<DocumentData[]>(
     []
   );
@@ -354,86 +395,11 @@ export default function DashboardProviderPage() {
       setErrorMsg("Failed to accept mission.");
     } finally {
       setAccepting(null);
+      setConfirmOpen(false);
+      setMissionToAccept(null);
     }
   };
 
-  const markMissionDone = async (missionId: string) => {
-    setMarking(missionId);
-    setSuccessMsg(null);
-    setErrorMsg(null);
-  
-    try {
-      const missionRef = doc(db, "missions", missionId);
-      const missionSnap = await getDoc(missionRef);
-  
-      if (!missionSnap.exists()) {
-        throw new Error("Mission not found");
-      }
-  
-      const mission = missionSnap.data();
-  
-      // Step 1: Update provider status
-      await updateDoc(missionRef, {
-        status: "completed_by_provider",
-        providerMarkedDoneAt: new Date(),
-      });
-  
-      // Step 2: Check if customer has already marked done
-      if (mission.status === "completed_by_customer") {
-        // ✅ Both confirmed — trigger payout
-        const payoutRes = await fetch("/api/transfer", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            amount: mission.price,
-            stripeAccountId: mission.providerStripeAccountId,
-            missionId: missionId,
-            paymentIntentId: mission.paymentIntentId,
-            description: `Mission ${missionId} payout`,
-          }),
-        });
-  
-        const payoutData = await payoutRes.json();
-        if (!payoutRes.ok) throw new Error(payoutData.error || "Payout failed");
-  
-        // Step 3: Update Firestore
-        await updateDoc(missionRef, {
-          status: "paid_out",
-          transferId: payoutData.transferId,
-          payoutAt: new Date(),
-        });
-  
-        setSuccessMsg("Mission completed and payment released!");
-      } else {
-        // Customer not yet confirmed
-        setSuccessMsg("Mission marked as completed! Waiting for customer confirmation.");
-      }
-  
-      // Optional: refresh completed missions
-      if (userId) {
-        setCompletedLoading(true);
-        const completedSnapshot = await getDocs(
-          query(
-            collection(db, "missions"),
-            where("providerId", "==", userId),
-            where("status", "in", ["completed_by_provider", "paid_out"])
-          )
-        );
-        const completedData = completedSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setCompletedMissions(completedData);
-        setCompletedLoading(false);
-      }
-    } catch (error) {
-      console.error("Failed to mark mission as completed.", error);
-      setErrorMsg("Failed to mark mission as completed.");
-    } finally {
-      setMarking(null);
-    }
-  };
-  
   // Group missions by date (yyyy-mm-dd)
   const missionsByDate = useMemo(() => {
     const map: { [date: string]: DocumentData[] } = {};
@@ -456,9 +422,8 @@ export default function DashboardProviderPage() {
     return missionDate >= new Date();
   }).length;
 
-  // --- New: Completed stats and earnings ---
+  // Completed stats and earnings
   const completedCount = completedMissions.length;
-  // Assume each mission has a "price" field (number), otherwise 0
   const totalEarnings = completedMissions.reduce(
     (sum, m) => sum + (typeof m.price === "number" ? m.price : 0),
     0
@@ -475,8 +440,149 @@ export default function DashboardProviderPage() {
     );
   };
 
+  // --- Mission Card UI Helper ---
+
+  interface MissionCardProps {
+    mission: DocumentData;
+    isPending: boolean;
+    isAssigned: boolean;
+    alreadyAssignedForSlot: boolean;
+  }
+
+  function MissionCard({ mission, isPending, isAssigned, alreadyAssignedForSlot }: MissionCardProps) {
+    // Format time and date
+    const dateObj = mission.date ? new Date(mission.date) : null;
+    const dateStr = dateObj
+      ? dateObj.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
+      : mission.date || "N/A";
+    const timeStr = mission.time || (Array.isArray(mission.times) ? mission.times.join(", ") : mission.times) || "N/A";
+    const duration = Array.isArray(mission.times) ? mission.times.length : mission.times || "N/A";
+    const price = typeof mission.price === "number" ? mission.price : null;
+
+    return (
+      <div
+        key={mission.id}
+        className="p-5 border border-gray-200 rounded-2xl bg-gradient-to-br from-[#F9F5EF] to-[#F5E8D3] shadow-sm hover:shadow-lg transition-shadow flex flex-col sm:flex-row items-start gap-6"
+      >
+        <div className="bg-[#F5E8D3] rounded-full p-4 flex-shrink-0 flex items-center justify-center shadow">
+          {getServiceIcon(mission.serviceName)}
+        </div>
+        <div className="flex-1 w-full">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-2">
+            <h3 className="font-bold text-xl text-[#7C5E3C] flex items-center gap-2">
+              {mission.serviceName}
+              {isPending && (
+                <span className="ml-2 px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 text-xs font-semibold">
+                  Pending
+                </span>
+              )}
+              {isAssigned && (
+                <span className="ml-2 px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-xs font-semibold">
+                  Assigned
+                </span>
+              )}
+            </h3>
+            <div className="flex items-center gap-2 text-[#BFA181] text-sm font-medium">
+              <FiClock className="inline-block mr-1" />
+              {dateStr} &middot; {timeStr}
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-[#7C5E3C] mb-2">
+            <div className="flex items-center gap-2">
+              <FiUser className="text-[#BFA181]" />
+              <span className="font-medium">Customer:</span>
+              <span>{mission.userName || mission.userId || "N/A"}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <FiPhone className="text-[#BFA181]" />
+              <span className="font-medium">Phone:</span>
+              <span>{mission.userPhone || "N/A"}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <FiMapPin className="text-[#BFA181]" />
+              <span className="font-medium">Address:</span>
+              <span>{mission.userAddress || "N/A"}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <FiMail className="text-[#BFA181]" />
+              <span className="font-medium">Email:</span>
+              <span>{mission.customerEmail || "N/A"}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <FiClock className="text-[#BFA181]" />
+              <span className="font-medium">Duration:</span>
+              <span>
+                {duration} {typeof duration === "number" ? (duration === 1 ? "hour" : "hours") : ""}
+              </span>
+            </div>
+            {price !== null && (
+              <div className="flex items-center gap-2">
+                <FiDollarSign className="text-[#BFA181]" />
+                <span className="font-medium">Price:</span>
+                <span>
+                  NOK {price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+            )}
+          </div>
+          {mission.notes && (
+            <div className="flex items-center gap-2 text-sm text-[#7C5E3C] mb-2">
+              <FiFileText className="text-[#BFA181]" />
+              <span className="font-medium">Notes:</span>
+              <span className="italic">{mission.notes}</span>
+            </div>
+          )}
+          <div className="flex flex-wrap gap-3 mt-4">
+            {isPending ? (
+              <button
+                onClick={() => {
+                  setMissionToAccept(mission);
+                  setConfirmOpen(true);
+                }}
+                className={`px-5 py-2 rounded-full font-semibold transition text-base shadow ${
+                  accepting === mission.id || alreadyAssignedForSlot
+                    ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                    : "bg-[#BFA181] text-white hover:bg-[#A68A64]"
+                }`}
+                disabled={accepting === mission.id || alreadyAssignedForSlot}
+              >
+                {accepting === mission.id
+                  ? "Accepting..."
+                  : alreadyAssignedForSlot
+                  ? "Unavailable"
+                  : "Accept Mission"}
+              </button>
+            ) : isAssigned ? (
+              mission.customerEmail && (
+                <a
+                  href={`mailto:${mission.customerEmail}`}
+                  className="px-5 py-2 rounded-full font-semibold bg-white border border-[#BFA181] text-[#BFA181] hover:bg-[#F5E8D3] transition"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Contact Customer
+                </a>
+              )
+            ) : null}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F9F5EF] to-[#F5E8D3] flex flex-col items-center py-6 px-4 sm:px-6 lg:px-8 font-sans">
+      <ConfirmModal
+        open={confirmOpen}
+        onClose={() => {
+          setConfirmOpen(false);
+          setMissionToAccept(null);
+        }}
+        onConfirm={() => {
+          if (missionToAccept) acceptMission(missionToAccept);
+        }}
+        mission={missionToAccept}
+      />
       <div className="w-full max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
@@ -755,7 +861,7 @@ export default function DashboardProviderPage() {
                 </span>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {missionsForSelectedDate
                   .sort((a, b) => {
                     const timeA = typeof a.time === "string" ? a.time : "";
@@ -769,97 +875,13 @@ export default function DashboardProviderPage() {
                       isProviderAssignedFor(mission.date, mission.time) &&
                       !isAssigned;
                     return (
-                      <div
+                      <MissionCard
                         key={mission.id}
-                        className="p-4 border border-gray-200 rounded-xl bg-[#F9F5EF] shadow-sm hover:shadow-md transition-shadow flex flex-col sm:flex-row items-start gap-4"
-                      >
-                        <div className="bg-[#F5E8D3] rounded-full p-3 flex-shrink-0">
-                          {getServiceIcon(mission.serviceName)}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
-                            <h3 className="font-semibold text-lg text-[#7C5E3C]">
-                              {mission.serviceName}
-                            </h3>
-                            <div className="text-sm text-[#BFA181]">
-                              {mission.time}
-                            </div>
-                          </div>
-                          <div className="text-sm text-gray-600 space-y-1">
-                            <p>
-                              <span className="font-medium">Name:</span>{" "}
-                              {mission.userName || mission.userId || "N/A"}
-                            </p>
-                            <p>
-                              <span className="font-medium">Phone:</span>{" "}
-                              {mission.userPhone}
-                            </p>
-                            <p>
-                              <span className="font-medium">Time:</span>{" "}
-                              {mission.times}h
-                            </p>
-                            <p>
-                              <span className="font-medium">Address:</span>{" "}
-                              {mission.userAddress}
-                            </p>
-                            {mission.notes && (
-                              <p>
-                                <span className="font-medium">Notes:</span>{" "}
-                                {mission.notes}
-                              </p>
-                            )}
-                          </div>
-                          <div className="flex flex-wrap gap-3 mt-3">
-                            {isPending ? (
-                              <button
-                                onClick={() => acceptMission(mission)}
-                                className={`px-4 py-2 rounded-full font-semibold transition ${
-                                  accepting === mission.id ||
-                                  alreadyAssignedForSlot
-                                    ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                                    : "bg-[#BFA181] text-white hover:bg-[#A68A64]"
-                                }`}
-                                disabled={
-                                  accepting === mission.id ||
-                                  alreadyAssignedForSlot
-                                }
-                              >
-                                {accepting === mission.id
-                                  ? "Accepting..."
-                                  : alreadyAssignedForSlot
-                                  ? "Unavailable"
-                                  : "Accept"}
-                              </button>
-                            ) : isAssigned ? (
-                              <>
-                                <button
-                                  onClick={() => markMissionDone(mission.id)}
-                                  className={`px-4 py-2 rounded-full font-semibold transition ${
-                                    marking === mission.id
-                                      ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                                      : "bg-[#4A7C59] text-white hover:bg-[#3A6A47]"
-                                  }`}
-                                  disabled={marking === mission.id}
-                                >
-                                  {marking === mission.id
-                                    ? "Marking..."
-                                    : "Mark as Done"}
-                                </button>
-                                {mission.customerEmail && (
-                                  <a
-                                    href={`mailto:${mission.customerEmail}`}
-                                    className="px-4 py-2 rounded-full font-semibold bg-white border border-[#BFA181] text-[#BFA181] hover:bg-[#F5E8D3] transition"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                  >
-                                    Contact Customer
-                                  </a>
-                                )}
-                              </>
-                            ) : null}
-                          </div>
-                        </div>
-                      </div>
+                        mission={mission}
+                        isPending={isPending}
+                        isAssigned={isAssigned}
+                        alreadyAssignedForSlot={alreadyAssignedForSlot}
+                      />
                     );
                   })}
               </div>
