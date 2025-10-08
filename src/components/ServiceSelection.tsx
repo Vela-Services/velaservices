@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Provider, Service } from "@/types/types";
 import { ProviderCard } from "@/components/ProviderCard";
 import { useServiceBooking } from "@/app/hooks/useServiceBooking";
@@ -54,6 +54,13 @@ export default function ServiceSelection({
   } = useServiceBooking(provider, services);
 
   const { user } = useAuth();
+  const [showProviderDetails, setShowProviderDetails] = useState(false);
+  const servicesSectionRef = useRef<HTMLDivElement | null>(null);
+
+  // Auto-focus the services section to reduce initial scrolling
+  useEffect(() => {
+    servicesSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
 
   // ---------- Dates (async) ----------
   const [datesByService, setDatesByService] = useState<
@@ -140,23 +147,62 @@ export default function ServiceSelection({
   }, [services, dateByService, hoursByService, availableStartTimes]);
 
   return (
-    <div className="min-h-screen bg-[#F5E8D3] py-12 px-4">
-      <button
-        className="mb-6 text-[#7C5E3C] underline text-sm"
-        onClick={onBack}
-      >
-        ← Back to Providers
-      </button>
+    <div className="min-h-screen bg-[#F5E8D3]py-6 sm:py-10 px-4">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+          <div className="flex items-center gap-3">
+            <button
+              className="text-[#7C5E3C] underline underline-offset-4 text-sm font-semibold hover:text-[#5f462c]"
+              onClick={onBack}
+            >
+              ← Change provider
+            </button>
+            <span className="hidden sm:inline text-[#BFA181]">•</span>
+            <span className="text-sm text-[#7C5E3C]">Choose service and time</span>
+          </div>
+          <div className="text-sm text-[#7C5E3C]/80">
+            Provider: <span className="font-semibold text-[#7C5E3C]">{provider.displayName}</span>
+          </div>
+        </div>
 
-      <div className="max-w-xl mx-auto mb-8">
-        <ProviderCard provider={provider} />
-      </div>
+        {/* Compact Provider Header */}
+        <div className="max-w-4xl mx-auto mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-white/70 backdrop-blur-sm border border-[#E5E7EB] rounded-xl px-4 py-3">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-full bg-[#EAD7B7] grid place-items-center text-[#7C5E3C] font-bold">
+                {provider.displayName?.[0] || "P"}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm text-[#7C5E3C]/70">Selected provider</span>
+                <span className="text-base font-semibold text-[#7C5E3C]">{provider.displayName}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                className="text-sm font-semibold text-[#7C5E3C] underline underline-offset-4 hover:text-[#5f462c]"
+                onClick={() => setShowProviderDetails((v) => !v)}
+                aria-expanded={showProviderDetails}
+                aria-controls="provider-details"
+              >
+                {showProviderDetails ? "Hide details" : "View provider details"}
+              </button>
+            </div>
+          </div>
+          {/* Collapsible provider details */}
+          <div
+            id="provider-details"
+            className={`overflow-hidden transition-all duration-300 ${showProviderDetails ? "mt-3" : "max-h-0"}`}
+            aria-hidden={!showProviderDetails}
+          >
+            <ProviderCard provider={provider} />
+          </div>
+        </div>
 
-      <h2 className="text-2xl font-bold text-center text-[#7C5E3C] mb-6">
-        Choose a Service
-      </h2>
+        <h2 className="text-2xl font-bold text-center text-[#7C5E3C] mb-6">Choose a Service</h2>
 
-      <div className="max-w-3xl mx-auto grid gap-6">
+        <div ref={servicesSectionRef} className="max-w-3xl mx-auto grid gap-6">
         {services
           .filter((service) =>
             provider.services.some((s) => s.serviceId === service.id)
@@ -570,6 +616,7 @@ export default function ServiceSelection({
             This provider does not offer any services.
           </div>
         )}
+        </div>
       </div>
     </div>
   );

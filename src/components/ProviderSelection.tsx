@@ -41,7 +41,7 @@ export default function ProviderSelection({
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F5E8D3] via-[#F9F6F1] to-[#EAD7B7] py-12 px-2 sm:px-6">
+    <div className="min-h-screen bg-[#F9E8D3] py-12 px-2 sm:px-6">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-extrabold text-center text-[#7C5E3C] mb-4 tracking-tight drop-shadow-sm">
           Choose a Provider
@@ -112,18 +112,52 @@ export default function ProviderSelection({
           })}
         </div>
 
-        {/* Search Bar */}
-        <div className="flex justify-center mb-10">
-          <div className="relative w-full max-w-md">
+        {/* Search + Actions */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+          <div className="relative w-full sm:max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#BFA181] w-5 h-5 pointer-events-none" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search provider by name..."
-              className="w-full pl-10 pr-4 py-2 rounded-full border-2 border-[#E5E7EB] focus:border-[#BFA181] bg-white text-[#7C5E3C] placeholder-[#BFA181] shadow-sm transition-all duration-200 outline-none"
+              className="w-full pl-10 pr-10 py-2 rounded-full border-2 border-[#E5E7EB] focus:border-[#BFA181] bg-white text-[#7C5E3C] placeholder-[#BFA181] shadow-sm transition-all duration-200 outline-none"
               aria-label="Search providers by name"
             />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-[#BFA181] text-sm px-2 py-0.5 rounded hover:bg-[#F5E8D3]"
+                aria-label="Clear search"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+          <div className="flex items-center justify-between sm:justify-end gap-3">
+            <span className="text-[#7C5E3C] text-sm sm:text-base">
+              {filteredProviders.length} {filteredProviders.length === 1 ? "result" : "results"}
+            </span>
+            {(selectedFilters.length > 0 || search) && (
+              <button
+                type="button"
+                className="text-sm font-semibold text-[#7C5E3C] underline underline-offset-4 hover:text-[#5f462c]"
+                onClick={() => {
+                  if (selectedFilters.length > 0) {
+                    selectedFilters.forEach(() => {});
+                  }
+                  // Clear using provided toggle function per id
+                  services.forEach((s) => {
+                    if (selectedFilters.includes(s.id)) toggleFilter(s.id);
+                  });
+                  setSearch("");
+                }}
+                aria-label="Clear filters and search"
+              >
+                Clear all
+              </button>
+            )}
           </div>
         </div>
 
@@ -159,6 +193,18 @@ export default function ProviderSelection({
               <div className="text-center text-[#7C5E3C] text-lg font-medium">
                 No providers match your filters or search.
               </div>
+              <button
+                type="button"
+                className="mt-4 text-sm font-semibold text-[#7C5E3C] underline underline-offset-4 hover:text-[#5f462c]"
+                onClick={() => {
+                  services.forEach((s) => {
+                    if (selectedFilters.includes(s.id)) toggleFilter(s.id);
+                  });
+                  setSearch("");
+                }}
+              >
+                Reset and show all providers
+              </button>
             </div>
           )}
         </div>
