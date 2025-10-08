@@ -12,6 +12,7 @@ import {
   doc,
   updateDoc,
   arrayUnion,
+  getDoc,
 } from "firebase/firestore";
 import {
   MdOutlineCleaningServices,
@@ -255,6 +256,14 @@ function CompletedMissionsBarChart({
 
 // --- End Bar Chart ---
 
+// --- Helper to format subservices for email ---
+function formatSubservices(subservices?: Record<string, number>) {
+  if (!subservices || Object.keys(subservices).length === 0) return "None";
+  return Object.entries(subservices)
+    .map(([name, hours]) => `${name} (${hours}h)`)
+    .join(", ");
+}
+
 export default function DashboardProviderPage() {
   const [missions, setMissions] = useState<DocumentData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -380,6 +389,115 @@ export default function DashboardProviderPage() {
 
         await updateDoc(providerRef, {
           bookedTimes: arrayUnion(bookedSlots),
+        });
+      }
+
+      // --- Send emails to customer and provider ---
+
+      // Fetch provider info
+      let providerData: Record<string, unknown> = {};
+      try {
+        const providerSnap = await getDoc(providerRef);
+        if (providerSnap.exists()) {
+          providerData = providerSnap.data() as Record<string, unknown>;
+        }
+      } catch {
+        // If provider info can't be fetched, fallback to mission fields
+        providerData = {};
+      }
+
+      // Prepare email details
+      const customerEmail = mission.customerEmail || mission.userEmail;
+      const providerEmail = providerData.email || mission.providerEmail;
+      const providerName = providerData.displayName || mission.providerName || "Your Provider";
+      const customerName = mission.userName || "Customer";
+      const serviceName = mission.serviceName || "Service";
+      const date = mission.date || "";
+      const times = Array.isArray(mission.times)
+        ? mission.times.join(", ")
+        : mission.time || mission.times || "";
+      const address = mission.userAddress || "";
+      const phone = mission.userPhone || "";
+      const notes = mission.notes || "";
+      const subservices = mission.subservices;
+      const price = typeof mission.price === "number"
+        ? mission.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        : mission.price || "";
+
+      // Email to customer
+      if (customerEmail) {
+        const customerEmailText = `
+Hi ${customerName},
+
+Good news! Your provider (${providerName}) has accepted your mission request.
+
+📝 Service:        ${serviceName}
+📅 Date:           ${date}
+⏰ Time(s):        ${times || "N/A"}
+💼 Subservices:    ${formatSubservices(subservices)}
+💰 Price:          ${price ? price + " NOK" : "N/A"}
+
+👨‍🔧 Provider:      ${providerName}
+──────────────────────────────
+
+What happens next?
+- Your provider will be in touch if there are any questions.
+- If you need to make changes, please contact your provider directly.
+
+If you have any questions, reply to this email or contact our support.
+
+Thank you for choosing us!
+
+Best regards,
+The Team
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        `.trim();
+
+        await fetch("/api/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to: customerEmail,
+            subject: `Your Mission is Confirmed: ${serviceName} on ${date}`,
+            text: customerEmailText,
+          }),
+        });
+      }
+
+      // Email to provider
+      if (providerEmail) {
+        const providerEmailText = `
+Hi ${providerName},
+
+You have accepted a new mission!
+
+📝 Service:        ${serviceName}
+📅 Date:           ${date}
+⏰ Time(s):        ${times || "N/A"}
+💼 Subservices:    ${formatSubservices(subservices)}
+💰 Price:          ${price ? price + " NOK" : "N/A"}
+
+👤 Customer:       ${customerName}
+📍 Address:        ${address}
+📞 Phone:          ${phone}
+✉️ Email:          ${customerEmail || "N/A"}
+${notes ? `📝 Notes:          ${notes}` : ""}
+
+Please make sure to contact the customer if needed and prepare for the mission.
+
+Best regards,
+The Team
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        `.trim();
+
+        await fetch("/api/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to: providerEmail,
+            subject: `Mission Accepted: ${serviceName} for ${customerName} on ${date}`,
+            text: providerEmailText,
+          }),
         });
       }
 

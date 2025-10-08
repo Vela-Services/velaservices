@@ -10,7 +10,7 @@ export async function POST(req: Request) {
 
   try {
     const {
-      amount,
+      amount, // This is the total amount paid by the customer (including platform fee)
       stripeAccountId,
       missionId,
       description,
@@ -62,17 +62,29 @@ export async function POST(req: Request) {
       );
     }
 
+    // --- Remove platform fee (10%) from total amount
+    // amount is the total paid by customer (including 10% platform fee)
+    // We want to remove the 10% platform fee before calculating commission and payout
+    // subtotal = total / 1.1
+    const totalAmount = Number(amount); // e.g. 1100.00 NOK
+    const subtotal = Math.round((totalAmount / 1.1) * 100) / 100; // in NOK, rounded to 2 decimals
+    const subtotalInCents = Math.round(subtotal * 100); // in øre/cents
+
     // --- Calculate commission and payout
-    const COMMISSION_RATE = 0.1; // 10 %
-    const amountInCents = Math.round(Number(amount) * 100);
-    const commission = Math.round(amountInCents * COMMISSION_RATE);
-    const providerAmount = amountInCents - commission;
+    const COMMISSION_RATE = 0.075; // 7.5 %
+    const commission = Math.round(subtotalInCents * COMMISSION_RATE);
+    const providerAmount = subtotalInCents - commission;
+
+    // Calculate platform fee for reporting
+    const platformFee = Math.round((totalAmount - subtotal) * 100) / 100; // in NOK
 
     console.log("💰 [API] Transfer details:", {
-      amount,
-      amountInCents,
+      totalAmount,
+      subtotal,
+      subtotalInCents,
       providerAmount,
       commission,
+      platformFee,
       missionId,
       stripeAccountId,
       chargeId: paymentIntent.latest_charge,
@@ -88,8 +100,10 @@ export async function POST(req: Request) {
       metadata: {
         missionId,
         paymentIntentId,
-        originalAmount: amount.toString(),
+        originalAmount: totalAmount.toString(),
+        subtotal: subtotal.toString(),
         commission: (commission / 100).toString(),
+        platformFee: platformFee.toString(),
       },
     });
 
@@ -98,8 +112,11 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       transferId: transfer.id,
-      amount: providerAmount / 100,
-      commission: commission / 100,
+      amount: providerAmount / 100, // amount sent to provider (NOK)
+      commission: commission / 100, // commission taken (NOK)
+      platformFee, // platform fee (NOK)
+      subtotal, // subtotal (NOK, before platform fee)
+      totalAmount, // total paid by customer (NOK)
       status: transfer.object,
     });
   } catch (error) {

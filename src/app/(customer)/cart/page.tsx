@@ -24,9 +24,14 @@ function formatSubservices(subservices: Record<string, number> | undefined) {
 export default function CartPage() {
   const { cart, removeFromCart, clearCart } = useCart();
 
-  const totalPrice = cart.reduce((acc, item) => acc + item.price, 0);
+  // The item.price already includes the platform fee.
+  // To show the platform fee as a separate line, we need to "back out" the fee from the total.
+  // Let x = subtotal (without fee), fee = x * 0.1, total = x + x*0.1 = x*1.1
+  // So, x = total / 1.1, fee = total - x
 
-  console.log(cart, "cart");
+  const totalWithFee = cart.reduce((acc, item) => acc + item.price, 0);
+  const subtotal = Math.round((totalWithFee / 1.1) * 100) / 100; // rounded to 2 decimals
+  const platformFee = Math.round((totalWithFee - subtotal) * 100) / 100; // rounded to 2 decimals
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F5E8D3] to-[#fcf5eb] flex flex-col items-center py-12 px-2">
@@ -149,13 +154,33 @@ export default function CartPage() {
                   </li>
                 ))}
               </ul>
-              <div className="border-t pt-4 mt-2 flex flex-col sm:flex-row justify-between items-center gap-2">
-                <span className="font-semibold text-[#7C5E3C] text-lg">
-                  Total:
-                </span>
-                <span className="font-bold text-2xl text-[#BFA181]">
-                  {totalPrice} NOK
-                </span>
+              <div className="border-t pt-4 mt-2 flex flex-col gap-1 sm:flex-row sm:justify-between sm:items-center">
+                <div className="flex flex-col gap-1 w-full">
+                  <div className="flex flex-row justify-between items-center">
+                    <span className="font-semibold text-[#7C5E3C] text-lg">
+                      Subtotal:
+                    </span>
+                    <span className="font-bold text-lg text-[#BFA181]">
+                      {subtotal} NOK
+                    </span>
+                  </div>
+                  <div className="flex flex-row justify-between items-center">
+                    <span className="text-[#7C5E3C] text-base">
+                      Platform Fee (10%):
+                    </span>
+                    <span className="font-semibold text-base text-[#BFA181]">
+                      {platformFee} NOK
+                    </span>
+                  </div>
+                  <div className="flex flex-row justify-between items-center mt-1 border-t pt-2">
+                    <span className="font-semibold text-[#7C5E3C] text-lg">
+                      Total:
+                    </span>
+                    <span className="font-bold text-2xl text-[#BFA181]">
+                      {totalWithFee} NOK
+                    </span>
+                  </div>
+                </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-3 mt-6">
                 <button
@@ -183,6 +208,9 @@ export default function CartPage() {
                   >
                     Browse services
                   </Link>
+                </p>
+                <p className="mt-2 text-[#BFA181] font-medium">
+                  The platform fee helps us maintain and improve our service.
                 </p>
               </div>
             </section>
