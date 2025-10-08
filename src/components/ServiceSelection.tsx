@@ -552,10 +552,28 @@ export default function ServiceSelection({
 
                     <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mt-2">
                       <span
-                        className="text-[#7C5E3C] font-semibold text-lg"
+                        className="text-[#7C5E3C] font-semibold text-lg flex items-center gap-2"
                         aria-live="polite"
                       >
                         Total: {totalPrice(service.id)}NOK
+                        <span className="relative group">
+                          <span className="ml-1 text-[#BFA181] cursor-pointer">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="inline h-4 w-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              aria-label="Info"
+                            >
+                              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                              <path stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M12 16v-4m0-4h.01" />
+                            </svg>
+                          </span>
+                          <span className="absolute left-1/2 bottom-1/2 -translate-x-1/2 mt-2 w-max min-w-[180px] bg-white text-[#7C5E3C] text-xs rounded shadow-lg px-3 py-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
+                            The price includes the 10% platform fee.
+                          </span>
+                        </span>
                       </span>
                       <button
                         type="button"
