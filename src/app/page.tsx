@@ -1,119 +1,127 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useAuth } from "../app/hooks/useAuth";
+// import { useAuth } from "../app/hooks/useAuth";
 
 export default function LandingPage() {
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const router = useRouter();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#F5E8D3] to-[#F9F5EF] text-[#3B2F1E] flex flex-col">
       {/* Hero Section */}
-      <section className="relative bg-[#F5E8D3] py-24 px-6 text-center flex flex-col items-center overflow-hidden min-h-[600px]">
-        {/* Video Background */}
-        <div className="absolute inset-0 w-full h-full z-0">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
+      <section className="relative w-full min-h-[1000px] flex items-center justify-center overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 w-full h-full">
+          <img
+            src="/download.png"
+            alt="VÉLA Home"
             className="w-full h-full object-cover"
-            style={{ objectFit: "cover" }}
-            aria-hidden="true"
-            tabIndex={-1}
-          >
-            <source src="/Vela_Header_Video.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-          {/* Strong overlay for readability */}
-          <div
-            className="absolute inset-0 bg-black/30"
-            aria-hidden="true"
-          ></div>
+          />
+          <div className="absolute inset-0 bg-black/30" /> {/* Overlay */}
         </div>
-        {/* Decorative Blobs */}
-        <div className="absolute top-0 left-0 w-64 h-64 bg-[#BFA181]/20 rounded-full blur-3xl -z-10" />
-        <div className="absolute bottom-0 right-0 w-72 h-72 bg-[#7C5E3C]/10 rounded-full blur-3xl -z-10" />
-        {/* Logo Part */}
-        <div className="max-w-3xl mx-auto z-10">
-          <div className="flex flex-col items-center">
-            <h1 className="text-md md:text-2xl mb-3 leading-tight text-white drop-shadow-lg font-semibold">
-              WELCOME TO{" "}
-              <span className="text-white font-bold font-abhaya-libre italic text-4xl md:text-5xl drop-shadow-lg">
-                VÉLA
-              </span>
+
+        {/* Content */}
+        <div className="relative z-10 max-w-7xl w-full px-8 flex flex-col md:flex-row items-center justify-between text-white">
+          {/* Left text block */}
+          <div className="max-w-xl space-y-6 md:ml-16">
+            <h1 className="text-3xl md:text-5xl font-light leading-snug text-white">
+              <span className="font-semibold">One trusted provider</span> for
+              your{" "}
+              <span className="italic font-light">home, kids, and pets.</span>
             </h1>
+
+            <p className="text-base md:text-lg text-white/90">
+              <span className="font-semibold">
+                Pilot phase now live in Oslo
+              </span>{" "}
+              — helping you simplify everyday life.
+            </p>
+
+            <button
+              onClick={() => router.push("/login")}
+              className="mt-6 px-8 py-3 bg-white text-black rounded-full font-semibold hover:bg-gray-100 transition-all duration-200 shadow-md"
+            >
+              Book a Service
+            </button>
           </div>
-          <p className="text-xl md:text-2xl mb-10 text-white font-medium italic drop-shadow-lg">
-            Your Time, Our Priority.
-          </p>
-          {user ? (
-            <div>
-              <button
-                onClick={() => router.push("/profile")}
-                className="px-6 py-3 rounded-full bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white font-bold shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
+
+          {/* Optional right element (yellow box placeholder like your screenshot)
+          <div className="hidden md:flex items-center justify-center bg-[#FFF3C4] text-black rounded-md p-10 shadow-lg">
+            <div className="text-center max-w-xs">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-10 h-10 mx-auto mb-3"
               >
-                Go to Profile
-              </button>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15.75 9V5.25m0 0A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M9 9h6m-6 3h6m-6 3h3"
+                />
+              </svg>
+              <p className="text-sm">
+                Add a form <br />
+                <span className="text-gray-600 text-xs">
+                  Go to Form Settings &gt; Forms tab
+                </span>
+              </p>
             </div>
-          ) : (
-            <div>
-              <div className="flex justify-center gap-6">
-                <button
-                  className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-8 py-3 rounded-full font-bold shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2"
-                  onClick={() => router.push("/login")}
-                >
-                  Book a Service
-                </button>
-              </div>
-            </div>
-          )}
+          </div> */}
         </div>
       </section>
 
       <section className="py-14 px-6 bg-[#F5E8D3]">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl md:text-4xl font-extrabold text-[#7C5E3C] mb-12 tracking-tight">
+          <h2 className="text-2xl md:text-4xl font-extrabold text-white mb-12 tracking-tight">
             How it works
           </h2>
           <div className="flex flex-col md:flex-row justify-center gap-8 mb-10">
             {/* Card 1 */}
-            <div className="flex-1 bg-white rounded-2xl shadow-lg px-6 py-8 flex flex-col items-center border-2 border-[#E2CBAA]">
-              <div className="w-14 h-14 flex items-center justify-center rounded-full bg-[#F5E8D3] border-2 border-[#BFA181] mb-4 text-2xl font-extrabold text-[#BFA181]">
+            <div className="flex-1 bg-[#5EB6A6] rounded-2xl shadow-lg px-6 py-8 flex flex-col items-center border-2 border-[#E2CBAA]">
+              <div className="w-14 h-14 flex items-center justify-center rounded-full bg-[#F5E8D3] border-2 border-[#BFA181] mb-4 text-2xl font-extrabold text-black">
                 1
               </div>
-              <h3 className="font-bold text-lg md:text-xl text-[#7C5E3C] mb-2">
+              <h3 className="font-bold text-lg md:text-xl text-white mb-2">
                 Choose Your Services
               </h3>
-              <p className="text-[#7C5E3C] text-base md:text-lg">
+              <p className="text-white text-base md:text-lg">
                 Cleaning, childcare, or petcare — or all at once.
               </p>
             </div>
             {/* Card 2 */}
-            <div className="flex-1 bg-white rounded-2xl shadow-lg px-6 py-8 flex flex-col items-center border-2 border-[#E2CBAA]">
-              <div className="w-14 h-14 flex items-center justify-center rounded-full bg-[#F5E8D3] border-2 border-[#BFA181] mb-4 text-2xl font-extrabold text-[#BFA181]">
+            <div className="flex-1 bg-[#5EB6A6] rounded-2xl shadow-lg px-6 py-8 flex flex-col items-center border-2 border-[#E2CBAA]">
+              <div className="w-14 h-14 flex items-center justify-center rounded-full bg-[#F5E8D3] border-2 border-[#BFA181] mb-4 text-2xl font-extrabold text-black">
                 2
               </div>
-              <h3 className="font-bold text-lg md:text-xl text-[#7C5E3C] mb-2">
+              <h3 className="font-bold text-lg md:text-xl text-white mb-2">
                 Book in Minutes
               </h3>
-              <p className="text-[#7C5E3C] text-base md:text-lg">
+              <p className="text-white text-base md:text-lg">
                 One booking, one provider, one seamless schedule.
               </p>
             </div>
             {/* Card 3 */}
-            <div className="flex-1 bg-white rounded-2xl shadow-lg px-6 py-8 flex flex-col items-center border-2 border-[#E2CBAA]">
-              <div className="w-14 h-14 flex items-center justify-center rounded-full bg-[#F5E8D3] border-2 border-[#BFA181] mb-4 text-2xl font-extrabold text-[#BFA181]">
+            <div className="flex-1 bg-[#5EB6A6] rounded-2xl shadow-lg px-6 py-8 flex flex-col items-center border-2 border-[#E2CBAA]">
+              <div className="w-14 h-14 flex items-center justify-center rounded-full bg-[#F5E8D3] border-2 border-[#BFA181] mb-4 text-2xl font-extrabold text-black">
                 3
               </div>
-              <h3 className="font-bold text-lg md:text-xl text-[#7C5E3C] mb-2">
+              <h3 className="font-bold text-lg md:text-xl text-white mb-2">
                 Relax
               </h3>
-              <p className="text-[#7C5E3C] text-base md:text-lg">
+              <p className="text-white text-base md:text-lg">
                 A vetted, reliable provider arrives when you need them.
               </p>
             </div>
+          </div>
+          <div className="my-8 flex justify-center">
+            <span className="italic">
+              During our pilot phase, we&apos;re focusing on selected areas in
+              Oslo&nbsp; (Nordre Aker, Frysja, and nearby districts).
+            </span>
           </div>
           <button
             className="bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white px-8 py-4 rounded-full font-bold shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#A68A64] focus:ring-offset-2 text-lg"
@@ -125,13 +133,13 @@ export default function LandingPage() {
       </section>
 
       {/* Services Section */}
-      <section className="py-10 px-6 flex-1 bg-gradient-to-b from-[#F9F5EF] to-[#F5E8D3]">
+      <section className="py-10 px-6 flex-1 bg-[#5EB6A6]">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-xl md:text-4xl font-extrabold text-center mb-4 text-[#7C5E3C] tracking-tight uppercase">
-            OUR SERVICES
+          <h2 className="text-xl md:text-4xl font-extrabold text-center mb-4 text-white tracking-tight">
+            Our Services
           </h2>
-          <p className="text-lg md:text-2xl text-center mb-14 text-[#A68A64] font-semibold">
-            One provider. Many services. A simpler way to care for your home.
+          <p className="text-lg md:text-2xl text-center mb-14 text-white font-semibold">
+            All the help you need, in one place.
           </p>
 
           {/* Cleaning Section */}
@@ -691,186 +699,70 @@ export default function LandingPage() {
       </section>
 
       <section className="py-16 px-4 bg-[#F9F5EF]">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-[#A68A64]">
-            Why Choose Véla?
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-            {/* Fast Booking */}
-            <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 flex flex-col items-center p-8 border border-[#E2CBAA]">
-              <div className="w-20 h-20 mb-4 flex items-center justify-center rounded-full bg-[#FDEADB]/60 shadow">
-                {/* Calendar/clock icon for Fast Booking */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-12 h-12 text-[#BFA181]"
-                  fill="none"
-                  viewBox="0 0 48 48"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <rect
-                    x="8"
-                    y="10"
-                    width="32"
-                    height="30"
-                    rx="5"
-                    fill="#FDEADB"
-                    stroke="#BFA181"
-                  />
-                  <path
-                    d="M16 6v8M32 6v8"
-                    stroke="#BFA181"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                  <rect
-                    x="8"
-                    y="16"
-                    width="32"
-                    height="24"
-                    rx="3"
-                    fill="none"
-                    stroke="#BFA181"
-                  />
-                  <circle cx="24" cy="28" r="6" fill="none" stroke="#BFA181" />
-                  <path
-                    d="M24 28v-4M24 28l3 3"
-                    stroke="#BFA181"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-[#BFA181] text-center">
-                One Provider, Many Services
-              </h3>
-              <p className="text-[#7C5E3C]/90 text-base text-center">
-                Save time by booking multiple needs.
-              </p>
-            </div>
-            {/* Transparent Pricing */}
-            <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 flex flex-col items-center p-8 border border-[#E2CBAA]">
-              <div className="w-20 h-20 mb-4 flex items-center justify-center rounded-full bg-[#FDEADB]/60 shadow">
-                {/* Price tag icon for Transparent Pricing */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-12 h-12 text-[#BFA181]"
-                  fill="none"
-                  viewBox="0 0 48 48"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    d="M10 26L26 10a4 4 0 015.7 0l6.3 6.3a4 4 0 010 5.7L18 38a4 4 0 01-5.7 0l-6.3-6.3A4 4 0 016 26l4-4z"
-                    fill="#FDEADB"
-                    stroke="#BFA181"
-                  />
-                  <circle cx="32" cy="16" r="2.5" fill="#BFA181" />
-                  <path
-                    d="M18 38l-8-8"
-                    stroke="#BFA181"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-[#BFA181] text-center">
-                Trusted & Vetted
-              </h3>
-              <p className="text-[#7C5E3C]/90 text-base text-center">
-                Every provider passes background checks and training.
-              </p>
-            </div>
-            {/* Various Services */}
-            <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 flex flex-col items-center p-8 border border-[#E2CBAA]">
-              <div className="w-20 h-20 mb-4 flex items-center justify-center rounded-full bg-[#FDEADB]/60 shadow">
-                {/* Grid/services icon for Various Services */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-12 h-12 text-[#BFA181]"
-                  fill="none"
-                  viewBox="0 0 48 48"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <rect
-                    x="8"
-                    y="8"
-                    width="12"
-                    height="12"
-                    rx="3"
-                    fill="#FDEADB"
-                    stroke="#BFA181"
-                  />
-                  <rect
-                    x="28"
-                    y="8"
-                    width="12"
-                    height="12"
-                    rx="3"
-                    fill="#FDEADB"
-                    stroke="#BFA181"
-                  />
-                  <rect
-                    x="8"
-                    y="28"
-                    width="12"
-                    height="12"
-                    rx="3"
-                    fill="#FDEADB"
-                    stroke="#BFA181"
-                  />
-                  <rect
-                    x="28"
-                    y="28"
-                    width="12"
-                    height="12"
-                    rx="3"
-                    fill="#FDEADB"
-                    stroke="#BFA181"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-[#BFA181] text-center">
-                Simple & Transparent
-              </h3>
-              <p className="text-[#7C5E3C]/90 text-base text-center">
-                Easy booking and upfront princing.
-              </p>
-            </div>
-            {/* Maximum Safety */}
-            <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 flex flex-col items-center p-8 border border-[#E2CBAA]">
-              <div className="w-20 h-20 mb-4 flex items-center justify-center rounded-full bg-[#FDEADB]/60 shadow">
-                {/* Shield/check icon for Maximum Safety */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-12 h-12 text-[#BFA181]"
-                  fill="none"
-                  viewBox="0 0 48 48"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    d="M24 6l16 6v10c0 10.5-7.5 18.5-16 20-8.5-1.5-16-9.5-16-20V12l16-6z"
-                    fill="#FDEADB"
-                    stroke="#BFA181"
-                  />
-                  <path
-                    d="M18 26l5 5 7-9"
-                    stroke="#BFA181"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-[#BFA181] text-center">
-                Peace of Mind
-              </h3>
-              <p className="text-[#7C5E3C]/90 text-base text-center">
-                Safe, reliable, and professional support for your home and
-                family.
-              </p>
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12">
+          {/* Left: Image */}
+          <div className="w-full md:w-1/2 flex justify-center mb-10 md:mb-0">
+            <img
+              src="/why.png"
+              alt="Happy family and provider"
+              className="shadow-2xl object-cover w-full max-w-md h-80 md:h-96"
+              style={{ objectPosition: "center" }}
+            />
+          </div>
+          {/* Right: Title and Bullet Points */}
+          <div className="w-full md:w-1/2 flex flex-col justify-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-[#A68A64]">
+              Why choose us
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <ul className="space-y-6">
+                <li className="flex items-start gap-3">
+                  <span className="mt-1 text-[#BFA181]">
+                    <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="12" fill="#FDEADB" />
+                      <path d="M7 13l3 3 7-7" stroke="#BFA181" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </span>
+                  <span className="text-[#7C5E3C] text-lg font-medium">
+                    One trusted provider for home, kids, and pets
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="mt-1 text-[#BFA181]">
+                    <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="12" fill="#FDEADB" />
+                      <path d="M7 13l3 3 7-7" stroke="#BFA181" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </span>
+                  <span className="text-[#7C5E3C] text-lg font-medium">
+                    Vetted, background-checked professionals
+                  </span>
+                </li>
+              </ul>
+              <ul className="space-y-6">
+                <li className="flex items-start gap-3">
+                  <span className="mt-1 text-[#BFA181]">
+                    <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="12" fill="#FDEADB" />
+                      <path d="M7 13l3 3 7-7" stroke="#BFA181" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </span>
+                  <span className="text-[#7C5E3C] text-lg font-medium">
+                    Simple booking & transparent pricing
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="mt-1 text-[#BFA181]">
+                    <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="12" fill="#FDEADB" />
+                      <path d="M7 13l3 3 7-7" stroke="#BFA181" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </span>
+                  <span className="text-[#7C5E3C] text-lg font-medium">
+                    Reliable, friendly support when you need it
+                  </span>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
