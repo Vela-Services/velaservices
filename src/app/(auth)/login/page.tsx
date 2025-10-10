@@ -32,12 +32,31 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [showPilotPopup, setShowPilotPopup] = useState<boolean>(false);
+  const [pendingRedirect, setPendingRedirect] = useState<null | string>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     // Focus email input on mount for accessibility
     emailInputRef.current?.focus();
   }, []);
+
+  // Show popup and wait for user to acknowledge before redirecting
+  const handleLoginSuccess = (role: string) => {
+    setShowPilotPopup(true);
+    if (role === "customer") {
+      setPendingRedirect("/customerServices");
+    } else {
+      setPendingRedirect("/providerServices");
+    }
+  };
+
+  const handlePilotPopupClose = () => {
+    setShowPilotPopup(false);
+    if (pendingRedirect) {
+      router.push(pendingRedirect);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -61,13 +80,10 @@ export default function LoginPage() {
 
       document.cookie = `role=${realRole}; path=/; max-age=604800`;
 
-      await signInWithEmailAndPassword(auth, email, password);
+      // Remove redundant login; already signed in above
+      // await signInWithEmailAndPassword(auth, email, password);
 
-      if (realRole === "customer") {
-        router.push("/customerServices");
-      } else {
-        router.push("/providerServices");
-      }
+      handleLoginSuccess(realRole);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -86,6 +102,58 @@ export default function LoginPage() {
         background: "radial-gradient(ellipse at 60% 40%, #F5E8D3 60%, #FFFDF8 100%)",
       }}
     >
+      {/* Pilot Popup */}
+      {showPilotPopup && (
+        <div className="fixed z-50 inset-0 flex items-center justify-center bg-black/30 transition-all">
+          <div
+            className="bg-[#FFFDF8] border border-[#BFA181] rounded-2xl shadow-2xl p-8 max-w-md w-full mx-3 relative animate-fadeIn"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pilot-popup-title"
+            style={{
+              boxShadow: COLORS.shadow,
+            }}
+          >
+            <span
+              className="absolute top-3 right-3 text-[#BFA181] cursor-pointer text-2xl"
+              title="Close"
+              tabIndex={0}
+              onClick={handlePilotPopupClose}
+            >
+              &times;
+            </span>
+            <h3
+              id="pilot-popup-title"
+              className="text-2xl font-bold text-center mb-4 text-[#7C5E3C]"
+            >
+              VÉLA Pilot Phase 🚧
+            </h3>
+            <p className="text-center text-[#3E2C18] mb-4">
+              Welcome to the pilot phase of VÉLA!<br />
+              Please note: you might encounter bugs or incomplete features. Your feedback is invaluable in helping us improve the platform.
+            </p>
+            <div className="flex flex-col gap-2 items-center">
+              <span className="text-[#BFA181] text-sm mb-2">
+                To report an issue or suggestion, please email:&nbsp;
+                <a
+                  href="mailto:info.velaservices@gmail.com"
+                  className="underline hover:text-[#A68A64]"
+                >
+                  info.velaservices@gmail.com
+                </a>
+              </span>
+              <button
+                className="mt-2 px-6 py-2 rounded-xl bg-gradient-to-r from-[#BFA181] to-[#A68A64] text-white font-semibold hover:from-[#A68A64] hover:to-[#BFA181] transition focus:outline-none focus:ring-2 focus:ring-[#BFA181]"
+                onClick={handlePilotPopupClose}
+                autoFocus
+              >
+                Continue to VÉLA
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div
         className="w-full max-w-md bg-white/90 rounded-3xl shadow-2xl px-8 py-10 relative"
         style={{

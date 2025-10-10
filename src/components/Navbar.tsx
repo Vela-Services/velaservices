@@ -189,9 +189,7 @@ const Navbar: React.FC = () => {
           {language === "en" ? "Switch to Norwegian" : "Switch to English"}
         </span>
         <svg
-          className={`ml-1 w-3 h-3 transition-transform ${
-            langMenuOpen ? "rotate-180" : ""
-          }`}
+          className={`ml-1 w-3 h-3 transition-transform ${langMenuOpen ? "rotate-180" : ""}`}
           fill="currentColor"
           viewBox="0 0 20 20"
         >
@@ -207,22 +205,29 @@ const Navbar: React.FC = () => {
           ref={langMenuRef}
           className="absolute right-0 mt-2 w-32 bg-white rounded shadow-lg z-50 border flex flex-col animate-fade-in"
         >
-          {languages.map((lang) => (
-            <button
-              key={lang.code}
-              onClick={() => {
-                setLanguage(lang.code);
-                setLangMenuOpen(false);
-              }}
-              className={`flex items-center gap-2 w-full px-3 py-2 hover:bg-[#BFA181]/20 text-left ${
-                language === lang.code ? "font-bold" : ""
-              }`}
-              aria-current={language === lang.code}
-            >
-              {lang.label}
-              <span>{lang.name}</span>
-            </button>
-          ))}
+          {languages.map((lang) => {
+            // Disable the language button if it's not 'en'
+            const isDisabled = lang.code !== "en";
+            return (
+              <button
+                key={lang.code}
+                onClick={() => {
+                  if (isDisabled) return;
+                  setLanguage(lang.code);
+                  setLangMenuOpen(false);
+                }}
+                className={`flex items-center gap-2 w-full px-3 py-2 text-left ${
+                  language === lang.code ? "font-bold" : ""
+                } ${!isDisabled ? "hover:bg-[#BFA181]/20" : "opacity-50 cursor-not-allowed"}`}
+                aria-current={language === lang.code}
+                disabled={isDisabled}
+                title={isDisabled ? "Coming soon!" : undefined}
+              >
+                {lang.label}
+                <span>{lang.name}</span>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
