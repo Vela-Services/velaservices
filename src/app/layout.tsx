@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Abhaya_Libre } from "next/font/google";
+import { Geist, Geist_Mono, Abhaya_Libre, Cormorant_Garamond, Nunito_Sans } from "next/font/google";
 import "./globals.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -21,6 +21,18 @@ const abhayaLibre = Abhaya_Libre({
   variable: "--font-abhaya-libre",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
+});
+
+const CormorantGaramond = Cormorant_Garamond({
+  variable: "--font-Cormorant_Garamond",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const NunitoSans = Nunito_Sans({
+  variable: "--font-Nunito_Sans",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -50,7 +62,7 @@ export default function RootLayout({
         {/* End Google Tag Manager */}
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${abhayaLibre.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${abhayaLibre.variable} ${CormorantGaramond.variable} ${NunitoSans.variable} antialiased`}
       >
         {/* Google Tag Manager (noscript) */}
         <noscript>

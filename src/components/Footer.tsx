@@ -19,27 +19,27 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-8 px-4 pt-10 pb-6">
           {/* Logo & Description */}
           <div className="lg:col-span-2 flex flex-col items-center lg:items-start text-center lg:text-left mb-8 lg:mb-0">
-            <div className="mb-3 flex justify-center lg:justify-start w-full">
+            <div className="flex justify-center lg:justify-start w-full">
               <img
                 src="/VELA_BLACK_LOGO.svg"
                 alt="Véla Logo"
                 className="drop-shadow-lg"
                 style={{
                   objectFit: "contain",
-                  width: "6.5rem",
-                  height: "6.5rem",
+                  width: "10rem",
+                  height: "10rem",
                   maxWidth: "100%",
                   maxHeight: "100%",
                   display: "block",
                 }}
               />
             </div>
-            <p className="mb-2 max-w-xs">
-              <span className="font-bold">VÉLA</span> is Norway’s all-in-one home
-              services platform. Book professional cleaning, childcare, and
-              petcare with one trusted provider in one seamless booking. Fast,
-              flexible, and reliable.
-            </p>
+          <Link
+            href="/customer/services"
+            className="inline-block px-10 py-4 text-lg rounded-full bg-[#203826] text-white font-bold shadow-lg hover:bg-[#335a3a] transition"
+          >
+            Book Now
+          </Link>
           </div>
           {/* Company Info */}
           <div className="flex flex-col items-center lg:items-start text-center lg:text-left mb-8 lg:mb-0">
@@ -168,7 +168,7 @@ export default function Footer() {
         </div>
       </div>
       {/* Copyright & Legal Section with different background */}
-      <div className="w-full bg-[#F9F5EF] border-t border-[#BFA181]/30 mt-0 md:mt-8 pt-4 pb-2 text-center text-xs text-[#7C5E3C]/80">
+      <div className="w-full bg-[#F9F5EF] border-t border-[#BFA181]/30 mt-0 pt-4 pb-2 text-center text-xs text-black/80">
         <div className="flex flex-col md:flex-row justify-center items-center gap-2">
           <span>
             © {new Date().getFullYear()} VÉLA Services. All rights reserved.

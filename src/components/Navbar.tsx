@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User, UserProfile } from "firebase/auth";
 import { auth, db } from "../lib/firebase";
@@ -11,13 +11,57 @@ import { FaUser } from "react-icons/fa";
 import Link from "next/link";
 import { doc, getDoc } from "firebase/firestore";
 
+import "flag-icons/css/flag-icons.min.css";
+
+// Flag icons (SVGs inline for simplicity)
+const EN_FLAG = (
+  <span className="inline-block w-6 h-6 align-middle">
+    <span className="fi fi-gb"></span>
+  </span>
+);
+const NO_FLAG = (
+  <span className="inline-block w-6 h-6 align-middle">
+    <span className="fi fi-no"></span>{" "}
+  </span>
+);
+
+const languages = [
+  { code: "en", label: EN_FLAG, name: "English" },
+  { code: "no", label: NO_FLAG, name: "Norsk" },
+];
+
 const Navbar: React.FC = () => {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const [language, setLanguage] = useState("en");
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
+
+  const langBtnRef = useRef<HTMLButtonElement>(null);
+  const langMenuRef = useRef<HTMLDivElement>(null);
+
   const { cart } = useCart();
+
+  // Click outside to close language menu
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (
+        langMenuOpen &&
+        langMenuRef.current &&
+        !langMenuRef.current.contains(e.target as Node) &&
+        langBtnRef.current &&
+        !langBtnRef.current.contains(e.target as Node)
+      ) {
+        setLangMenuOpen(false);
+      }
+    }
+    if (langMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [langMenuOpen]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -35,31 +79,24 @@ const Navbar: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  // Navigation links for both desktop and mobile
+  // Navigation links for both desktop and mobile, now BIGGER
   const navLinks = (
     <>
       <Link
         href="/"
-        className="flex-1 text-center text-black hover:text-[#BFA181] font-medium transition px-3 py-2 rounded"
+        className="flex-1 text-center text-black hover:text-[#BFA181] font-semibold transition px-5 py-4 rounded text-lg md:text-2xl"
+        style={{ minWidth: 0, fontFamily: "var(--font-Cormorant_Garamond)" }}
         onClick={() => setMenuOpen(false)}
-        style={{ minWidth: 0 }}
       >
         Home
       </Link>
-      <Link
-        href="/becomeProvider"
-        className="flex-1 text-center text-black hover:text-[#BFA181] font-medium transition px-3 py-2 rounded"
-        onClick={() => setMenuOpen(false)}
-        style={{ minWidth: 0 }}
-      >
-        Become a Provider
-      </Link>
+
       {profile && profile.role === "customer" && (
         <Link
           href="/customerServices"
-          className="flex-1 text-center text-black hover:text-[#BFA181] font-medium transition px-3 py-2 rounded"
+          className="flex-1 text-center text-black hover:text-[#BFA181] font-semibold transition px-5 py-4 rounded text-lg md:text-2xl"
+          style={{ minWidth: 0, fontFamily: "var(--font-Cormorant_Garamond)" }}
           onClick={() => setMenuOpen(false)}
-          style={{ minWidth: 0 }}
         >
           Services
         </Link>
@@ -67,9 +104,9 @@ const Navbar: React.FC = () => {
       {profile && profile.role === "provider" && (
         <Link
           href="/providerServices"
-          className="flex-1 text-center text-black hover:text-[#BFA181] font-medium transition px-3 py-2 rounded"
+          className="flex-1 text-center text-black hover:text-[#BFA181] font-semibold transition px-5 py-4 rounded text-lg md:text-2xl"
+          style={{ minWidth: 0, fontFamily: "var(--font-Cormorant_Garamond)" }}
           onClick={() => setMenuOpen(false)}
-          style={{ minWidth: 0 }}
         >
           Services
         </Link>
@@ -77,9 +114,9 @@ const Navbar: React.FC = () => {
       {profile && profile.role === "provider" && (
         <Link
           href="/dashboard"
-          className="flex-1 text-center text-black hover:text-[#BFA181] font-medium transition px-3 py-2 rounded"
+          className="flex-1 text-center text-black hover:text-[#BFA181] font-semibold transition px-5 py-4 rounded text-lg md:text-2xl"
+          style={{ minWidth: 0, fontFamily: "var(--font-Cormorant_Garamond)" }}
           onClick={() => setMenuOpen(false)}
-          style={{ minWidth: 0 }}
         >
           Dashboard
         </Link>
@@ -87,13 +124,21 @@ const Navbar: React.FC = () => {
       {profile && profile.role === "customer" && (
         <Link
           href="/orders"
-          className="flex-1 text-center text-black hover:text-[#BFA181] font-medium transition px-3 py-2 rounded"
+          className="flex-1 text-center text-black hover:text-[#BFA181] font-semibold transition px-5 py-4 rounded text-lg md:text-2xl"
+          style={{ minWidth: 0, fontFamily: "var(--font-Cormorant_Garamond)" }}
           onClick={() => setMenuOpen(false)}
-          style={{ minWidth: 0 }}
         >
           Orders
         </Link>
       )}
+      <Link
+        href="/becomeProvider"
+        className="flex-1 text-center text-black hover:text-[#BFA181] font-semibold transition px-5 py-4 rounded text-lg md:text-2xl"
+        style={{ minWidth: 0, fontFamily: "var(--font-Cormorant_Garamond)" }}
+        onClick={() => setMenuOpen(false)}
+      >
+        Become a Provider
+      </Link>
     </>
   );
 
@@ -105,7 +150,7 @@ const Navbar: React.FC = () => {
           setMenuOpen(false);
           router.push("/cart");
         }}
-        className="relative px-4 py-2 rounded-full text-black font-semibold hover:text-black hover:cursor-pointer transition"
+        className="relative px-4 py-2 rounded-full text-white font-semibold hover:text-black hover:cursor-pointer transition"
         style={{ overflow: "visible" }}
         aria-label="Cart"
       >
@@ -130,8 +175,61 @@ const Navbar: React.FC = () => {
       </button>
     ) : null;
 
+  // Language switcher, always shown in the navbar
+  const langButton = (
+    <div className="relative">
+      <button
+        ref={langBtnRef}
+        onClick={() => setLangMenuOpen((t) => !t)}
+        className="px-2 py-2 rounded-full hover:bg-[#BFA181]/10 transition flex items-center gap-1"
+        aria-label="Change language"
+      >
+        {language === "en" ? EN_FLAG : NO_FLAG}
+        <span className="sr-only">
+          {language === "en" ? "Switch to Norwegian" : "Switch to English"}
+        </span>
+        <svg
+          className={`ml-1 w-3 h-3 transition-transform ${
+            langMenuOpen ? "rotate-180" : ""
+          }`}
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.586l3.71-3.355a.75.75 0 1 1 1.04 1.085l-4.24 3.84a.75.75 0 0 1-1.04 0l-4.24-3.84a.75.75 0 0 1 .02-1.06z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </button>
+      {langMenuOpen && (
+        <div
+          ref={langMenuRef}
+          className="absolute right-0 mt-2 w-32 bg-white rounded shadow-lg z-50 border flex flex-col animate-fade-in"
+        >
+          {languages.map((lang) => (
+            <button
+              key={lang.code}
+              onClick={() => {
+                setLanguage(lang.code);
+                setLangMenuOpen(false);
+              }}
+              className={`flex items-center gap-2 w-full px-3 py-2 hover:bg-[#BFA181]/20 text-left ${
+                language === lang.code ? "font-bold" : ""
+              }`}
+              aria-current={language === lang.code}
+            >
+              {lang.label}
+              <span>{lang.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   // Profile button (always shown if logged in)
-  const profileButton = user ? (
+  const profileButton = (
     <button
       onClick={() => {
         setMenuOpen(false);
@@ -141,10 +239,20 @@ const Navbar: React.FC = () => {
       aria-label="Profile"
     >
       <span className="relative inline-block">
-        <FaUser className="text-3xl" />
+        {user && user.photoURL ? (
+          <img
+            src={user.photoURL}
+            alt="Profile"
+            className="w-15 h-15 rounded-full object-cover hover:border-4"
+          />
+        ) : (
+          <span className="w-10 h-10 flex items-center justify-center rounded-full bg-[#eee] border border-[#BFA181]">
+            <FaUser className="text-2xl text-[#BFA181]" />
+          </span>
+        )}
       </span>
     </button>
-  ) : null;
+  );
 
   // Login button (if not logged in)
   const loginButton = !user ? (
@@ -153,9 +261,12 @@ const Navbar: React.FC = () => {
         setMenuOpen(false);
         router.push("/login");
       }}
-      className="px-4 py-2 rounded-full border border-[#BFA181] text-[#BFA181] font-semibold hover:bg-[#F5E8D3]/80 transition"
+      className="px-6 py-2 rounded-3xl bg-[#203826] text-white font-semibold shadow-md hover:bg-[#BFA181] hover:text-[#203826] transition-colors duration-200 text-base md:text-lg flex items-center gap-3 border-2 border-[#203826] hover:border-[#BFA181] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#BFA181]"
+      aria-label="Login"
     >
-      Login
+      <span className="flex items-center">
+        <span>Login</span>
+      </span>
     </button>
   ) : null;
 
@@ -164,6 +275,7 @@ const Navbar: React.FC = () => {
     <div className="md:hidden absolute top-full left-0 w-full bg-[#F5E8D3] shadow-lg border-t border-[#e5dbc9] flex flex-col gap-6 px-6 py-6 animate-fade-in z-40">
       <div className="flex flex-col gap-4">{navLinks}</div>
       <div className="flex flex-col gap-3 mt-4">
+        {langButton}
         {cartButton}
         {profileButton}
         {loginButton}
@@ -196,6 +308,7 @@ const Navbar: React.FC = () => {
         </div>
         {/* Desktop right-side buttons */}
         <div className="hidden md:flex items-center gap-3">
+          {langButton}
           {cartButton}
           {profileButton}
           {loginButton}
@@ -237,6 +350,7 @@ const Navbar: React.FC = () => {
           {navLinks}
         </div>
       </div>
+      <div className="bg-[#5EB6A6] h-10"></div>
       {/* Mobile menu */}
       {menuOpen && mobileMenu}
     </nav>
