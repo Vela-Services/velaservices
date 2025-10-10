@@ -3,9 +3,9 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, User } from "firebase/auth";
 import "../../../lib/firebase";
-import { db } from "../../../lib/firebase";
+import { auth, db } from "../../../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { FiMail, FiLock } from "react-icons/fi";
 import { FaSpinner } from "react-icons/fa";
@@ -34,13 +34,21 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showPilotPopup, setShowPilotPopup] = useState<boolean>(false);
   const [pendingRedirect, setPendingRedirect] = useState<null | string>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
   const emailInputRef = useRef<HTMLInputElement>(null);
-
   useEffect(() => {
-    // Focus email input on mount for accessibility
-    emailInputRef.current?.focus();
+    const unsub = onAuthStateChanged(auth, (user: User | null) => {
+      if (user) {
+        // Already logged in, redirect to home or profile
+        router.replace("/profile");
+      } else {
+        setAuthChecked(true);
+      }
+    });
+    return () => unsub();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   // Show popup and wait for user to acknowledge before redirecting
   const handleLoginSuccess = (role: string) => {
     setShowPilotPopup(true);
@@ -80,9 +88,6 @@ export default function LoginPage() {
 
       document.cookie = `role=${realRole}; path=/; max-age=604800`;
 
-      // Remove redundant login; already signed in above
-      // await signInWithEmailAndPassword(auth, email, password);
-
       handleLoginSuccess(realRole);
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -94,6 +99,19 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  if (authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4" style={{
+        background: "radial-gradient(ellipse at 60% 40%, #F5E8D3 60%, #FFFDF8 100%)"
+      }}>
+        <div className="flex flex-col items-center">
+          <FaSpinner className="animate-spin text-[#BFA181] text-3xl mb-1" />
+          <span className="text-[#BFA181] text-lg">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

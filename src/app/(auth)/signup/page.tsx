@@ -7,6 +7,8 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
   sendEmailVerification,
+  onAuthStateChanged,
+  User,
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import "../../../lib/firebase";
@@ -26,9 +28,24 @@ export default function SignupPage() {
   const [verificationSent, setVerificationSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   // For accessibility: focus error message
   const errorRef = useRef<HTMLDivElement>(null);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user: User | null) => {
+      if (user) {
+        // Already logged in, redirect to home or profile
+        router.replace("/profile");
+      } else {
+        setAuthChecked(true);
+      }
+    });
+    return () => unsub();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (error && errorRef.current) {
@@ -107,6 +124,12 @@ export default function SignupPage() {
       setLoading(false);
     }
   };
+
+  // Don't render signup page/form until we have checked auth state
+  if (!authChecked) {
+    // Could optionally show a spinner instead
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5E8D3] to-[#E8D9C1] px-4">

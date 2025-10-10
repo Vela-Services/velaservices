@@ -470,7 +470,7 @@ export default function LandingPage() {
           </div>
         <div className="flex justify-center mt-12">
           <a
-            href="/join"
+            href="/signup"
             className="px-8 py-3 bg-white text-black font-bold rounded-full shadow-lg hover:bg-[#F3EEE7] transition border-2 border-transparent hover:border-black"
           >
             Join the Pilot
