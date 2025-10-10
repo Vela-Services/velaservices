@@ -34,7 +34,8 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showPilotPopup, setShowPilotPopup] = useState<boolean>(false);
   const [pendingRedirect, setPendingRedirect] = useState<null | string>(null);
-  const [authChecked, setAuthChecked] = useState(false);
+  // Fix: default to true! Only false after check is done
+  const [authChecked, setAuthChecked] = useState<boolean>(false);
 
   const emailInputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -42,13 +43,14 @@ export default function LoginPage() {
       if (user) {
         // Already logged in, redirect to home or profile
         router.replace("/profile");
-      } else {
-        setAuthChecked(true);
       }
+      // Always let the login form render after auth check, regardless
+      setAuthChecked(true);
     });
     return () => unsub();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
   // Show popup and wait for user to acknowledge before redirecting
   const handleLoginSuccess = (role: string) => {
     setShowPilotPopup(true);
@@ -100,7 +102,8 @@ export default function LoginPage() {
     }
   };
 
-  if (authChecked) {
+  // render loading only while auth is still being checked (authChecked is false)
+  if (!authChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4" style={{
         background: "radial-gradient(ellipse at 60% 40%, #F5E8D3 60%, #FFFDF8 100%)"
