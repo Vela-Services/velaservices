@@ -6,7 +6,6 @@ import { auth, db } from "../lib/firebase";
 import { useCart } from "@/lib/CartContext";
 
 import { FaShoppingCart } from "react-icons/fa";
-import { FaUser } from "react-icons/fa";
 
 import Link from "next/link";
 import { doc, getDoc } from "firebase/firestore";
@@ -189,7 +188,9 @@ const Navbar: React.FC = () => {
           {language === "en" ? "Switch to Norwegian" : "Switch to English"}
         </span>
         <svg
-          className={`ml-1 w-3 h-3 transition-transform ${langMenuOpen ? "rotate-180" : ""}`}
+          className={`ml-1 w-3 h-3 transition-transform ${
+            langMenuOpen ? "rotate-180" : ""
+          }`}
           fill="currentColor"
           viewBox="0 0 20 20"
         >
@@ -218,7 +219,11 @@ const Navbar: React.FC = () => {
                 }}
                 className={`flex items-center gap-2 w-full px-3 py-2 text-left ${
                   language === lang.code ? "font-bold" : ""
-                } ${!isDisabled ? "hover:bg-[#BFA181]/20" : "opacity-50 cursor-not-allowed"}`}
+                } ${
+                  !isDisabled
+                    ? "hover:bg-[#BFA181]/20"
+                    : "opacity-50 cursor-not-allowed"
+                }`}
                 aria-current={language === lang.code}
                 disabled={isDisabled}
                 title={isDisabled ? "Coming soon!" : undefined}
@@ -233,8 +238,8 @@ const Navbar: React.FC = () => {
     </div>
   );
 
-  // Profile button (always shown if logged in)
-  const profileButton = (
+  // Profile button (only shown if logged in)
+  const profileButton = user ? (
     <button
       onClick={() => {
         setMenuOpen(false);
@@ -244,20 +249,32 @@ const Navbar: React.FC = () => {
       aria-label="Profile"
     >
       <span className="relative inline-block">
-        {user && user.photoURL ? (
+        {user.photoURL ? (
           <img
             src={user.photoURL}
             alt="Profile"
             className="w-15 h-15 rounded-full object-cover hover:border-4"
           />
         ) : (
-          <span className="w-10 h-10 flex items-center justify-center rounded-full bg-[#eee] border border-[#BFA181]">
-            <FaUser className="text-2xl text-[#BFA181]" />
+          // Default profile avatar SVG
+          <span className="w-15 h-15 flex items-center justify-center bg-[#BFA181]/10 rounded-full overflow-hidden">
+            <svg
+              width="40"
+              height="40"
+              viewBox="0 0 40 40"
+              fill="none"
+              className="w-full h-full"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle cx="20" cy="20" r="20" fill="#E5D3B3" />
+              <circle cx="20" cy="16" r="7" fill="#BFA181" />
+              <ellipse cx="20" cy="29" rx="11" ry="7" fill="#BFA181" />
+            </svg>
           </span>
         )}
       </span>
     </button>
-  );
+  ) : null;
 
   // Login button (if not logged in)
   const loginButton = !user ? (
