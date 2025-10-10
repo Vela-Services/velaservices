@@ -20,6 +20,7 @@ export default function SignupPage() {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [agreeTerms, setAgreeTerms] = useState(false); // New state for T&C
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [verificationSent, setVerificationSent] = useState(false);
@@ -49,6 +50,12 @@ export default function SignupPage() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // New: Must agree to terms and conditions
+    if (!agreeTerms) {
+      setError("You must agree to the Terms and Conditions to sign up.");
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
@@ -308,6 +315,25 @@ export default function SignupPage() {
                   Passwords do not match.
                 </div>
               )}
+            </div>
+            {/* Terms and Conditions */}
+            <div className="flex items-start gap-2 mt-2">
+              <input
+                id="agreeTerms"
+                type="checkbox"
+                checked={agreeTerms}
+                onChange={(e) => setAgreeTerms(e.target.checked)}
+                disabled={loading}
+                required
+                className="mt-1 accent-[#BFA181] focus:ring-[#BFA181]"
+              />
+              <label htmlFor="agreeTerms" className="text-xs text-[#7C5E3C] select-none">
+                I agree to the{" "}
+                <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-[#BFA181]">
+                  Terms and Conditions
+                </a>
+                .
+              </label>
             </div>
             <button
               type="submit"
