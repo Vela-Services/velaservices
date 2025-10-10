@@ -14,7 +14,7 @@ export default function LandingPage() {
         {/* Background Image */}
         <div className="absolute inset-0 w-full h-full">
           <img
-            src="/download.png"
+            src="/download.webp"
             alt="VÉLA Home"
             className="w-full h-full object-cover"
           />
@@ -240,7 +240,7 @@ export default function LandingPage() {
       <section
         className="py-16 px-4 relative min-h-[800px]"
         style={{
-          backgroundImage: "url('/whyus.png')",
+          backgroundImage: "url('/whyus.webp')",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}

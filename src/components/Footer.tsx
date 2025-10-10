@@ -35,7 +35,7 @@ export default function Footer() {
               />
             </div>
           <Link
-            href="/customer/services"
+            href="/customerServices"
             className="inline-block px-10 py-4 text-lg rounded-full bg-[#203826] text-white font-bold shadow-lg hover:bg-[#335a3a] transition"
           >
             Book Now
