@@ -36,9 +36,71 @@ const NunitoSans = Nunito_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Vela Services",
-  description:
-    "Vela Services is a platform for finding and booking home services.",
+  title: {
+    default: "VÉLA Services - Trusted Home Services in Oslo",
+    template: "%s | VÉLA Services"
+  },
+  description: "One trusted provider for your home, kids, and pets. VÉLA connects you with reliable service providers for babysitting, cleaning, and pet care in Oslo. Book now!",
+  keywords: [
+    "home services",
+    "babysitting",
+    "cleaning services",
+    "pet care",
+    "Oslo",
+    "Norway",
+    "trusted providers",
+    "home maintenance",
+    "childcare",
+    "housekeeping"
+  ],
+  authors: [{ name: "VÉLA Services" }],
+  creator: "VÉLA Services",
+  publisher: "VÉLA Services",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL('https://vela-services.netlify.app/'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: "VÉLA Services - Trusted Home Services in Oslo",
+    description: "One trusted provider for your home, kids, and pets. VÉLA connects you with reliable service providers for babysitting, cleaning, and pet care in Oslo.",
+    url: 'https://vela-services.netlify.app/',
+    siteName: 'VÉLA Services',
+    images: [
+      {
+        url: '/download.webp',
+        width: 1200,
+        height: 630,
+        alt: 'VÉLA Services - Home Services Platform',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "VÉLA Services - Trusted Home Services in Oslo",
+    description: "One trusted provider for your home, kids, and pets. VÉLA connects you with reliable service providers for babysitting, cleaning, and pet care in Oslo.",
+    images: ['/download.webp'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    google: 'your-google-verification-code', // Add your Google Search Console verification code
+  },
 };
 
 export default function RootLayout({
