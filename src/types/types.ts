@@ -79,6 +79,7 @@ export type CartItem = {
   providerName: string;
   providerEmail?: string;
   subservices?: Record<string, number>; // subservices avec leur quantité
+  atLocation?: string;
 
 };
 

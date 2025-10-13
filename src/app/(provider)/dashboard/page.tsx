@@ -20,7 +20,7 @@ import {
   MdChildCare,
 } from "react-icons/md";
 import { LuCookingPot } from "react-icons/lu";
-import { FiPhone, FiMapPin, FiUser, FiMail, FiFileText, FiClock, FiDollarSign } from "react-icons/fi";
+import { FiPhone, FiMapPin, FiUser, FiMail, FiFileText, FiClock, FiDollarSign, FiHome, FiMap } from "react-icons/fi";
 
 // --- Confirmation Modal ---
 type ConfirmModalProps = {
@@ -264,6 +264,14 @@ function formatSubservices(subservices?: Record<string, number>) {
     .join(", ");
 }
 
+// New helper to format atLocation for emails and UI
+function formatAtLocation(atLocation: string | undefined | null) {
+  if (!atLocation) return "";
+  if (atLocation === "customer") return "At Customer's Address";
+  if (atLocation === "provider") return "At your place";
+  return atLocation;
+}
+
 export default function DashboardProviderPage() {
   const [missions, setMissions] = useState<DocumentData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -423,6 +431,7 @@ export default function DashboardProviderPage() {
       const price = typeof mission.price === "number"
         ? mission.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
         : mission.price || "";
+      const atLocation = mission.atLocation || "";
 
       // Email to customer
       if (customerEmail) {
@@ -435,6 +444,7 @@ Good news! Your provider (${providerName}) has accepted your mission request.
 📅 Date:           ${date}
 ⏰ Time(s):        ${times || "N/A"}
 💼 Subservices:    ${formatSubservices(subservices)}
+${atLocation ? `📍 Location:       ${formatAtLocation(atLocation)}` : ""}
 💰 Price:          ${price ? price + " NOK" : "N/A"}
 
 👨‍🔧 Provider:      ${providerName}
@@ -475,6 +485,7 @@ You have accepted a new mission!
 📅 Date:           ${date}
 ⏰ Time(s):        ${times || "N/A"}
 💼 Subservices:    ${formatSubservices(subservices)}
+${atLocation ? `📍 Location:       ${formatAtLocation(atLocation)}` : ""}
 💰 Price:          ${price ? price + " NOK" : "N/A"}
 
 👤 Customer:       ${customerName}
@@ -576,6 +587,7 @@ The Team
     const timeStr = mission.time || (Array.isArray(mission.times) ? mission.times.join(", ") : mission.times) || "N/A";
     const duration = Array.isArray(mission.times) ? mission.times.length : mission.times || "N/A";
     const price = typeof mission.price === "number" ? mission.price : null;
+    const atLocation = mission.atLocation || "";
 
     return (
       <div
@@ -640,6 +652,19 @@ The Team
                 <span>
                   NOK {price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
+              </div>
+            )}
+            {atLocation && (
+              <div className="flex items-center gap-2">
+                {atLocation === "customer" ? (
+                  <FiHome className="text-[#BFA181]" />
+                ) : atLocation === "provider" ? (
+                  <FiMap className="text-[#BFA181]" />
+                ) : (
+                  <FiMapPin className="text-[#BFA181]" />
+                )}
+                <span className="font-medium">Location:</span>
+                <span>{formatAtLocation(atLocation)}</span>
               </div>
             )}
           </div>

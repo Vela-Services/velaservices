@@ -33,6 +33,8 @@ export default function CartPage() {
   const subtotal = Math.round((totalWithFee / 1.1) * 100) / 100; // rounded to 2 decimals
   const platformFee = Math.round((totalWithFee - subtotal) * 100) / 100; // rounded to 2 decimals
 
+  console.log(cart)
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F5E8D3] to-[#fcf5eb] flex flex-col items-center py-12 px-2">
       <div className="w-full max-w-2xl mx-auto">

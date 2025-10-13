@@ -13,7 +13,7 @@ import { addPendingSlot } from "../app/hooks/usePendingSlots";
 interface ServiceSelectionProps {
   provider: Provider;
   services: Service[];
-  addToCart: (item: CartItem) => void;
+  addToCart: (item: CartItem & { atLocation?: "provider" | "customer" }) => void;
   onBack: () => void;
 }
 // Simple spinner component
@@ -25,6 +25,13 @@ function Spinner() {
       aria-label="Loading"
     />
   );
+}
+
+// Helper to decide if a service is petcare or babysitting
+function isPetcareOrBabysitting(service: Service) {
+  // Accept any case, and allow for more robust matching in the future
+  const name = service.name?.toLowerCase() || "";
+  return name.includes("petcare") || name.includes("pet care") || name.includes("babysitting") || name.includes("baby sitting");
 }
 
 export default function ServiceSelection({
@@ -56,6 +63,9 @@ export default function ServiceSelection({
   const { user } = useAuth();
   const [showProviderDetails, setShowProviderDetails] = useState(false);
   const servicesSectionRef = useRef<HTMLDivElement | null>(null);
+
+  // Track selection of "at provider" or "at customer" per service
+  const [atLocationByService, setAtLocationByService] = useState<Record<string, "provider" | "customer">>({});
 
   // Auto-focus the services section to reduce initial scrolling
   useEffect(() => {
@@ -218,6 +228,10 @@ export default function ServiceSelection({
             const startTimes = startTimesByService[service.id] || [];
             const isLoadingStart = !!loadingStartTimesByService[service.id];
 
+            // Get atLocation state for this service (default to 'customer')
+            const atLocation =
+              atLocationByService[service.id] || "customer";
+
             return (
               <section
                 key={service.id}
@@ -281,6 +295,54 @@ export default function ServiceSelection({
                     autoComplete="off"
                     onSubmit={(e) => e.preventDefault()}
                   >
+
+                    {/* If this is petcare or babysitting, location selection */}
+                    {isPetcareOrBabysitting(service) && (
+                      <fieldset className="border border-[#E5E7EB] rounded-lg p-4 bg-[#F9F6F1]">
+                        <legend className="block text-base font-semibold text-[#7C5E3C] mb-2">
+                          Where should the service take place?
+                        </legend>
+                        <div className="flex items-center gap-6">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              name={`at-location-${service.id}`}
+                              value="customer"
+                              checked={atLocation === "customer"}
+                              onChange={() =>
+                                setAtLocationByService((prev) => ({
+                                  ...prev,
+                                  [service.id]: "customer",
+                                }))
+                              }
+                              className="accent-[#BFA181] focus:ring-2 focus:ring-[#BFA181]"
+                            />
+                            <span className="text-[#7C5E3C] text-sm font-medium">
+                              At your place
+                            </span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              name={`at-location-${service.id}`}
+                              value="provider"
+                              checked={atLocation === "provider"}
+                              onChange={() =>
+                                setAtLocationByService((prev) => ({
+                                  ...prev,
+                                  [service.id]: "provider",
+                                }))
+                              }
+                              className="accent-[#BFA181] focus:ring-2 focus:ring-[#BFA181]"
+                            />
+                            <span className="text-[#7C5E3C] text-sm font-medium">
+                              At provider&apos;s place
+                            </span>
+                          </label>
+                        </div>
+                      </fieldset>
+                    )}
+
                     {isCleaningService(service) && (
                       <fieldset className="mb-2 sm:mb-4">
                         <legend className="block text-base font-medium text-[#7C5E3C] mb-2">
@@ -579,7 +641,7 @@ export default function ServiceSelection({
                         type="button"
                         className="w-full sm:w-auto bg-[#BFA181] text-white py-3 px-6 rounded-lg font-semibold text-base shadow-sm hover:bg-[#A68A64] focus:outline-none focus:ring-2 focus:ring-[#BFA181] transition disabled:opacity-60 disabled:cursor-not-allowed"
                         onClick={() => {
-                          addToCart({
+                          const item: CartItem & { atLocation?: "provider" | "customer" } = {
                             id: "",
                             serviceId: service.id,
                             serviceName: service.name,
@@ -590,7 +652,11 @@ export default function ServiceSelection({
                             providerId: provider.id,
                             providerName: provider.displayName,
                             providerEmail: provider.email,
-                          });
+                          };
+                          if (isPetcareOrBabysitting(service)) {
+                            item.atLocation = atLocation;
+                          }
+                          addToCart(item);
                           if (
                             user?.uid &&
                             provider.id &&

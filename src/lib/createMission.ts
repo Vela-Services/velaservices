@@ -38,6 +38,7 @@ export async function createMissionsFromCart(
       providerName: item.providerName,
       stripePaymentIntentId: paymentIntentId,
       stripeAccountId: providerStripeAccountId,
+      atLocation: item.atLocation ?? "",
     });
 
     // --- Improved Provider Email ---
@@ -65,6 +66,7 @@ You have received a new mission request with the following details:
 💰 Price (customer paid):          ${item.price} NOK
 💸 Price after platform fee (10%): ${priceMinusPlatformFee} NOK
 💵 Your payout after 7.5% commission: ${providerPayout} NOK
+🏠 Location:        ${item.atLocation ? (item.atLocation === "provider" ? "At provider's place" : "At customer's place") : "N/A"}
 
 👤 Customer:       ${displayName}
 🏠 Address:        ${address}
@@ -110,6 +112,7 @@ Thank you for your booking! Here is a summary of your mission request:
 ⏰ Time(s):        ${item.times?.join(", ") || "N/A"}
 💼 Subservices:    ${formatSubservices(item.subservices)}
 💰 Price:          ${item.price} NOK
+🏠 Location:       ${item.atLocation ? (item.atLocation === "provider" ? "At provider's place" : "At your place") : "N/A"}
 
 👨‍🔧 Provider:      ${item.providerName}
 ──────────────────────────────

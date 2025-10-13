@@ -23,6 +23,7 @@ import {
   FaHistory,
   FaRegCalendarCheck,
   FaRegCalendarTimes,
+  FaMapMarkerAlt,
 } from "react-icons/fa";
 import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { toast } from "react-hot-toast";
@@ -101,7 +102,6 @@ function formatDate(dateStr: string) {
   return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }
 
-
 export default function OrdersPage() {
   const [, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
@@ -143,6 +143,39 @@ export default function OrdersPage() {
     });
     return () => unsubscribe();
   }, []);
+
+  // Helper to format atLocation information
+function formatAtLocation(order: DocumentData) {
+  // Accept both camelCase and snake_case for backwards compatibility
+  const atLocationRaw = order.atLocation ?? order.at_location ?? "";
+  if (!atLocationRaw) return null;
+  console.log(atLocationRaw, "atLocationRaw")
+  let description = "";
+  if (
+    typeof atLocationRaw === "string" &&
+    (atLocationRaw.toLowerCase() === "customer" || atLocationRaw.toLowerCase() === "at_customer")
+  ) {
+    description = "At your place";
+  } else if (
+    typeof atLocationRaw === "string" &&
+    (atLocationRaw.toLowerCase() === "provider" || atLocationRaw.toLowerCase() === "at_provider")
+  ) {
+    description = "At the provider's place";
+  } else if (typeof atLocationRaw === "string" && atLocationRaw !== "") {
+    // fallback for custom/unknown values
+    description = atLocationRaw;
+  } else {
+    // fallback for missing or unexpected
+    return null;
+  }
+  return (
+    <span className="inline-flex items-center gap-1">
+      <FaMapMarkerAlt className="inline" />
+      {description}
+    </span>
+  );
+}
+
 
   // Helper to get a display name for the service
   function getServiceName(order: DocumentData) {
@@ -342,7 +375,6 @@ export default function OrdersPage() {
     }
   };
 
-
   // UI
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F5E8D3] to-[#fcf5eb] flex flex-col items-center py-10 px-2">
@@ -488,7 +520,6 @@ export default function OrdersPage() {
                         </span>
                         {formatSubservices(getSubservices(order))}
                       </div>
-                     
                     </div>
                     {/* Card Meta */}
                     <div className="flex flex-wrap gap-3 text-[#7C5E3C]/90 text-sm mt-2 mb-1">
@@ -505,6 +536,12 @@ export default function OrdersPage() {
                           <span className="text-gray-400">No time</span>
                         )}
                       </span>
+                      {/* Insert atLocation here */}
+                      {formatAtLocation(order) && (
+                        <span className="inline-flex items-center gap-1">
+                          {formatAtLocation(order)}
+                        </span>
+                      )}
                       <span className="inline-flex items-center gap-1">
                         <FaUser className="inline" />
                         {getProviderName(order)}
