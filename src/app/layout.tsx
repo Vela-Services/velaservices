@@ -61,14 +61,14 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://vela-services.netlify.app/'),
+  metadataBase: new URL('https://vela-services.netlify.app'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
     title: "VÉLA Services - Trusted Home Services in Oslo",
     description: "One trusted provider for your home, kids, and pets. VÉLA connects you with reliable service providers for babysitting, cleaning, and pet care in Oslo.",
-    url: 'https://vela-services.netlify.app/',
+    url: 'https://vela-services.netlify.app',
     siteName: 'VÉLA Services',
     images: [
       {

@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://vela-services.netlify.app/' // Update this with your actual domain
+  const baseUrl = 'https://vela-services.netlify.app' // Removed trailing slash to avoid double slashes
   
   return [
     {
