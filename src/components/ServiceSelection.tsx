@@ -633,7 +633,7 @@ export default function ServiceSelection({
                             </svg>
                           </span>
                           <span className="absolute left-1/2 bottom-1/2 -translate-x-1/2 mt-2 w-max min-w-[180px] bg-white text-[#7C5E3C] text-xs rounded shadow-lg px-3 py-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
-                            The price includes the 10% platform fee.
+                            The price includes the 5% platform fee.
                           </span>
                         </span>
                       </span>

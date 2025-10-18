@@ -5,7 +5,11 @@ import Link from "next/link";
 import { FaTrashAlt, FaCalendarAlt, FaClock, FaUser } from "react-icons/fa";
 
 function formatTimes(times: string[] | string) {
-  if (Array.isArray(times)) return times.join(", ");
+  if (Array.isArray(times)) {
+    if (times.length === 0) return "";
+    if (times.length === 1) return times[0];
+    return `${times[0]}, ${times[times.length - 1]}`;
+  }
   return times;
 }
 
@@ -30,8 +34,8 @@ export default function CartPage() {
   // So, x = total / 1.1, fee = total - x
 
   const totalWithFee = cart.reduce((acc, item) => acc + item.price, 0);
-  const subtotal = Math.round((totalWithFee / 1.1) * 100) / 100; // rounded to 2 decimals
-  const platformFee = Math.round((totalWithFee - subtotal) * 100) / 100; // rounded to 2 decimals
+  const subtotal = Math.round((totalWithFee / 1.05) * 100) / 100; // rounded to 2 decimals (5% fee)
+  const platformFee = Math.round((totalWithFee - subtotal) * 100) / 100; // rounded to 2 decimals (5% fee)
 
   console.log(cart)
 
@@ -168,7 +172,7 @@ export default function CartPage() {
                   </div>
                   <div className="flex flex-row justify-between items-center">
                     <span className="text-[#7C5E3C] text-base">
-                      Platform Fee (10%):
+                      Platform Fee (5%):
                     </span>
                     <span className="font-semibold text-base text-[#BFA181]">
                       {platformFee} NOK
