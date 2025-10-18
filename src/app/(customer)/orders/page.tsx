@@ -9,6 +9,9 @@ import {
   query,
   where,
   DocumentData,
+  doc,
+  updateDoc,
+  getDoc,
 } from "firebase/firestore";
 import {
   FaCalendarAlt,
@@ -25,11 +28,13 @@ import {
   FaRegCalendarTimes,
   FaMapMarkerAlt,
 } from "react-icons/fa";
-import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { toast } from "react-hot-toast";
 import clsx from "clsx";
 
-// --- Unused functions to be used ---
+/* ============================= */
+/* ========= Utilities ========= */
+/* ============================= */
+
 function formatTimes(times: string[] | string) {
   if (Array.isArray(times)) return times.join(", ");
   return times;
@@ -51,7 +56,6 @@ function getStatusSortOrder(status: string) {
       return 5;
   }
 }
-// --- End unused functions ---
 
 function formatStatus(status: string) {
   if (!status)
@@ -106,7 +110,10 @@ function formatDate(dateStr: string) {
   });
 }
 
-// --- Modal component for cancellations ---
+/* ============================= */
+/* ===== Cancel Modal UI ======= */
+/* ============================= */
+
 function CancelModal({
   open,
   onClose,
@@ -171,10 +178,16 @@ function CancelModal({
 
   const preview = getRefundPreview();
 
-  // --- fix: wrap onConfirm in an async handler so Promise is handled correctly ---
+  // Fix: handleConfirmClick should properly call onConfirm and handle loading/errors if needed
   const handleConfirmClick = async () => {
     if (typeof onConfirm === "function") {
-      await onConfirm();
+      try {
+        await onConfirm();
+      } catch (err) {
+        // You may want to handle errors at the modal level if desired
+        // e.g. show a toast or alert
+        console.error("[CancelModal] Error in confirm:", err);
+      }
     }
   };
 
@@ -183,7 +196,9 @@ function CancelModal({
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full px-7 py-8 relative border border-[#F5E8D3]">
         <button
           className="absolute top-3 right-4 text-gray-400 hover:text-red-500 text-xl"
-          onClick={onClose}
+          onClick={() => {
+            onClose();
+          }}
           aria-label="Close"
           type="button"
         >
@@ -253,7 +268,9 @@ function CancelModal({
         <div className="flex flex-row gap-3 mt-2 justify-center">
           <button
             className="w-32 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-[#7C5E3C] font-semibold rounded-lg transition"
-            onClick={onClose}
+            onClick={() => {
+              onClose();
+            }}
             disabled={isLoading}
             type="button"
           >
@@ -271,19 +288,45 @@ function CancelModal({
             {isLoading ? "Cancelling..." : "Confirm Cancel"}
           </button>
         </div>
+        {isLoading && (
+          <div
+            className="absolute inset-0 bg-white/70 flex flex-col items-center justify-center rounded-2xl"
+            style={{ zIndex: 10 }}
+          >
+            <svg
+              className="animate-spin h-8 w-8 text-[#BFA181]"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v8z"
+              ></path>
+            </svg>
+            <div className="mt-2 text-xs text-[#BFA181] font-semibold">
+              Cancelling your order...
+            </div>
+          </div>
+        )}
       </div>
       {/* modal background close (optional) */}
-      <button
-        className="fixed inset-0 w-full h-full cursor-default"
-        aria-label="modal-background"
-        style={{ zIndex: 1, position: "fixed", background: "transparent" }}
-        onClick={onClose}
-        tabIndex={-1}
-        type="button"
-      ></button>
     </div>
   );
 }
+
+/* ============================= */
+/* ========= Page ============== */
+/* ============================= */
 
 export default function OrdersPage() {
   const [, setUser] = useState<User | null>(null);
@@ -291,8 +334,8 @@ export default function OrdersPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [orders, setOrders] = useState<DocumentData[]>([]);
   const [marking, setMarking] = useState<string | null>(null);
-  const [cancelling, setCancelling] = useState<string | null>(null);
 
+  // 🔧 Single source of truth for cancel flow:
   const [cancelModalOrder, setCancelModalOrder] = useState<DocumentData | null>(
     null
   );
@@ -456,14 +499,15 @@ export default function OrdersPage() {
     }
   };
 
+  // ---- Cancel: single-source-of-truth (modal + loading) ----
   const cancelOrder = async (order: DocumentData) => {
-    setCancelling(order.id);
+    // Do not call setCancelLoading here, call it from handler to avoid race conditions
     setErrorMsg(null);
-
     try {
-      const dateStr = getOrderDate(order);
+      // Determine refund type from time difference
+      const dateStr = order.date || order.missionDate || order.serviceDate || "";
       if (!dateStr) throw new Error("Order date not found");
-      const timeStr = getOrderTime(order);
+      const timeStr = order.times || order.missionTime || "";
       let firstTime = "00:00";
       if (typeof timeStr === "string" && timeStr.length >= 3) {
         firstTime = timeStr.split(",")[0].trim();
@@ -480,7 +524,7 @@ export default function OrdersPage() {
       const msDiff = missionDateTime.getTime() - now.getTime();
       const hoursDiff = msDiff / (1000 * 60 * 60);
 
-      let refundType = "none";
+      let refundType: "full" | "partial" | "none" = "none";
       let refundPercentage = 0;
       if (hoursDiff >= 24) {
         refundType = "full";
@@ -493,11 +537,21 @@ export default function OrdersPage() {
         refundPercentage = 0.0;
       }
 
+      console.log("[OrdersPage] Cancelling order...", {
+        orderId: order?.id,
+        refundType,
+        refundPercentage,
+        hoursDiff,
+      });
+
       const res = await fetch("/api/stripe/refund-on-cancel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          paymentIntentId: order.stripePaymentIntentId,
+          paymentIntentId:
+            order.stripePaymentIntentId ||
+            order.paymentIntentId ||
+            order.stripe_payment_intent_id,
           orderId: order.id,
           refundType,
           refundPercentage,
@@ -508,9 +562,12 @@ export default function OrdersPage() {
       const data = await res.json();
 
       if (!res.ok) {
+        console.error("[OrdersPage] Refund API error:", data.error);
         throw new Error(data.error || "Refund/cancellation failed");
       }
+      console.log("[OrdersPage] Refund/cancellation API result:", data);
 
+      // Update Firestore
       const missionRef = doc(db, "missions", order.id);
       await updateDoc(missionRef, {
         status: "cancelled",
@@ -527,16 +584,17 @@ export default function OrdersPage() {
           ? "Order cancelled. Partial refund processed."
           : "Order cancelled. No refund as cancellation was too late."
       );
-      setTimeout(() => handleRefresh(), 1000);
+
+      // Refresh after a short delay to let Firestore settle
+      setTimeout(() => handleRefresh(), 600);
     } catch (err) {
       setErrorMsg((err as Error).message || "Failed to cancel order");
       toast.error((err as Error).message || "Failed to cancel order");
-    } finally {
-      setCancelling(null);
-      setCancelModalOrder(null);
-      setCancelLoading(false);
+      console.error("[OrdersPage] Cancel order error:", err);
     }
+    // modal cleanup handled by parent
   };
+  // ---- END Cancel ----
 
   const now = useMemo(() => new Date(), []);
   const filteredOrders = useMemo(() => {
@@ -638,20 +696,30 @@ export default function OrdersPage() {
     }
   };
 
+  // MODAL CANCEL HANDLER
+  const handleCancelModalConfirm = async () => {
+    // No-op if there's not an order to cancel or already loading
+    if (!cancelModalOrder || cancelLoading) return;
+    setCancelLoading(true);
+    try {
+      await cancelOrder(cancelModalOrder);
+    } finally {
+      setCancelLoading(false);
+      setCancelModalOrder(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F5E8D3] to-[#fcf5eb] flex flex-col items-center py-10 px-2">
+      {/* Cancel modal */}
       <CancelModal
         open={!!cancelModalOrder}
         onClose={() => {
-          if (!cancelLoading) setCancelModalOrder(null);
+          if (!cancelLoading) {
+            setCancelModalOrder(null);
+          }
         }}
-        onConfirm={async () => {
-          if (!cancelModalOrder) return;
-          setCancelLoading(true);
-          // Awaiting cancelOrder as a promise: ensures modal button properly awaits
-          await cancelOrder(cancelModalOrder);
-          setCancelLoading(false);
-        }}
+        onConfirm={handleCancelModalConfirm}
         order={cancelModalOrder}
         isLoading={cancelLoading}
       />
@@ -699,7 +767,9 @@ export default function OrdersPage() {
                   ? "bg-[#BFA181] text-white shadow"
                   : "bg-white/80 text-[#7C5E3C] hover:bg-[#f5e8d3]"
               )}
-              onClick={() => setTab("upcoming")}
+              onClick={() => {
+                setTab("upcoming");
+              }}
             >
               <FaRegCalendarCheck />
               Upcoming
@@ -711,7 +781,9 @@ export default function OrdersPage() {
                   ? "bg-[#BFA181] text-white shadow"
                   : "bg-white/80 text-[#7C5E3C] hover:bg-[#f5e8d3]"
               )}
-              onClick={() => setTab("history")}
+              onClick={() => {
+                setTab("history");
+              }}
             >
               <FaHistory />
               History
@@ -724,7 +796,9 @@ export default function OrdersPage() {
               placeholder="Search orders, provider, date..."
               className="bg-transparent outline-none text-[#7C5E3C] w-48 md:w-64"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+              }}
             />
           </div>
         </div>
@@ -781,6 +855,8 @@ export default function OrdersPage() {
               {displayedOrders.map((order) => {
                 const status = getOrderStatus(order);
                 const orderId = order.id ?? "";
+                const isThisOrderInModal = cancelModalOrder?.id === orderId;
+
                 return (
                   <div
                     key={orderId}
@@ -849,21 +925,16 @@ export default function OrdersPage() {
                               : "Mark as Done"}
                           </button>
                           <button
-                            disabled={cancelLoading || cancelling === orderId}
+                            disabled={cancelLoading}
                             onClick={() => {
                               setCancelModalOrder(order);
-                              setCancelling(null); // Make sure to reset cancelling so modal control works
                             }}
                             className={clsx(
                               "w-full bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition disabled:opacity-50",
-                              (cancelLoading || cancelling === orderId) &&
-                                "animate-pulse"
+                              (cancelLoading && isThisOrderInModal) && "animate-pulse"
                             )}
                           >
-                            {cancelling === orderId ||
-                            (cancelModalOrder &&
-                              cancelModalOrder.id === orderId &&
-                              cancelLoading)
+                            {cancelLoading && isThisOrderInModal
                               ? "Cancelling..."
                               : "Cancel Order"}
                           </button>
