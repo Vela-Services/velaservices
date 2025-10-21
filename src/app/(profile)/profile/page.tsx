@@ -9,8 +9,9 @@ import {
   browserSessionPersistence,
   browserLocalPersistence,
   updateProfile,
+  deleteUser,
 } from "firebase/auth";
-import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, updateDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
 import { auth, db, storage } from "../../../lib/firebase";
 import { UserProfile } from "../../../types/types";
 import { IoSettingsSharp } from "react-icons/io5";
@@ -67,6 +68,8 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   // New state for editing bio
   const [editingBio, setEditingBio] = useState(false);
@@ -411,6 +414,74 @@ export default function ProfilePage() {
     }
   };
 
+  // Delete user data from Firestore
+  const deleteUserData = async (userId: string) => {
+    try {
+      // Delete user document from Firestore
+      await deleteDoc(doc(db, "users", userId));
+      
+      // Delete profile picture from Storage if it exists
+      if (profile?.photoURL) {
+        try {
+          const bucket =
+            process.env.NEXT_PUBLIC_STORAGE_BUCKET ||
+            getApp().options.storageBucket ||
+            "";
+          if (
+            bucket &&
+            profile.photoURL.includes(bucket) &&
+            profile.photoURL.startsWith("https://")
+          ) {
+            const url = new URL(profile.photoURL);
+            const pathMatch = url.pathname.match(/\/o\/(.+)$/);
+            let filePath = "";
+            if (pathMatch && pathMatch[1]) {
+              filePath = decodeURIComponent(pathMatch[1].split("?")[0]);
+            }
+            if (filePath) {
+              const photoRef = ref(storage, filePath);
+              await deleteObject(photoRef);
+            }
+          }
+        } catch (error) {
+          console.error("Error deleting profile picture:", error);
+          // Don't fail the entire operation if photo deletion fails
+        }
+      }
+      
+      console.log("User data deleted successfully");
+    } catch (error) {
+      console.error("Error deleting user data:", error);
+      throw error;
+    }
+  };
+
+  // Delete account function
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    
+    setDeletingAccount(true);
+    try {
+      // First delete user data from Firestore
+      await deleteUserData(user.uid);
+      
+      // Then delete the user account from Firebase Auth
+      await deleteUser(user);
+      
+      // Clear all auth data
+      clearAllAuthData();
+      
+      // Redirect to home page
+      if (typeof window !== "undefined") {
+        window.location.href = "/";
+      }
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      setError("Failed to delete account. Please try again or contact support.");
+      setDeletingAccount(false);
+    }
+  };
+
   // --- Profile Completion Calculation & Walkthrough Steps ---
   // Steps: name, email, phone, address, bio, photo, (provider: Stripe, services, availability)
   const steps: {
@@ -732,10 +803,67 @@ export default function ProfilePage() {
               className="block py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors"
               style={{ color: "#3d676d" }}
             >
-              Delete Account
+              Delete Data
             </a>
           </li>
+          <li>
+            <button
+              onClick={() => {
+                setShowSettings(false);
+                setShowDeleteConfirm(true);
+              }}
+              className="block w-full text-left py-2 px-3 rounded-lg hover:bg-red-50 transition-colors text-red-600 hover:text-red-700"
+            >
+              Delete Account
+            </button>
+          </li>
         </ul>
+      </div>
+    </div>
+  );
+
+  // Delete confirmation modal
+  const DeleteConfirmModal = () => (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ background: "rgba(0,0,0,0.25)" }}
+    >
+      <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl p-8 w-full max-w-md relative border border-white/20">
+        <button
+          className="absolute top-3 right-3 text-2xl text-gray-600 hover:text-gray-800"
+          onClick={() => setShowDeleteConfirm(false)}
+          aria-label="Close"
+        >
+          &times;
+        </button>
+        <div className="text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <IoCloseCircleOutline size={32} className="text-red-600" />
+          </div>
+          <h3 className="text-xl font-bold mb-4 text-gray-800">
+            Delete Account
+          </h3>
+          <p className="text-gray-600 mb-6">
+            Are you sure you want to delete your account? This action cannot be undone. 
+            All your data, including profile information, bookings, and payment details will be permanently removed.
+          </p>
+          <div className="flex space-x-3">
+            <button
+              onClick={() => setShowDeleteConfirm(false)}
+              disabled={deletingAccount}
+              className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDeleteAccount}
+              disabled={deletingAccount}
+              className="flex-1 px-4 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors disabled:opacity-50"
+            >
+              {deletingAccount ? "Deleting..." : "Delete Account"}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -743,6 +871,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center px-4 py-8">
       {showSettings && <SettingsModal />}
+      {showDeleteConfirm && <DeleteConfirmModal />}
 
       <div className="w-full max-w-md">
         {/* Walkthrough Card */}
