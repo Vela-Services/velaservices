@@ -14,7 +14,7 @@ export default function UnauthorizedPage() {
         </p>
         <div className="w-full flex flex-col gap-3">
           <Link
-            href="/"
+            href="/home"
             className="inline-block w-full text-center px-6 py-2 bg-[#BFA181] text-white rounded-full font-semibold shadow hover:bg-[#7C5E3C] transition"
           >
             Go to Home

@@ -473,7 +473,7 @@ export default function ProfilePage() {
       
       // Redirect to home page
       if (typeof window !== "undefined") {
-        window.location.href = "/";
+        window.location.href = "/home";
       }
     } catch (error) {
       console.error("Error deleting account:", error);

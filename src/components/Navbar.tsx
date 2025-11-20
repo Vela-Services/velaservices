@@ -82,7 +82,7 @@ const Navbar: React.FC = () => {
   const navLinks = (
     <>
       <Link
-        href="/"
+        href="/home"
         className="flex-1 text-center text-black hover:text-[#BFA181] font-semibold transition px-5 py-4 rounded text-lg md:text-2xl"
         style={{ minWidth: 0, fontFamily: "var(--font-Cormorant_Garamond)" }}
         onClick={() => setMenuOpen(false)}
@@ -311,7 +311,7 @@ const Navbar: React.FC = () => {
       <div className="flex items-center justify-between bg-[#5EB6A6] px-6 py-2">
         {/* Logo (left) */}
         <div
-          onClick={() => router.push("/")}
+          onClick={() => router.push("/home")}
           className="w-40 h-40 flex items-center justify-start cursor-pointer transition-transform duration-200 hover:scale-105"
         >
           <img

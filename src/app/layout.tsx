@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   },
   metadataBase: new URL('https://vela-services.netlify.app'),
   alternates: {
-    canonical: '/',
+    canonical: '/home',
   },
   openGraph: {
     title: "VÉLA Services - Trusted Home Services in Oslo",
