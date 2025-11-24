@@ -20,6 +20,9 @@ import { SettingsModal } from "./components/SettingsModal";
 import { DeleteConfirmModal } from "./components/DeleteConfirmModal";
 import { ProfileActions } from "./components/ProfileActions";
 import { AccountDetails } from "./components/AccountDetails";
+import { ProfileStats } from "./components/ProfileStats";
+import { ProfileQuickLinks } from "./components/ProfileQuickLinks";
+import { ProfileActivity } from "./components/ProfileActivity";
 
 const ProviderStripeSetup = React.lazy(() =>
   import("../../(provider)/ProviderStripeSetup/page").then((mod) => ({
@@ -245,7 +248,7 @@ export default function ProfilePage() {
   const currentProfile = authProfile;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 px-4 py-8">
       {showSettings && (
         <SettingsModal
           onClose={() => setShowSettings(false)}
@@ -260,7 +263,7 @@ export default function ProfilePage() {
         />
       )}
 
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-4xl mx-auto">
         {/* Walkthrough Card */}
         {completion !== 100 && (
           <ProfileWalkthrough
@@ -274,99 +277,127 @@ export default function ProfilePage() {
           />
         )}
 
-        {/* Main Profile Card */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/20 relative">
-          <ProfileHeader
-            user={user}
-            profile={currentProfile}
-            onSettingsClick={() => setShowSettings(true)}
-            onPhotoChange={handlePhotoChange}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Main Profile Card */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Main Profile Card */}
+            <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/20 relative">
+              <ProfileHeader
+                user={user}
+                profile={currentProfile}
+                onSettingsClick={() => setShowSettings(true)}
+                onPhotoChange={handlePhotoChange}
+              />
 
-          {/* Content */}
-          <div className="pt-16 px-6 pb-6">
-            {/* Name & Role */}
-            <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold text-gray-800 mb-2">
-                {currentProfile?.displayName || "Your Name"}
-              </h1>
-              <div
-                className="inline-flex items-center px-4 py-1.5 text-white text-sm font-medium rounded-full"
-                style={{
-                  background: "linear-gradient(135deg, #3d676d 0%, #527278 100%)",
-                }}
-              >
-                {currentProfile?.role
-                  ? currentProfile.role.charAt(0).toUpperCase() +
-                    currentProfile.role.slice(1)
-                  : "User"}
+              {/* Content */}
+              <div className="pt-20 px-6 pb-6">
+                {/* Name & Role */}
+                <div className="text-center mb-6">
+                  <h1 className="text-2xl font-bold text-gray-800 mb-2">
+                    {currentProfile?.displayName || "Your Name"}
+                  </h1>
+                  <div
+                    className="inline-flex items-center px-4 py-1.5 text-white text-sm font-medium rounded-full"
+                    style={{
+                      background: "linear-gradient(135deg, #3d676d 0%, #527278 100%)",
+                    }}
+                  >
+                    {currentProfile?.role
+                      ? currentProfile.role.charAt(0).toUpperCase() +
+                        currentProfile.role.slice(1)
+                      : "User"}
+                  </div>
+                </div>
+
+                {/* Bio */}
+                <ProfileBio
+                  profile={currentProfile}
+                  editingBio={editingBio}
+                  bioValue={bioValue}
+                  savingBio={savingBio}
+                  bioError={bioError}
+                  onEditBio={handleEditBio}
+                  onBioChange={handleBioChange}
+                  onBioSave={handleBioSave}
+                  onCancel={() => setEditingBio(false)}
+                />
+
+                {/* Contact Info */}
+                <ContactInfo
+                  user={user}
+                  profile={currentProfile}
+                  resendingEmail={resendingEmail}
+                  emailResent={emailResent}
+                  onResendVerificationEmail={resendVerificationEmail}
+                />
+
+                {/* Provider Stripe Setup */}
+                {currentProfile?.role === "provider" && (
+                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 mb-4">
+                    <Suspense fallback={<span>Loading Stripe setup...</span>}>
+                      <ProviderStripeSetup />
+                    </Suspense>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <ProfileActions onEdit={handleEdit} />
               </div>
             </div>
 
-            {/* Bio */}
-            <ProfileBio
-              profile={currentProfile}
-              editingBio={editingBio}
-              bioValue={bioValue}
-              savingBio={savingBio}
-              bioError={bioError}
-              onEditBio={handleEditBio}
-              onBioChange={handleBioChange}
-              onBioSave={handleBioSave}
-              onCancel={() => setEditingBio(false)}
-            />
+            {/* Edit Form */}
+            {editing && (
+              <ProfileEditForm
+                editData={editData}
+                saving={saving}
+                error={error}
+                onChange={handleEditChange}
+                onSave={handleEditSave}
+                onCancel={() => setEditing(false)}
+              />
+            )}
+          </div>
 
-            {/* Contact Info */}
-            <ContactInfo
+          {/* Right Column - Stats, Links, Activity */}
+          <div className="space-y-4">
+            {/* Stats Cards */}
+            <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-4 border border-white/20">
+              <h2 className="text-base font-bold text-gray-800 mb-3">Overview</h2>
+              <ProfileStats
+                profile={currentProfile}
+                user={user}
+                completion={completion}
+              />
+            </div>
+
+            {/* Quick Links */}
+            <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-4 border border-white/20">
+              <ProfileQuickLinks profile={currentProfile} />
+            </div>
+
+            {/* Recent Activity */}
+            <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-4 border border-white/20">
+              <ProfileActivity />
+            </div>
+
+            {/* Account Details */}
+            <AccountDetails
               user={user}
               profile={currentProfile}
-              resendingEmail={resendingEmail}
-              emailResent={emailResent}
-              onResendVerificationEmail={resendVerificationEmail}
+              completion={completion}
             />
 
-            {/* Provider Stripe Setup */}
-            {currentProfile?.role === "provider" && (
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 mb-4">
-                <Suspense fallback={<span>Loading Stripe setup...</span>}>
-                        <ProviderStripeSetup />
-                </Suspense>
-                </div>
-              )}
-
-            {/* Action Buttons */}
-            <ProfileActions onEdit={handleEdit} />
+            {/* Sign Out */}
+            <div className="flex justify-center">
+              <button
+                onClick={handleSignOut}
+                disabled={signingOut}
+                className="w-full bg-red-500 hover:bg-red-600 text-white py-2.5 px-6 rounded-xl font-medium disabled:opacity-50 hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200 text-sm"
+              >
+                {signingOut ? "Signing Out..." : "Sign Out"}
+              </button>
+            </div>
           </div>
-        </div>
-
-        {/* Edit Form */}
-        {editing && (
-          <ProfileEditForm
-            editData={editData}
-            saving={saving}
-            error={error}
-                    onChange={handleEditChange}
-            onSave={handleEditSave}
-            onCancel={() => setEditing(false)}
-          />
-        )}
-
-        {/* Account Details */}
-        <AccountDetails
-          user={user}
-          profile={currentProfile}
-          completion={completion}
-        />
-
-        {/* Sign Out */}
-        <div className="mt-4 flex justify-center">
-          <button
-            onClick={handleSignOut}
-            disabled={signingOut}
-            className="bg-red-500 hover:bg-red-600 text-white py-3 px-8 rounded-xl font-medium disabled:opacity-50 hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200"
-          >
-            {signingOut ? "Signing Out..." : "Sign Out"}
-          </button>
         </div>
       </div>
     </div>

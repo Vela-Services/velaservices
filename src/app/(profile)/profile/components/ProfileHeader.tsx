@@ -38,8 +38,8 @@ export function ProfileHeader({
       </button>
 
       {/* Profile Picture */}
-      <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2">
-        <div className="w-24 h-24 rounded-full bg-white p-1 shadow-xl relative group flex items-center justify-center">
+      <div className="absolute -bottom-14 left-1/2 transform -translate-x-1/2">
+        <div className="w-28 h-28 rounded-full bg-white p-1.5 shadow-2xl relative group flex items-center justify-center ring-4 ring-white/50">
           <img
             src={
               user.photoURL ||
@@ -52,11 +52,10 @@ export function ProfileHeader({
           {/* Change Picture Button */}
           <label
             htmlFor="profilePicture"
-            className="absolute -top-1 -left-1 w-8 h-8 bg-[#3d676d] rounded-full flex items-center justify-center border-2 border-white cursor-pointer"
-            title="Changer la photo de profil"
-            style={{ boxShadow: "0 2px 8px 0 rgba(61,103,109,0.15)" }}
+            className="absolute -bottom-1 -right-1 w-9 h-9 bg-gradient-to-br from-[#3d676d] to-[#527278] rounded-full flex items-center justify-center border-2 border-white cursor-pointer shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-200 z-10"
+            title="Change profile picture"
           >
-            <MdPhotoCamera size={18} className="text-white" />
+            <MdPhotoCamera size={16} className="text-white" />
             <input
               type="file"
               id="profilePicture"
@@ -67,8 +66,8 @@ export function ProfileHeader({
           </label>
         </div>
         {user.emailVerified && (
-          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#3d676d] rounded-full flex items-center justify-center border-2 border-white">
-            <MdOutlineVerified size={14} className="text-white" />
+          <div className="absolute -bottom-2 -left-2 w-7 h-7 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg z-10">
+            <MdOutlineVerified size={16} className="text-white" />
           </div>
         )}
       </div>
