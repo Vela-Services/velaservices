@@ -21,13 +21,14 @@ type AdminUser = {
 };
 
 export default function AdminProvidersPage() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   const [providers, setProviders] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [onlyInactive, setOnlyInactive] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [updatingRole, setUpdatingRole] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -68,6 +69,7 @@ export default function AdminProvidersPage() {
           p.email,
           p.phone,
           p.address,
+          p.role,
           JSON.stringify(p.services ?? ""),
         ]
           .join(" ")
@@ -77,6 +79,41 @@ export default function AdminProvidersPage() {
     }
     return list;
   }, [providers, search, onlyInactive]);
+
+  const handleRoleChange = async (userId: string, newRole: string) => {
+    if (!isAdmin || !user?.uid) return;
+    
+    setUpdatingRole(userId);
+    setError(null);
+    
+    try {
+      const res = await fetch("/api/admin/users/update-role", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          role: newRole,
+          requesterId: user.uid,
+        }),
+      });
+
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update role");
+      }
+
+      // Update local state
+      setProviders((prev) =>
+        prev.map((p) => (p.id === userId ? { ...p, role: newRole } : p))
+      );
+    } catch (err) {
+      console.error("[AdminProviders] Failed to update role", err);
+      setError(err instanceof Error ? err.message : "Failed to update role.");
+    } finally {
+      setUpdatingRole(null);
+    }
+  };
 
   // Try to turn the `services` field (which might be strings or objects)
   // into a nice comma-separated list of labels.
@@ -250,6 +287,21 @@ export default function AdminProvidersPage() {
                   label="Services"
                   value={formatServices(p.services)}
                 />
+                <InfoRow 
+                  label="Role" 
+                  value={
+                    <select
+                      value={p.role || "provider"}
+                      onChange={(e) => handleRoleChange(p.id, e.target.value)}
+                      disabled={updatingRole === p.id}
+                      className="text-xs font-medium bg-white border border-[#E5D3B3] rounded px-2 py-1 text-[#7C5E3C] focus:outline-none focus:ring-2 focus:ring-[#BFA181] disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <option value="customer">Customer</option>
+                      <option value="provider">Provider</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  }
+                />
               </div>
 
               <div className="flex gap-2 mt-1">
@@ -277,12 +329,16 @@ export default function AdminProvidersPage() {
   );
 }
 
-function InfoRow(props: { label: string; value: string }) {
+function InfoRow(props: { label: string; value: string | React.ReactNode }) {
   const { label, value } = props;
   return (
     <div className="flex flex-col">
       <span className="text-[11px] text-[#7C5E3C]/60">{label}</span>
-      <span className="text-xs font-medium">{value}</span>
+      {typeof value === "string" ? (
+        <span className="text-xs font-medium">{value}</span>
+      ) : (
+        value
+      )}
     </div>
   );
 }
