@@ -2,15 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // Define which routes require which roles
 const protectedRoutes = [
-  { matcher: /^\/provider(\/|$)/, allowedRoles: ['provider'] },
-  { matcher: /^\/dashboard(\/|$)/, allowedRoles: ['provider'] },
-  { matcher: /^\/providerFaq(\/|$)/, allowedRoles: ['provider'] },
-  { matcher: /^\/providerServices(\/|$)/, allowedRoles: ['provider'] },
-  { matcher: /^\/customer(\/|$)/, allowedRoles: ['customer'] },
-  { matcher: /^\/customerServices(\/|$)/, allowedRoles: ['customer'] },
-  { matcher: /^\/orders(\/|$)/, allowedRoles: ['customer'] },
-  { matcher: /^\/payment(\/|$)/, allowedRoles: ['customer'] },
-  { matcher: /^\/cart(\/|$)/, allowedRoles: ['customer'] },
+  { matcher: /^\/provider(\/|$)/, allowedRoles: ["provider"] },
+  { matcher: /^\/dashboard(\/|$)/, allowedRoles: ["provider"] },
+  { matcher: /^\/providerFaq(\/|$)/, allowedRoles: ["provider"] },
+  { matcher: /^\/providerServices(\/|$)/, allowedRoles: ["provider"] },
+  { matcher: /^\/customer(\/|$)/, allowedRoles: ["customer"] },
+  { matcher: /^\/customerServices(\/|$)/, allowedRoles: ["customer"] },
+  { matcher: /^\/orders(\/|$)/, allowedRoles: ["customer"] },
+  { matcher: /^\/payment(\/|$)/, allowedRoles: ["customer"] },
+  { matcher: /^\/cart(\/|$)/, allowedRoles: ["customer"] },
+  // Admin-only area
+  { matcher: /^\/admin(\/|$)/, allowedRoles: ["admin"] },
 ];
 
 // Helper to get cookie value robustly
@@ -30,18 +32,18 @@ export function middleware(req: NextRequest) {
   }
 
   // Get role from cookie
-  const role = getCookie(req, 'role');
+  const role = getCookie(req, "role");
 
   // If no role, redirect to login with redirect param
   if (!role) {
-    const loginUrl = new URL('/login', req.url);
-    loginUrl.searchParams.set('redirect', path);
+    const loginUrl = new URL("/login", req.url);
+    loginUrl.searchParams.set("redirect", path);
     return NextResponse.redirect(loginUrl);
   }
 
   // If role is not allowed, redirect to unauthorized
   if (!route.allowedRoles.includes(role)) {
-    return NextResponse.redirect(new URL('/unauthorized', req.url));
+    return NextResponse.redirect(new URL("/unauthorized", req.url));
   }
 
   // All good, continue
@@ -51,14 +53,15 @@ export function middleware(req: NextRequest) {
 // Match all relevant routes for both /provider and /customer
 export const config = {
   matcher: [
-    '/provider/:path*',
-    '/dashboard/:path*',
-    '/providerFaq/:path*',
-    '/providerServices/:path*',
-    '/customer/:path*',
-    '/customerServices/:path*',
-    '/orders/:path*',
-    '/payment/:path*',
-    '/cart/:path*',
+    "/provider/:path*",
+    "/dashboard/:path*",
+    "/providerFaq/:path*",
+    "/providerServices/:path*",
+    "/customer/:path*",
+    "/customerServices/:path*",
+    "/orders/:path*",
+    "/payment/:path*",
+    "/cart/:path*",
+    "/admin/:path*",
   ],
 };

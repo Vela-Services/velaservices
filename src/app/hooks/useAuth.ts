@@ -14,14 +14,47 @@ export function useAuth() {
       setUser(firebaseUser);
       if (firebaseUser) {
         const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-        setProfile(userDoc.exists() ? (userDoc.data() as UserProfile) : null);
+        const data = userDoc.exists()
+          ? (userDoc.data() as UserProfile)
+          : null;
+        setProfile(data);
+
+        // Keep a simple role cookie in sync for middleware / SSR.
+        // This complements (and can override) the cookie set on login.
+        if (typeof document !== "undefined") {
+          const role = data?.role;
+          if (role) {
+            document.cookie = `role=${role}; path=/; max-age=604800`;
+          } else {
+            // Clear role cookie if no role is found
+            document.cookie =
+              "role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+          }
+        }
       } else {
         setProfile(null);
+        if (typeof document !== "undefined") {
+          document.cookie =
+            "role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        }
       }
       setLoading(false);
     });
     return () => unsubscribe();
   }, []);
 
-  return { profile, user, loading };
+  const role = profile?.role;
+  const isCustomer = role === "customer";
+  const isProvider = role === "provider";
+  const isAdmin = role === "admin" || !!profile?.isSuperAdmin;
+
+  return {
+    profile,
+    user,
+    loading,
+    role,
+    isCustomer,
+    isProvider,
+    isAdmin,
+  };
 }
