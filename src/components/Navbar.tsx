@@ -29,7 +29,7 @@ const languages = [
 
 const Navbar: React.FC = () => {
   const router = useRouter();
-  const { user, profile, loading, isCustomer, isProvider, isAdmin } = useAuth();
+  const { user, profile, isCustomer, isProvider, isAdmin } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const [language, setLanguage] = useState("en");
@@ -59,12 +59,6 @@ const Navbar: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [langMenuOpen]);
 
-  // Close mobile menu when auth state fully resolves (reduces flicker)
-  useEffect(() => {
-    if (!loading && menuOpen) {
-      setMenuOpen(false);
-    }
-  }, [loading, menuOpen]);
 
   // Navigation links for both desktop and mobile, now BIGGER
   const navLinks = (
@@ -292,7 +286,7 @@ const Navbar: React.FC = () => {
 
   // Mobile menu content
   const mobileMenu = (
-    <div className="md:hidden absolute top-full left-0 w-full bg-[#F5E8D3] shadow-lg border-t border-[#e5dbc9] flex flex-col gap-6 px-6 py-6 animate-fade-in z-40">
+    <div className="md:hidden absolute top-full left-0 w-full bg-[#F5E8D3] shadow-lg border-t border-[#e5dbc9] flex flex-col gap-6 px-6 py-6 animate-fade-in z-50">
       <div className="flex flex-col gap-4">{navLinks}</div>
       <div className="flex flex-col gap-3 mt-4">
         {langButton}
@@ -335,12 +329,21 @@ const Navbar: React.FC = () => {
         </div>
         {/* Mobile burger button */}
         <button
-          className="md:hidden flex items-center justify-center p-2 rounded focus:outline-none"
+          className="md:hidden flex items-center justify-center p-3 rounded focus:outline-none z-50 relative min-w-[44px] min-h-[44px]"
+          style={{ touchAction: 'manipulation' }}
           aria-label="Open menu"
-          onClick={() => setMenuOpen((open) => !open)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setMenuOpen((open) => !open);
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+          }}
+          type="button"
         >
           <svg
-            className="w-7 h-7 text-[#7C5E3C]"
+            className="w-7 h-7 text-[#7C5E3C] pointer-events-none"
             fill="none"
             stroke="currentColor"
             strokeWidth={2.5}
@@ -370,9 +373,9 @@ const Navbar: React.FC = () => {
           {navLinks}
         </div>
       </div>
-      <div className="bg-[#5EB6A6] h-10"></div>
       {/* Mobile menu */}
       {menuOpen && mobileMenu}
+      <div className="bg-[#5EB6A6] h-10"></div>
     </nav>
   );
 };
