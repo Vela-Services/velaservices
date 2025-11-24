@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Service, ProviderService, SubService } from "@/types/types";
+import { Service, ProviderService } from "@/types/types";
 import { db } from "@/lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
 

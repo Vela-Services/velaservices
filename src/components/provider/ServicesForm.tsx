@@ -4,7 +4,7 @@ import { Service, ProviderService } from "@/types/types";
 import { ServiceCard } from "./ServiceCard";
 import { CurrentServicesList } from "./CurrentServicesList";
 import { FaCheckCircle, FaSpinner, FaLightbulb } from "react-icons/fa";
-import { MdBusinessCenter, MdTrendingUp } from "react-icons/md";
+import { MdBusinessCenter } from "react-icons/md";
 import { useState, useEffect } from "react";
 
 type ServicesFormProps = {
