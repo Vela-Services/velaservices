@@ -70,18 +70,27 @@ export function ProfileBio({
   }
 
   return (
-    <div className="mb-6 px-2">
-      <div className="flex flex-col items-center">
-        <p className="text-gray-600 text-center text-sm leading-relaxed mb-2 w-full">
-          {profile?.why ||
-            "This is your short bio. Write 2–3 sentences to describe yourself."}
-        </p>
-        <button
-          onClick={onEditBio}
-          className="flex items-center text-xs text-[#3d676d] hover:underline hover:text-[#527278] transition mb-2"
-        >
-          <MdEdit size={16} className="mr-1" />
-        </button>
+    <div className="mb-6">
+      <div className="bg-gradient-to-br from-gray-50 to-slate-50 rounded-xl p-4 border border-gray-100 hover:shadow-md transition-shadow">
+        <div className="flex items-start justify-between gap-3">
+          <p className="text-gray-700 text-sm leading-relaxed flex-1">
+            {profile?.why ? (
+              <span className="italic">&ldquo;{profile.why}&rdquo;</span>
+            ) : (
+              <span className="text-gray-500">
+                This is your short bio. Write 2–3 sentences to describe yourself.
+              </span>
+            )}
+          </p>
+          <button
+            onClick={onEditBio}
+            className="flex items-center gap-1 text-xs text-[#3d676d] hover:text-[#527278] transition-colors flex-shrink-0 px-2 py-1 rounded-lg hover:bg-white/60"
+            title="Edit bio"
+          >
+            <MdEdit size={16} />
+            <span className="hidden sm:inline">Edit</span>
+          </button>
+        </div>
       </div>
     </div>
   );
