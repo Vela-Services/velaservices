@@ -40,6 +40,7 @@ export default function AvailabilitySelector({
 }: Props) {
   // For mobile friendliness, show one day at a time
   const [selectedDayIdx, setSelectedDayIdx] = useState(0);
+  const [isDesktop, setIsDesktop] = useState(false);
 
   // Always keep all days in state for easier "select all/none" etc
   const [availability, setAvailability] = useState<Availability[]>(
@@ -48,6 +49,15 @@ export default function AvailabilitySelector({
         ? initialAvailability
         : getDefaultAvailability()
   );
+
+  useEffect(() => {
+    const checkDesktop = () => {
+      setIsDesktop(window.innerWidth >= 640);
+    };
+    checkDesktop();
+    window.addEventListener("resize", checkDesktop);
+    return () => window.removeEventListener("resize", checkDesktop);
+  }, []);
 
   useEffect(() => {
     if (
@@ -95,72 +105,73 @@ export default function AvailabilitySelector({
     onChange(availability);
   }, [availability, onChange]);
 
-  // Responsive: show all days on desktop, one day at a time on mobile
+  const daysToShow = isDesktop ? weekdays : [weekdays[selectedDayIdx]];
+
   return (
     <div>
       {/* Day selector for mobile */}
-      <div className="flex sm:hidden mb-4 justify-center items-center gap-2">
-        <button
-          type="button"
-          className="p-2 rounded-full bg-[#F5E8D3] text-[#BFA181] hover:bg-[#BFA181]/20 transition"
-          onClick={() =>
-            setSelectedDayIdx((idx) => (idx === 0 ? 6 : idx - 1))
-          }
-          aria-label="Previous day"
-        >
-          <FaChevronLeft />
-        </button>
-        <span className="font-semibold text-[#7C5E3C] text-lg">
-          {weekdays[selectedDayIdx]}
-        </span>
-        <button
-          type="button"
-          className="p-2 rounded-full bg-[#F5E8D3] text-[#BFA181] hover:bg-[#BFA181]/20 transition"
-          onClick={() =>
-            setSelectedDayIdx((idx) => (idx === 6 ? 0 : idx + 1))
-          }
-          aria-label="Next day"
-        >
-          <FaChevronRight />
-        </button>
-      </div>
-      {/* Desktop: show all days, Mobile: show only selected day */}
-      <div className="space-y-8">
-        {(window?.innerWidth >= 640
-          ? weekdays
-          : [weekdays[selectedDayIdx]]
-        ).map((day) => {
+      {!isDesktop && (
+        <div className="flex mb-4 justify-center items-center gap-2">
+          <button
+            type="button"
+            className="p-2 rounded-lg bg-[#F5E8D3] text-[#BFA181] hover:bg-[#BFA181]/20 transition"
+            onClick={() =>
+              setSelectedDayIdx((idx) => (idx === 0 ? 6 : idx - 1))
+            }
+            aria-label="Previous day"
+          >
+            <FaChevronLeft />
+          </button>
+          <span className="font-semibold text-[#7C5E3C] text-base px-4">
+            {weekdays[selectedDayIdx]}
+          </span>
+          <button
+            type="button"
+            className="p-2 rounded-lg bg-[#F5E8D3] text-[#BFA181] hover:bg-[#BFA181]/20 transition"
+            onClick={() =>
+              setSelectedDayIdx((idx) => (idx === 6 ? 0 : idx + 1))
+            }
+            aria-label="Next day"
+          >
+            <FaChevronRight />
+          </button>
+        </div>
+      )}
+
+      {/* Days grid */}
+      <div className="space-y-2">
+        {daysToShow.map((day) => {
           const dayTimes =
             availability.find((a) => a.day === day)?.times || [];
           const allSelected = dayTimes.length === hourSlots.length;
           const noneSelected = dayTimes.length === 0;
           return (
-            <div key={day} className="bg-[#F9F5EF] rounded-xl p-4 shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-semibold text-[#7C5E3C] flex items-center gap-2">
-                  {day}
+            <div key={day} className="bg-white rounded-lg p-2 border border-gray-200">
+              <div className="flex items-center justify-between mb-1.5">
+                <h3 className="text-xs font-semibold text-[#7C5E3C] flex items-center gap-1.5 truncate">
+                  <span className="truncate">{day}</span>
                   {allSelected && (
-                    <FaCheckCircle className="text-green-500" title="All selected" />
+                    <FaCheckCircle className="text-green-500 flex-shrink-0 w-3.5 h-3.5" title="All selected" />
                   )}
                 </h3>
-                <div className="flex gap-2">
+                <div className="flex gap-1 flex-shrink-0">
                   <button
                     type="button"
-                    className={`px-2 py-1 rounded text-xs font-medium border transition ${
+                    className={`px-1.5 py-0.5 rounded text-[10px] font-medium border transition whitespace-nowrap ${
                       allSelected
-                        ? "bg-[#BFA181]/20 border-[#BFA181] text-[#BFA181] cursor-not-allowed"
+                        ? "bg-[#BFA181]/20 border-[#BFA181] text-[#BFA181] cursor-not-allowed opacity-50"
                         : "bg-white border-[#BFA181] text-[#BFA181] hover:bg-[#BFA181]/10"
                     }`}
                     onClick={() => selectAllDay(day)}
                     disabled={allSelected}
                   >
-                    Select all
+                    All
                   </button>
                   <button
                     type="button"
-                    className={`px-2 py-1 rounded text-xs font-medium border transition ${
+                    className={`px-1.5 py-0.5 rounded text-[10px] font-medium border transition whitespace-nowrap ${
                       noneSelected
-                        ? "bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed"
+                        ? "bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed opacity-50"
                         : "bg-white border-[#BFA181] text-[#BFA181] hover:bg-[#BFA181]/10"
                     }`}
                     onClick={() => clearDay(day)}
@@ -170,37 +181,41 @@ export default function AvailabilitySelector({
                   </button>
                 </div>
               </div>
-              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-1">
+              
+              {/* Time slots grid - 4 columns for narrow sidebar, ensures 12 rows of 4 */}
+              <div className="grid grid-cols-4 gap-1">
                 {hourSlots.map((time) => {
                   const selected = dayTimes.includes(time);
                   return (
                     <button
                       type="button"
                       key={time}
-                      className={`px-1.5 py-1 rounded-md border text-xs text-center transition
+                      className={`px-1 py-1.5 rounded border text-[11px] font-medium text-center transition-all duration-150 w-full min-h-[28px] flex items-center justify-center
                         ${
                           selected
-                            ? "bg-[#BFA181] text-white border-[#BFA181] shadow"
-                            : "bg-white border-gray-300 text-[#7C5E3C] hover:bg-[#BFA181]/10"
+                            ? "bg-[#BFA181] text-white border-[#BFA181] shadow-sm"
+                            : "bg-white border-gray-300 text-[#7C5E3C] hover:bg-[#BFA181]/10 hover:border-[#BFA181]/50"
                         }
-                        focus:outline-none focus:ring-2 focus:ring-[#BFA181]/50
+                        focus:outline-none focus:ring-1 focus:ring-[#BFA181]/50
                       `}
                       onClick={() => toggleTime(day, time)}
                       aria-pressed={selected}
                       tabIndex={0}
+                      title={time}
                     >
                       {time}
                     </button>
                   );
                 })}
               </div>
-              {/* Show summary of selected times */}
-              <div className="mt-2 text-xs text-[#7C5E3C]/70">
+              
+              {/* Show summary of selected times - Compact */}
+              <div className="mt-1.5 text-[10px] text-[#7C5E3C]/70">
                 {dayTimes.length === 0
                   ? "No times selected"
                   : dayTimes.length === hourSlots.length
                   ? "All times selected"
-                  : `Selected: ${dayTimes.join(", ")}`}
+                  : `${dayTimes.length} time${dayTimes.length === 1 ? '' : 's'} selected`}
               </div>
             </div>
           );

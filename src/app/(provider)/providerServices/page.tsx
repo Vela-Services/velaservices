@@ -1,253 +1,56 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import { onAuthStateChanged, User, UserProfile } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
-import { doc, getDoc, setDoc, collection, getDocs } from "firebase/firestore";
-import { FaCheckCircle } from "react-icons/fa";
 import Link from "next/link";
-
-import AvailabilitySelector, {
-  Availability,
-} from "@/components/AvailabilitySelector";
-
-import { Service, SubService, ProviderService } from "@/types/types";
-
-// Helper: Capitalize first letter
-function capitalize(str: string) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
+import { useProviderServices } from "@/app/hooks/provider/useProviderServices";
+import { useServiceHandlers } from "@/app/hooks/provider/useServiceHandlers";
+import { ServicesForm } from "@/components/provider/ServicesForm";
+import { AvailabilitySection } from "@/components/provider/AvailabilitySection";
+import { FaArrowRight, FaRocket } from "react-icons/fa";
 
 export default function ServicesPage() {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [providerServices, setProviderServices] = useState<ProviderService[]>(
-    []
-  );
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [saveMsg, setSaveMsg] = useState<string | null>(null);
-  const [availability, setAvailability] = useState<Availability[]>([]);
-  const [services, setServices] = useState<Service[]>([]);
+  const {
+    profile,
+    user,
+    providerServices,
+    setProviderServices,
+    availability,
+    setAvailability,
+    services,
+    loading,
+    saving: hookSaving,
+    saveMsg,
+    setSaveMsg,
+    handleSaveProviderServices,
+  } = useProviderServices();
 
-  // Fetch services
-  useEffect(() => {
-    let isMounted = true;
-    async function fetchServices() {
-      try {
-        const servicesCol = collection(db, "services");
-        const servicesSnap = await getDocs(servicesCol);
-
-        const servicesArr: Service[] = [];
-
-        for (const docSnap of servicesSnap.docs) {
-          const data = docSnap.data();
-
-          const subServices: SubService[] | undefined = data.subServices?.map(
-            (subData: unknown) => {
-              const s = subData as {
-                id: string;
-                name: string;
-                price: number;
-                baseDuration: number;
-                description?: string;
-              };
-              return {
-                id: s.id,
-                name: s.name,
-                price: s.price,
-                baseDuration: s.baseDuration,
-                description: s.description || undefined,
-              };
-            }
-          );
-
-          servicesArr.push({
-            id: docSnap.id,
-            name: data.name,
-            subServices: subServices?.length ? subServices : undefined,
-          });
-        }
-
-        if (isMounted) setServices(servicesArr);
-      } catch (err) {
-        console.error("❌ Failed to fetch services from Firestore", err);
-      }
-    }
-    fetchServices();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // Fetch user + provider
-  useEffect(() => {
-    let isMounted = true;
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (!isMounted) return;
-      setUser(firebaseUser);
-
-      if (!firebaseUser) {
-        setProfile(null);
-        setProviderServices([]);
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-        if (!userDoc.exists()) {
-          setProfile(null);
-          setProviderServices([]);
-          setLoading(false);
-          return;
-        }
-
-        const data = userDoc.data();
-        setProfile(data as UserProfile);
-
-        if (data.role === "provider" && Array.isArray(data.services)) {
-          setProviderServices(data.services);
-          setAvailability(data.availability || []);
-        } else {
-          setProviderServices([]);
-        }
-      } catch (error) {
-        console.error("❌ Error loading provider services:", error);
-        setProfile(null);
-        setProviderServices([]);
-      }
-
-      setLoading(false);
-    });
-
-    return () => {
-      isMounted = false;
-      unsubscribe();
-    };
-  }, []);
-
-  // Save availability to Firestore (debounced)
-  useEffect(() => {
-    if (!user) return;
-    if (loading) return;
-    const timeoutId = setTimeout(async () => {
-      try {
-        const userRef = doc(db, "users", user.uid);
-        await setDoc(userRef, { availability }, { merge: true });
-        setSaveMsg("Availability updated!");
-      } catch {
-        setSaveMsg("Failed to save availability.");
-      }
-    }, 1000);
-
-    return () => clearTimeout(timeoutId);
-  }, [availability, user, loading]);
-
-  const handleProviderServiceToggle = async (serviceId: string) => {
-    if (!user) return;
-    setSaving(true);
-    setSaveMsg(null);
-
-    let updatedServices: ProviderService[];
-    const exists = providerServices.some((s) => s.serviceId === serviceId);
-
-    if (exists) {
-      updatedServices = providerServices.filter(
-        (s) => s.serviceId !== serviceId
-      );
-    } else {
-      const service = services.find((s) => s.id === serviceId);
-      updatedServices = [
-        ...providerServices,
-        {
-          serviceId: service!.id,
-          subServices: service?.subServices || [],
-        },
-      ];
-    }
-
-    setProviderServices(updatedServices);
-
-    try {
-      const userRef = doc(db, "users", user.uid);
-      await setDoc(userRef, { services: updatedServices }, { merge: true });
-      setSaveMsg("Services updated!");
-    } catch {
-      setSaveMsg("Failed to save availability.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleSubServiceToggle = (serviceId: string, subServiceId: string) => {
-    const service = services.find((s) => s.id === serviceId);
-    const subService = service?.subServices?.find((s) => s.id === subServiceId);
-    if (!subService) return;
-
-    setProviderServices((prev) =>
-      prev.map((ps) => {
-        if (ps.serviceId !== serviceId) return ps;
-        const exists = ps.subServices?.some((s) => s.id === subServiceId);
-        return {
-          ...ps,
-          subServices: exists
-            ? ps.subServices!.filter((s) => s.id !== subServiceId)
-            : [...(ps.subServices || []), subService],
-        };
-      })
+  const { saving: handlerSaving, handleProviderServiceToggle, handleSubServiceToggle, handleSubServicePriceChange } =
+    useServiceHandlers(
+      user,
+      services,
+      providerServices,
+      setProviderServices,
+      setSaveMsg
     );
-  };
 
-  const handleSubServicePriceChange = (
-    serviceId: string,
-    subId: string,
-    price: number
-  ) => {
-    setProviderServices((prev) =>
-      prev.map((ps) => {
-        if (ps.serviceId !== serviceId) return ps;
-        return {
-          ...ps,
-          subServices: ps.subServices!.map((s) =>
-            s.id === subId ? { ...s, price } : s
-          ),
-        };
-      })
-    );
-  };
-
-  // Save to Firestore
-  const handleSaveProviderServices = useCallback(async () => {
-    if (!user) return;
-    setSaving(true);
-    setSaveMsg(null);
-    try {
-      const userRef = doc(db, "users", user.uid);
-      await setDoc(
-        userRef,
-        {
-          services: providerServices,
-          availability: availability,
-        },
-        { merge: true }
-      );
-      setSaveMsg("Services, prices, and availability updated successfully!");
-    } catch {
-      setSaveMsg("Failed to save availability.");
-    } finally {
-      setSaving(false);
-    }
-  }, [user, providerServices, availability]);
+  const saving = hookSaving || handlerSaving;
+  const hasSelectedServices = providerServices.length > 0;
 
   if (loading || services.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5E8D3] to-[#fcf5eb]">
-        <div className="flex flex-col items-center gap-4">
-          <span className="text-[#7C5E3C] text-2xl font-bold animate-pulse">
-            Loading your profile...
-          </span>
-          <div className="w-12 h-12 border-4 border-[#BFA181] border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5E8D3] via-[#FFF7E6] to-[#fcf5eb]">
+        <div className="flex flex-col items-center gap-6">
+          <div className="relative">
+            <div className="w-20 h-20 border-4 border-[#BFA181] border-t-transparent rounded-full animate-spin"></div>
+            <div className="absolute inset-0 w-20 h-20 border-4 border-transparent border-r-[#7C5E3C] rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+          </div>
+          <div className="text-center">
+            <p className="text-[#7C5E3C] text-2xl font-bold mb-2">
+              Setting up your services...
+            </p>
+            <p className="text-[#7C5E3C]/60 text-sm">
+              We&apos;re loading everything you need
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -255,315 +58,122 @@ export default function ServicesPage() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5E8D3] to-[#fcf5eb]">
-        <div className="bg-white rounded-xl shadow-lg px-8 py-10 flex flex-col items-center">
-          <span className="text-[#7C5E3C] text-2xl font-bold mb-2">
-            Please log in to continue.
-          </span>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F5E8D3] via-[#FFF7E6] to-[#fcf5eb] p-4">
+        <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl px-8 py-12 flex flex-col items-center max-w-md mx-auto border border-[#E5D3B3]/50">
+          <div className="w-24 h-24 bg-gradient-to-br from-[#BFA181] to-[#7C5E3C] rounded-3xl flex items-center justify-center mb-6 shadow-xl">
+            <svg
+              className="w-12 h-12 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
+            </svg>
+          </div>
+          <h2 className="text-3xl font-bold text-[#7C5E3C] mb-3 text-center">
+            Authentication Required
+          </h2>
+          <p className="text-[#7C5E3C]/70 text-center mb-8 leading-relaxed">
+            Please log in to manage your provider services and set your availability schedule.
+          </p>
           <Link
             href="/login"
-            className="mt-4 px-6 py-2 bg-[#BFA181] text-white rounded-full font-semibold shadow hover:bg-[#A68A64] transition"
+            className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-[#BFA181] to-[#7C5E3C] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 active:scale-95"
           >
-            Go to Login
+            <span>Go to Login</span>
+            <FaArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </div>
     );
   }
 
-  // PROVIDER UI
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F5E8D3] to-[#fcf5eb] py-8 px-2 flex flex-col items-center">
-      <div className="w-full max-w-3xl">
-        {/* Main Form Card */}
-        <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-10 border border-[#f3e6d0]">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-center text-[#7C5E3C] mb-1 tracking-tight">
-            Provider Profile
-          </h1>
-          <p className="text-center text-[#7C5E3C]/70 mb-8 text-base sm:text-lg">
-            Select the services you offer, set your hourly price, and define
-            your weekly availability.
-          </p>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSaveProviderServices();
-            }}
-          >
-            <div className="mb-8">
-              <h2 className="text-lg sm:text-xl font-semibold text-[#7C5E3C] mb-3 flex flex-col items-center gap-2">
-                {/* Centered Icon */}
-                <span className="inline-flex w-12 h-12 bg-[#BFA181] rounded-full items-center justify-center text-white text-2xl shadow-lg mb-1">
-                  <FaCheckCircle />
-                </span>
-                <span>Services You Provide</span>
-              </h2>
-              <div className="flex flex-col gap-4">
-                {/* Dynamic Service List */}
-                {services.map((service) => {
-                  const providerService = providerServices.find(
-                    (s) => s.serviceId === service.id
-                  );
-                  const serviceSelected = !!providerService;
-
-                  return (
-                    <div
-                      key={service.id}
-                      className={`flex flex-col gap-2 text-[#7C5E3C] font-medium px-4 py-3 rounded-xl border transition
-                        ${
-                          serviceSelected
-                            ? "bg-[#F5E8D3] border-[#BFA181] shadow-lg"
-                            : "bg-white border-gray-200"
-                        }
-                        hover:shadow-md
-                      `}
-                    >
-                      {/* Main service checkbox */}
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="checkbox"
-                          checked={serviceSelected}
-                          onChange={() =>
-                            handleProviderServiceToggle(service.id)
-                          }
-                          className="accent-[#BFA181] w-5 h-5"
-                          id={`service-checkbox-${service.id}`}
-                        />
-                        <label
-                          htmlFor={`service-checkbox-${service.id}`}
-                          className="cursor-pointer flex items-center gap-2 text-lg"
-                        >
-                          {capitalize(service.name)}
-                          {serviceSelected && (
-                            <FaCheckCircle className="text-green-500 ml-1" />
-                          )}
-                        </label>
-                      </div>
-
-                      {/* Subservices */}
-                      {serviceSelected && service.subServices && (
-                        <div className="ml-7 mt-2 flex flex-col gap-2">
-                          {service.subServices.map((sub) => {
-                            const subSelected =
-                              providerService?.subServices?.some(
-                                (ss) => ss.id === sub.id
-                              );
-                            return (
-                              <div
-                                key={sub.id}
-                                className="flex items-center gap-2"
-                              >
-                              
-                            
-                                <input
-                                  type="checkbox"
-                                  checked={!!subSelected}
-                                  onChange={() =>
-                                    handleSubServiceToggle(service.id, sub.id)
-                                  }
-                                  className="accent-[#BFA181] w-4 h-4"
-                                  id={`subservice-${sub.id}`}
-                                />
-                                <label
-                                  htmlFor={`subservice-${sub.id}`}
-                                  className="cursor-pointer text-[#7C5E3C] text-base"
-                                >
-                                  {capitalize(sub.name)}
-                                </label>
-                                {/* Optionally, keep the info button for longer descriptions */}
-                                {sub.description && (
-                                  <span className="relative inline-flex items-center">
-                                    <span className="relative group">
-                                      {/* Info button */}
-                                      <span
-                                        tabIndex={0}
-                                        role="button"
-                                        aria-label={`Service description for ${sub.name}`}
-                                        className="flex items-center justify-center w-5 h-5 rounded-full bg-[#FFF7E6] border border-[#8B4513]/70 text-[#8B4513] text-[12px] font-bold hover:bg-[#FFE4B5] focus:bg-[#FFE4B5] focus:outline-none focus:ring-2 focus:ring-[#FF6B6B] cursor-pointer transition-colors duration-150 z-20"
-                                      >
-                                        i
-                                      </span>
-                                      {/* Tooltip */}
-                                      <div className="absolute left-0 top-full mt-2 w-64 max-w-[80vw] bg-white border border-[#8B4513]/40 rounded-lg shadow-lg p-3 text-sm text-[#4A3728] opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto transition-opacity duration-200 z-30 sm:left-1/2 sm:-translate-x-1/2">
-                                        {sub.description}
-                                      </div>
-                                    </span>
-                                  </span>
-                                )}
-
-
-                                {/* Optional price */}
-                                {subSelected && (
-                                  <div className="flex items-center gap-1 ml-auto">
-                                    <input
-                                      type="number"
-                                      min={1}
-                                      value={
-                                        providerService?.subServices?.find(
-                                          (ss) => ss.id === sub.id
-                                        )?.price ??
-                                        sub.price ??
-                                        20
-                                      }
-                                      onChange={(e) =>
-                                        handleSubServicePriceChange(
-                                          service.id,
-                                          sub.id,
-                                          Number(e.target.value)
-                                        )
-                                      }
-                                      className="w-20 px-2 py-1 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#BFA181] text-right"
-                                    />
-                                    <span className="text-[#BFA181] font-bold text-sm">
-                                      NOK/h
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+    <div className="min-h-screen bg-gradient-to-br from-[#F5E8D3] via-[#FFF7E6] to-[#fcf5eb] py-6 px-4 sm:px-6">
+      <div className="w-full max-w-7xl mx-auto">
+        {/* Compact Header */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-[#7C5E3C] mb-1">
+                Provider Services
+              </h1>
+              <p className="text-[#7C5E3C]/70 text-sm">
+                Manage your services and availability
+              </p>
+            </div>
+            <Link
+              href="/dashboard"
+              className="hidden sm:inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-[#7C5E3C] to-[#BFA181] text-white rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+            >
+              <span>Dashboard</span>
+              <FaArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+          
+          {/* Welcome Banner - Compact */}
+          {!hasSelectedServices && (
+            <div className="bg-gradient-to-r from-[#BFA181] to-[#7C5E3C] rounded-xl p-4 text-white shadow-lg">
+              <div className="flex items-center gap-3">
+                <FaRocket className="w-5 h-5 flex-shrink-0" />
+                <p className="text-sm">
+                  Get started by selecting services below. You can customize pricing and set your availability.
+                </p>
               </div>
             </div>
-            <button
-              type="submit"
-              className={`mt-2 w-full bg-gradient-to-r from-[#BFA181] to-[#7C5E3C] text-white py-3 rounded-lg hover:from-[#A68A64] hover:to-[#BFA181] transition font-semibold text-lg shadow-lg ${
-                saving ? "opacity-70 cursor-not-allowed" : ""
-              }`}
-              disabled={saving}
-            >
-              {saving ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg
-                    className="animate-spin h-5 w-5 text-white"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8z"
-                    ></path>
-                  </svg>
-                  Saving...
-                </span>
-              ) : (
-                "Save Services"
-              )}
-            </button>
-            {saveMsg && (
-              <div
-                className={`mt-4 text-center font-medium transition ${
-                  saveMsg.includes("success") || saveMsg.includes("updated")
-                    ? "text-green-700"
-                    : "text-red-700"
-                }`}
-              >
-                {saveMsg}
-              </div>
-            )}
-          </form>
-          {/* Show current selected services */}
-          <div className="mt-10">
-            <h2 className="text-base sm:text-lg font-semibold text-[#7C5E3C] mb-2 flex flex-col items-center gap-2">
-              <span className="inline-flex w-8 h-8 bg-[#BFA181] rounded-full items-center justify-center text-white">
-                <FaCheckCircle className="text-base" />
-              </span>
-              <span>Your Current Services</span>
-            </h2>
-            {providerServices.length === 0 ? (
-              <div className="text-gray-400 text-sm italic text-center">
-                No services selected yet.
-              </div>
-            ) : (
-              <ul className="flex flex-wrap gap-2 justify-center">
-                {providerServices?.map((svc) => {
-                  const serviceName =
-                    services.find((s) => s.id === svc.serviceId)?.name ||
-                    "Unknown Service";
-                  return (
-                    <li
-                      key={svc.serviceId}
-                      className="bg-gradient-to-r from-[#BFA181] to-[#7C5E3C] text-white px-4 py-1.5 rounded-full text-sm flex items-center gap-2 shadow-lg"
-                    >
-                      {capitalize(serviceName)}
-                      {svc.subServices?.some((sub) => sub.price) && (
-                        <span className="text-xs text-white bg-[#7C5E3C] rounded px-2 py-0.5 ml-1">
-                          {svc.subServices
-                            .filter((sub) => sub.price)
-                            .map((sub) => `${sub.price} NOK/h`)
-                            .join(", ")}
-                        </span>
-                      )}
-                      <FaCheckCircle className="ml-1 text-white" />
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
-        </div>
-        {/* Availability Section */}
-        <div className="mt-12 bg-white rounded-3xl shadow-2xl p-6 sm:p-10 border border-[#f3e6d0]">
-          <h2 className="text-xl sm:text-2xl font-bold text-[#7C5E3C] mb-4 flex flex-col items-center gap-2">
-            <span className="inline-flex w-12 h-12 bg-[#BFA181] rounded-full items-center justify-center text-white shadow-lg">
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2}
-                viewBox="0 0 24 24"
-              >
-                <rect
-                  x="3"
-                  y="4"
-                  width="18"
-                  height="18"
-                  rx="4"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                />
-                <path
-                  d="M16 2v4M8 2v4M3 10h18"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                />
-              </svg>
-            </span>
-            <span>Weekly Availability</span>
-          </h2>
-          <p className="text-[#7C5E3C]/70 mb-4 text-base text-center">
-            Let customers know when you are available for missions.
-          </p>
-          <div className="bg-[#F5E8D3] rounded-xl p-4">
-            <AvailabilitySelector
-              initialAvailability={availability}
-              onChange={(updatedAvailability) =>
-                setAvailability(updatedAvailability)
-              }
-            />
-          </div>
+          )}
         </div>
 
-        <div className="mt-10 flex justify-center">
-          <Link
-            href="/dashboard"
-            className="inline-block px-8 py-3 bg-gradient-to-r from-[#7C5E3C] to-[#BFA181] text-white rounded-full font-semibold shadow-lg hover:from-[#BFA181] hover:to-[#7C5E3C] transition text-lg"
-          >
-            Go to your Dashboard
-          </Link>
+        {/* 2-Column Layout on Desktop */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Services (2/3 width on desktop) */}
+          <div className="lg:col-span-2">
+            <ServicesForm
+              services={services}
+              providerServices={providerServices}
+              onServiceToggle={handleProviderServiceToggle}
+              onSubServiceToggle={handleSubServiceToggle}
+              onSubServicePriceChange={handleSubServicePriceChange}
+              onSave={handleSaveProviderServices}
+              saving={saving}
+              saveMsg={saveMsg}
+            />
+          </div>
+
+          {/* Right Column - Availability + Quick Actions (1/3 width on desktop) */}
+          <div className="lg:col-span-1 space-y-6">
+            <AvailabilitySection
+              availability={availability}
+              onChange={setAvailability}
+            />
+
+            {/* Quick Actions Card */}
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg border border-[#E5D3B3]/50 p-5">
+              <h3 className="text-lg font-bold text-[#7C5E3C] mb-4">
+                Quick Actions
+              </h3>
+              <div className="space-y-3">
+                <Link
+                  href="/dashboard"
+                  className="block w-full px-4 py-3 bg-gradient-to-r from-[#7C5E3C] to-[#BFA181] text-white rounded-lg font-semibold text-center shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 text-sm"
+                >
+                  Go to Dashboard
+                </Link>
+                {hasSelectedServices && (
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-xs text-green-800 font-medium">
+                      ✓ {providerServices.length} {providerServices.length === 1 ? 'service' : 'services'} configured
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
