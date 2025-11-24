@@ -11,14 +11,16 @@ type AdminUser = {
   email?: string;
   phone?: string;
   address?: string;
+  isActive?: boolean;
 };
 
-export default function AdminCustomersPage() {
+export default function AdminUsersPage() {
   const { isAdmin, user } = useAuth();
-  const [customers, setCustomers] = useState<AdminUser[]>([]);
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
   const [updatingRole, setUpdatingRole] = useState<string | null>(null);
 
   useEffect(() => {
@@ -28,15 +30,16 @@ export default function AdminCustomersPage() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch("/api/admin/customers");
+        // Fetch all users
+        const res = await fetch("/api/admin/users");
         if (!res.ok) {
-          throw new Error("Failed to load customers.");
+          throw new Error("Failed to load users.");
         }
-        const json = (await res.json()) as { customers: AdminUser[] };
-        if (!cancelled) setCustomers(json.customers || []);
+        const json = (await res.json()) as { users: AdminUser[] };
+        if (!cancelled) setUsers(json.users || []);
       } catch (err) {
-        console.error("[AdminCustomers] Failed to load customers", err);
-        if (!cancelled) setError("Failed to load customers.");
+        console.error("[AdminUsers] Failed to load users", err);
+        if (!cancelled) setError("Failed to load users.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -48,18 +51,43 @@ export default function AdminCustomersPage() {
   }, [isAdmin]);
 
   const filtered = useMemo(() => {
-    let list = customers;
+    let list = users;
+    
+    // Filter by role
+    if (roleFilter !== "all") {
+      list = list.filter((u) => u.role === roleFilter);
+    }
+    
+    // Filter by search
     if (search.trim()) {
       const s = search.trim().toLowerCase();
-      list = list.filter((c) =>
-        [c.displayName, c.email, c.phone, c.address, c.role]
+      list = list.filter((u) =>
+        [
+          u.displayName,
+          u.email,
+          u.phone,
+          u.address,
+          u.role,
+        ]
           .join(" ")
           .toLowerCase()
           .includes(s)
       );
     }
+    
     return list;
-  }, [customers, search]);
+  }, [users, search, roleFilter]);
+
+  const roleCounts = useMemo(() => {
+    const counts = { customer: 0, provider: 0, admin: 0, none: 0 };
+    users.forEach((u) => {
+      if (u.role === "customer") counts.customer++;
+      else if (u.role === "provider") counts.provider++;
+      else if (u.role === "admin") counts.admin++;
+      else counts.none++;
+    });
+    return counts;
+  }, [users]);
 
   const handleRoleChange = async (userId: string, newRole: string) => {
     if (!isAdmin || !user?.uid) return;
@@ -85,11 +113,11 @@ export default function AdminCustomersPage() {
       }
 
       // Update local state
-      setCustomers((prev) =>
-        prev.map((c) => (c.id === userId ? { ...c, role: newRole } : c))
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
       );
     } catch (err) {
-      console.error("[AdminCustomers] Failed to update role", err);
+      console.error("[AdminUsers] Failed to update role", err);
       setError(err instanceof Error ? err.message : "Failed to update role.");
     } finally {
       setUpdatingRole(null);
@@ -99,7 +127,7 @@ export default function AdminCustomersPage() {
   if (!isAdmin) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center text-[#7C5E3C]">
-        <p>Only admins can view customers.</p>
+        <p>Only admins can view users.</p>
       </div>
     );
   }
@@ -108,13 +136,23 @@ export default function AdminCustomersPage() {
     <div className="space-y-6">
       <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#7C5E3C]">Customers</h1>
+          <h1 className="text-2xl font-bold text-[#7C5E3C]">All Users</h1>
           <p className="text-sm text-[#7C5E3C]/70 max-w-xl">
-            Overview of all customers. Use this page to quickly find a
-            customer, then jump to their missions when there is an issue.
+            Manage all users and their roles. Change roles to make someone a customer, provider, or admin.
           </p>
         </div>
         <div className="flex flex-wrap gap-3 items-center">
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className="px-3 py-2 border border-[#E5D3B3] rounded-lg text-sm text-[#7C5E3C] bg-white"
+          >
+            <option value="all">All roles</option>
+            <option value="customer">Customers ({roleCounts.customer})</option>
+            <option value="provider">Providers ({roleCounts.provider})</option>
+            <option value="admin">Admins ({roleCounts.admin})</option>
+            <option value="">No role ({roleCounts.none})</option>
+          </select>
           <input
             type="text"
             placeholder="Search by name, email, phone…"
@@ -153,63 +191,95 @@ export default function AdminCustomersPage() {
               d="M4 12a8 8 0 018-8v8z"
             ></path>
           </svg>
-          Loading customers…
+          Loading users…
         </div>
       ) : filtered.length === 0 ? (
         <div className="py-16 text-center text-[#7C5E3C]">
-          <p className="text-lg font-semibold mb-1">No customers found</p>
+          <p className="text-lg font-semibold mb-1">No users found</p>
           <p className="text-sm text-[#7C5E3C]/70">
-            Try adjusting the search query.
+            Try adjusting the filters or search query.
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {filtered.map((c) => (
+          {filtered.map((u) => (
             <article
-              key={c.id}
+              key={u.id}
               className="bg-white rounded-2xl shadow-md border border-[#F5E8D3] p-4 flex flex-col gap-3 text-sm text-[#7C5E3C]"
             >
               <div className="flex items-center justify-between gap-2">
                 <div>
                   <p className="text-base font-semibold">
-                    {c.displayName || c.email || "Unnamed customer"}
+                    {u.displayName || u.email || "Unnamed user"}
                   </p>
                   <p className="text-xs text-[#7C5E3C]/70">
-                    {c.email || "No email"}
+                    {u.email || "No email"}
                   </p>
                 </div>
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                    u.role === "admin"
+                      ? "bg-purple-50 text-purple-700 border border-purple-200"
+                      : u.role === "provider"
+                      ? "bg-blue-50 text-blue-700 border border-blue-200"
+                      : u.role === "customer"
+                      ? "bg-green-50 text-green-700 border border-green-200"
+                      : "bg-gray-50 text-gray-700 border border-gray-200"
+                  }`}
+                >
+                  {u.role ? u.role.charAt(0).toUpperCase() + u.role.slice(1) : "No role"}
+                </span>
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <InfoRow label="Phone" value={c.phone || "—"} />
-                <InfoRow label="Address" value={c.address || "—"} />
+                <InfoRow label="Phone" value={u.phone || "—"} />
+                <InfoRow label="Address" value={u.address || "—"} />
                 <InfoRow 
                   label="Role" 
                   value={
                     <select
-                      value={c.role || "customer"}
-                      onChange={(e) => handleRoleChange(c.id, e.target.value)}
-                      disabled={updatingRole === c.id}
+                      value={u.role || ""}
+                      onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                      disabled={updatingRole === u.id}
                       className="text-xs font-medium bg-white border border-[#E5D3B3] rounded px-2 py-1 text-[#7C5E3C] focus:outline-none focus:ring-2 focus:ring-[#BFA181] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
+                      <option value="">No role</option>
                       <option value="customer">Customer</option>
                       <option value="provider">Provider</option>
                       <option value="admin">Admin</option>
                     </select>
                   }
                 />
+                {u.role === "provider" && (
+                  <InfoRow 
+                    label="Status" 
+                    value={
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-semibold ${
+                          u.isActive === false
+                            ? "bg-red-50 text-red-700 border border-red-200"
+                            : "bg-green-50 text-green-700 border border-green-200"
+                        }`}
+                      >
+                        {u.isActive === false ? "Inactive" : "Active"}
+                      </span>
+                    }
+                  />
+                )}
               </div>
 
               <div className="mt-2 flex gap-2">
-                <Link
-                  href={`/admin/missions?search=${encodeURIComponent(
-                    c.email || c.displayName || c.id
-                  )}`}
-                  className="inline-flex items-center px-3 py-1.5 rounded-full bg-white border border-[#BFA181] text-xs font-semibold text-[#7C5E3C] hover:bg-[#F5E8D3] transition"
-                >
-                  View missions
-                </Link>
-                {updatingRole === c.id && (
+                {u.role === "customer" && (
+                  <Link
+                    href={`/admin/missions?search=${encodeURIComponent(
+                      u.email || u.displayName || u.id
+                    )}`}
+                    className="inline-flex items-center px-3 py-1.5 rounded-full bg-white border border-[#BFA181] text-xs font-semibold text-[#7C5E3C] hover:bg-[#F5E8D3] transition"
+                  >
+                    View missions
+                  </Link>
+                )}
+                {updatingRole === u.id && (
                   <span className="inline-flex items-center px-3 py-1.5 text-xs text-[#7C5E3C]/70">
                     Updating...
                   </span>
@@ -236,5 +306,4 @@ function InfoRow(props: { label: string; value: string | React.ReactNode }) {
     </div>
   );
 }
-
 
