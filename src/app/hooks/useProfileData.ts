@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { User } from "firebase/auth";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { UserProfile } from "@/types/types";
 

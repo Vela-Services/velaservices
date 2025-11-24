@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { updateDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -42,7 +42,7 @@ const STATUS_OPTIONS: { value: MissionStatus; label: string }[] = [
   { value: "cancelled", label: "Cancelled" },
 ];
 
-export default function AdminMissionsPage() {
+function AdminMissionsContent() {
   const { user, isAdmin } = useAuth();
   const searchParams = useSearchParams();
   const [missions, setMissions] = useState<Mission[]>([]);
@@ -356,4 +356,35 @@ function InfoRow(props: {
   );
 }
 
+export default function AdminMissionsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center py-16 text-[#7C5E3C]">
+        <svg
+          className="animate-spin h-6 w-6 text-[#BFA181] mr-2"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v8z"
+          ></path>
+        </svg>
+        Loading missions…
+      </div>
+    }>
+      <AdminMissionsContent />
+    </Suspense>
+  );
+}
 

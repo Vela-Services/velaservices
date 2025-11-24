@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { User, sendEmailVerification } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 
 export function useEmailVerification(user: User | null) {
   const [resendingEmail, setResendingEmail] = useState(false);

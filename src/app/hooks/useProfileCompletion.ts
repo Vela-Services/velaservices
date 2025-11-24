@@ -4,7 +4,6 @@ import { UserProfile } from "@/types/types";
 import {
   createProfileSteps,
   calculateProfileCompletion,
-  type ProfileStep,
   type StripeStatus,
 } from "@/lib/profileUtils";
 

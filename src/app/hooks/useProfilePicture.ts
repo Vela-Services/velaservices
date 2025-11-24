@@ -3,7 +3,7 @@ import { User, updateProfile } from "firebase/auth";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { getApp } from "firebase/app";
-import { auth, db, storage } from "@/lib/firebase";
+import { db, storage } from "@/lib/firebase";
 import { convertToJpeg, compressImage, extractStoragePath } from "@/lib/imageUtils";
 
 export function useProfilePicture(user: User | null) {
