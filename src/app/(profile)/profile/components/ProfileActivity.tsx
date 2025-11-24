@@ -31,7 +31,7 @@ export function ProfileActivity() {
         }));
         
         setRecentOrders(orders);
-      } catch (error) {
+      } catch {
         // If orderBy fails (no index), try without it
         try {
           const missionsQuery = query(
@@ -41,15 +41,15 @@ export function ProfileActivity() {
           );
           
           const snapshot = await getDocs(missionsQuery);
-          const orders = snapshot.docs.map(doc => ({
+          const orders: DocumentData[] = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data(),
           }));
           
           // Sort manually by createdAt if available
           orders.sort((a, b) => {
-            const aTime = a.createdAt?.toMillis?.() || 0;
-            const bTime = b.createdAt?.toMillis?.() || 0;
+            const aTime = (a.createdAt as { toMillis?: () => number })?.toMillis?.() || 0;
+            const bTime = (b.createdAt as { toMillis?: () => number })?.toMillis?.() || 0;
             return bTime - aTime;
           });
           

@@ -1,16 +1,16 @@
 import React from "react";
 import { UserProfile } from "@/types/types";
+import { User } from "firebase/auth";
 import { 
   IoCalendarOutline, 
   IoCheckmarkCircleOutline,
-  IoTimeOutline,
   IoStarOutline 
 } from "react-icons/io5";
 import { MdOutlineVerified } from "react-icons/md";
 
 interface ProfileStatsProps {
   profile: UserProfile | null;
-  user: any;
+  user: User | null;
   completion: number;
 }
 

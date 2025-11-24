@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import { User } from "firebase/auth";
 import { UserProfile } from "@/types/types";
 import { IoSettingsSharp } from "react-icons/io5";
@@ -40,14 +41,17 @@ export function ProfileHeader({
       {/* Profile Picture */}
       <div className="absolute -bottom-14 left-1/2 transform -translate-x-1/2">
         <div className="w-28 h-28 rounded-full bg-white p-1.5 shadow-2xl relative group flex items-center justify-center ring-4 ring-white/50">
-          <img
+          <Image
             src={
               user.photoURL ||
               profile?.photoURL ||
               "https://cdn-icons-png.flaticon.com/512/149/149071.png"
             }
             alt="Profile"
+            width={112}
+            height={112}
             className="w-full h-full rounded-full object-cover"
+            unoptimized
           />
           {/* Change Picture Button */}
           <label

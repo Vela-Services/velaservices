@@ -11,7 +11,6 @@ interface AccountDetailsProps {
 export function AccountDetails({
   user,
   profile,
-  completion,
 }: AccountDetailsProps) {
   return (
     <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
