@@ -1,14 +1,12 @@
 "use client";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged, User, UserProfile } from "firebase/auth";
-import { auth, db } from "../lib/firebase";
 import { useCart } from "@/lib/CartContext";
 
 import { FaShoppingCart } from "react-icons/fa";
 
 import Link from "next/link";
-import { doc, getDoc } from "firebase/firestore";
+import { useAuth } from "@/app/hooks/useAuth";
 
 import "flag-icons/css/flag-icons.min.css";
 
@@ -31,8 +29,7 @@ const languages = [
 
 const Navbar: React.FC = () => {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const { user, profile, loading, isCustomer, isProvider, isAdmin } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const [language, setLanguage] = useState("en");
@@ -62,21 +59,12 @@ const Navbar: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [langMenuOpen]);
 
+  // Close mobile menu when auth state fully resolves (reduces flicker)
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
-      if (firebaseUser) {
-        // Fetch user profile from Firestore
-        const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-        if (userDoc.exists()) {
-          setProfile(userDoc.data() as UserProfile);
-        } else {
-          setProfile(null);
-        }
-      }
-    });
-    return () => unsubscribe();
-  }, []);
+    if (!loading && menuOpen) {
+      setMenuOpen(false);
+    }
+  }, [loading, menuOpen]);
 
   // Navigation links for both desktop and mobile, now BIGGER
   const navLinks = (
@@ -90,7 +78,7 @@ const Navbar: React.FC = () => {
         Home
       </Link>
 
-      {profile && profile.role === "customer" && (
+      {isCustomer && (
         <Link
           href="/customerServices"
           className="flex-1 text-center text-black hover:text-[#BFA181] font-semibold transition px-5 py-4 rounded text-lg md:text-2xl"
@@ -100,7 +88,7 @@ const Navbar: React.FC = () => {
           Services
         </Link>
       )}
-      {profile && profile.role === "provider" && (
+      {isProvider && (
         <Link
           href="/providerServices"
           className="flex-1 text-center text-black hover:text-[#BFA181] font-semibold transition px-5 py-4 rounded text-lg md:text-2xl"
@@ -110,7 +98,7 @@ const Navbar: React.FC = () => {
           Services
         </Link>
       )}
-      {profile && profile.role === "provider" && (
+      {isProvider && (
         <Link
           href="/dashboard"
           className="flex-1 text-center text-black hover:text-[#BFA181] font-semibold transition px-5 py-4 rounded text-lg md:text-2xl"
@@ -120,7 +108,7 @@ const Navbar: React.FC = () => {
           Dashboard
         </Link>
       )}
-      {profile && profile.role === "customer" && (
+      {isCustomer && (
         <Link
           href="/orders"
           className="flex-1 text-center text-black hover:text-[#BFA181] font-semibold transition px-5 py-4 rounded text-lg md:text-2xl"
@@ -138,6 +126,16 @@ const Navbar: React.FC = () => {
       >
         Become a Provider
       </Link>
+      {isAdmin && (
+        <Link
+          href="/admin"
+          className="flex-1 text-center text-black hover:text-[#BFA181] font-semibold transition px-5 py-4 rounded text-lg md:text-2xl"
+          style={{ minWidth: 0, fontFamily: "var(--font-Cormorant_Garamond)" }}
+          onClick={() => setMenuOpen(false)}
+        >
+          Admin
+        </Link>
+      )}
     </>
   );
 

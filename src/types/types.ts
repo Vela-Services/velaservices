@@ -38,7 +38,17 @@ export type ProviderService = {
 };
 
 export type UserProfile = {
-  role: "customer" | "provider";
+  role: "customer" | "provider" | "admin";
+  /**
+   * Optional fine-grained permissions for future use
+   * (e.g. ["admin:missions", "admin:payments"]).
+   */
+  permissions?: string[];
+  /**
+   * Optional flag for bootstrap / super admins that should
+   * always retain full access even if other flags change.
+   */
+  isSuperAdmin?: boolean;
   why?: string;
   createdAt?: number;
   displayName?: string;
