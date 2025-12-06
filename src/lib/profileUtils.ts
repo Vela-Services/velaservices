@@ -38,7 +38,7 @@ export function createProfileSteps(
     {
       key: "displayName",
       label: "Add your name",
-      description: "Let clients know who you are.",
+      description: "Share your name with others.",
       completed: !!profile?.displayName,
       action: handlers.onEdit,
       highlight: !profile?.displayName,
@@ -56,7 +56,7 @@ export function createProfileSteps(
     {
       key: "phone",
       label: "Add your phone number",
-      description: "Clients can contact you easily.",
+      description: "Make it easy for others to contact you.",
       completed: !!profile?.phone,
       action: handlers.onEdit,
       highlight: !profile?.phone,
@@ -64,7 +64,7 @@ export function createProfileSteps(
     {
       key: "address",
       label: "Add your address",
-      description: "Let clients know where you are based.",
+      description: "Share your location.",
       completed: !!profile?.address,
       action: handlers.onEdit,
       highlight: !profile?.address,
@@ -72,7 +72,7 @@ export function createProfileSteps(
     {
       key: "bio",
       label: "Write a short bio",
-      description: "Tell clients about yourself.",
+      description: "Share your story.",
       completed: !!profile?.why,
       action: handlers.onEditBio,
       highlight: !profile?.why,
@@ -107,7 +107,7 @@ export function createProfileSteps(
     {
       key: "services",
       label: "Add your services",
-      description: "Let clients know what you offer.",
+      description: "Show what services you offer.",
       completed:
         profile?.role === "provider" ? services && services.length > 0 : true,
       action: () => alert("Service management coming soon!"),
@@ -118,7 +118,7 @@ export function createProfileSteps(
     {
       key: "availability",
       label: "Set your availability",
-      description: "Let clients know when you are available.",
+      description: "Show when you're available.",
       completed: profile?.role === "provider" ? !!availability : true,
       action: () => alert("Availability management coming soon!"),
       providerOnly: true,

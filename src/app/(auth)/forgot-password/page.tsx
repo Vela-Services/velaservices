@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getAuth, sendPasswordResetEmail } from "firebase/auth";
-import "../../../lib/firebase";
+import "@/lib/firebase"; // Initialize Firebase
 import { FiMail } from "react-icons/fi";
 import { FaSpinner } from "react-icons/fa";
 

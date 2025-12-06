@@ -105,3 +105,27 @@ export type Missions = {
   createdAt: Timestamp;
   updatedAt: Timestamp;
 };
+
+/* ----------------------------- Promo Codes ----------------------------- */
+
+export type PromoCode = {
+  id: string;
+  code: string; // The actual promo code (e.g., "WELCOME10")
+  discountType: "percentage" | "fixed"; // Percentage or fixed amount discount
+  discountValue: number; // Percentage (0-100) or fixed amount in NOK
+  usedBy: string[]; // Array of userIds who have used this code
+  isActive: boolean; // Whether the code is currently active
+  expiresAt?: Timestamp; // Optional expiration date
+  minPurchaseAmount?: number; // Optional minimum purchase amount in NOK
+  maxUses?: number; // Optional maximum total uses across all users
+  createdAt: Timestamp;
+  description?: string; // Optional description of the promo code
+};
+
+export type AppliedPromoCode = {
+  code: string;
+  discountType: "percentage" | "fixed";
+  discountValue: number;
+  discountAmount: number; // The actual discount amount in NOK
+  description?: string; // Optional description of the promo code
+};

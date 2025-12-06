@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { adminDb } from "@/lib/firebaseAdmin";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-07-30.basil",
+  apiVersion: "2025-08-27.basil",
 });
 
 type CartItem = {
@@ -15,9 +15,15 @@ type CartItem = {
 
 export async function POST(req: Request) {
   try {
-    const { cart, customerId } = (await req.json()) as {
+    const { cart, customerId, promoCode } = (await req.json()) as {
       cart: CartItem[];
       customerId: string;
+      promoCode?: {
+        code: string;
+        discountType: "percentage" | "fixed";
+        discountValue: number;
+        discountAmount: number;
+      } | null;
     };
 
     if (!cart?.length) {
@@ -48,13 +54,20 @@ export async function POST(req: Request) {
 
     // 💰 Calcul du montant total (en øre)
     const totalAmountNOK = cart.reduce((sum, item) => sum + (item.price || 0), 0);
-    const amount = Math.max(50, Math.round(totalAmountNOK * 100));
+    
+    // Apply promo code discount if present
+    const discountAmount = promoCode?.discountAmount || 0;
+    const finalAmountNOK = Math.max(0, totalAmountNOK - discountAmount);
+    
+    const amount = Math.max(50, Math.round(finalAmountNOK * 100));
 
     console.log("🧾 Creating PaymentIntent (platform funds):", {
       amount,
       providerId,
       providerStripeAccountId,
       customerId,
+      promoCode: promoCode?.code,
+      discountAmount,
     });
 
     // ⚡ Créer le PaymentIntent (sur ton compte plateforme)
@@ -66,6 +79,8 @@ export async function POST(req: Request) {
         providerId,
         providerStripeAccountId,
         cart: JSON.stringify(cart.map((i) => i.serviceName)),
+        promoCode: promoCode?.code || "",
+        discountAmount: discountAmount.toString(),
       },
     });
 

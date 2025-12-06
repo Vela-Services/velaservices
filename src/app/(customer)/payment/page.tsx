@@ -11,7 +11,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { useAuth } from "../../hooks/useAuth";
 import { createMissionsFromCart } from "@/lib/createMission";
-import { CartItem, UserProfile } from "@/types/types";
+import { CartItem, UserProfile, AppliedPromoCode } from "@/types/types";
 import { db, auth } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
@@ -22,7 +22,7 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 
 export default function PaymentPage() {
   const { user } = useAuth();
-  const { cart, clearCart } = useCart();
+  const { cart, clearCart, appliedPromoCode } = useCart();
   const [profile, setProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
@@ -46,6 +46,10 @@ export default function PaymentPage() {
     const totalWithFee = cart.reduce((acc, item) => acc + item.price, 0);
     const subtotal = Math.round((totalWithFee / 1.1) * 100) / 100; // rounded to 2 decimals
     const platformFee = Math.round((totalWithFee - subtotal) * 100) / 100; // rounded to 2 decimals
+    
+    // Calculate discount
+    const discountAmount = appliedPromoCode ? appliedPromoCode.discountAmount : 0;
+    const totalAfterDiscount = Math.max(0, totalWithFee - discountAmount);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F5E8D3] to-[#fcf5eb] flex items-center justify-center p-4">
@@ -94,9 +98,19 @@ export default function PaymentPage() {
                 <span className="text-[#7C5E3C]">Platform Fee (10%)</span>
                 <span className="text-[#BFA181]">{platformFee} NOK</span>
               </div>
+              {appliedPromoCode && discountAmount > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span className="font-semibold">
+                    Discount ({appliedPromoCode.code}):
+                  </span>
+                  <span className="font-semibold">
+                    -{discountAmount.toFixed(2)} NOK
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between font-semibold mt-1 border-t pt-2">
                 <span className="font-semibold text-[#7C5E3C]">Total</span>
-                <span className="font-bold text-[#BFA181] text-xl">{totalWithFee} NOK</span>
+                <span className="font-bold text-[#BFA181] text-xl">{totalAfterDiscount.toFixed(2)} NOK</span>
               </div>
               <div className="text-xs text-[#BFA181] mt-2 flex items-center gap-1">
                 <FaShieldAlt className="inline text-[#BFA181]" />
@@ -147,7 +161,8 @@ export default function PaymentPage() {
                 clearCart={clearCart}
                 subtotal={subtotal}
                 platformFee={platformFee}
-                totalAmount={totalWithFee}
+                totalAmount={totalAfterDiscount}
+                appliedPromoCode={appliedPromoCode}
               />
             </Elements>
           </section>
@@ -179,6 +194,7 @@ function CheckoutForm({
   subtotal,
   platformFee,
   totalAmount,
+  appliedPromoCode,
 }: {
   cart: CartItem[];
   userId: string;
@@ -187,6 +203,7 @@ function CheckoutForm({
   subtotal: number;
   platformFee: number;
   totalAmount: number;
+  appliedPromoCode: AppliedPromoCode | null;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -205,7 +222,11 @@ function CheckoutForm({
       const res = await fetch("/api/stripe/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cart, customerId: userId }),
+        body: JSON.stringify({ 
+          cart, 
+          customerId: userId,
+          promoCode: appliedPromoCode,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -227,7 +248,24 @@ function CheckoutForm({
       if (stripeErr) throw new Error(stripeErr.message);
       if (paymentIntent?.status !== "succeeded") throw new Error("Payment not succeeded");
 
-      // 3️⃣ Crée missions
+      // 3️⃣ Mark promo code as used if applicable
+      if (appliedPromoCode) {
+        try {
+          await fetch("/api/promo-codes/mark-used", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              code: appliedPromoCode.code,
+              userId,
+            }),
+          });
+        } catch (promoError) {
+          console.error("Failed to mark promo code as used:", promoError);
+          // Don't fail the payment if promo code marking fails
+        }
+      }
+
+      // 4️⃣ Crée missions
       await createMissionsFromCart(
         cart,
         userId,
@@ -239,7 +277,7 @@ function CheckoutForm({
         stripeAccountId
       );
 
-      // 4️⃣ Envoie reçu
+      // 5️⃣ Envoie reçu
       await fetch("/api/email/send-receipt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -255,7 +293,8 @@ function CheckoutForm({
 
       // ✅ Succès
       clearCart();
-      toast.success(`Payment of ${totalAmount} NOK successful!`);
+      // Note: Promo code is cleared automatically when cart is cleared in CartContext
+      toast.success(`Payment of ${totalAmount.toFixed(2)} NOK successful!`);
     } catch (err) {
       if (err instanceof Error) {
         console.error(err);
