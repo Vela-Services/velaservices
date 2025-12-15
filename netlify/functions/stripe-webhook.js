@@ -1,4 +1,4 @@
-const Stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const Stripe = require('stripe')(process.env.STRIPE_SECRET_KEY_PROD);
 const { initializeApp } = require('firebase/app');
 const { getFirestore, doc, updateDoc } = require('firebase/firestore');
 

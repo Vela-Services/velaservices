@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
-// It's assumed that STRIPE_SECRET_KEY is set in your environment
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+// It's assumed that STRIPE_SECRET_KEY_PROD is set in your environment
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY_PROD!, {
     apiVersion: "2025-08-27.basil",
   });
 

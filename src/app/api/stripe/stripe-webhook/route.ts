@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { db } from "@/lib/firebase";
 import { collection, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY_PROD!, {
   apiVersion: "2025-08-27.basil",  // Version stable 2025 ; change si besoin
 });
 

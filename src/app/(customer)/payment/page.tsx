@@ -18,7 +18,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { toast } from "react-hot-toast";
 import { FaLock, FaShieldAlt, FaCcStripe } from "react-icons/fa";
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_PROD!);
 
 export default function PaymentPage() {
   const { user } = useAuth();
