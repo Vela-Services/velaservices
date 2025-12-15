@@ -44,7 +44,7 @@ export default function PaymentPage() {
     );
 
     const totalWithFee = cart.reduce((acc, item) => acc + item.price, 0);
-    const subtotal = Math.round((totalWithFee / 1.1) * 100) / 100; // rounded to 2 decimals
+    const subtotal = Math.round((totalWithFee / 1.05) * 100) / 100; // rounded to 2 decimals (5% platform fee)
     const platformFee = Math.round((totalWithFee - subtotal) * 100) / 100; // rounded to 2 decimals
     
     // Calculate discount
@@ -95,7 +95,7 @@ export default function PaymentPage() {
                 <span className="text-[#BFA181]">{subtotal} NOK</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#7C5E3C]">Platform Fee (10%)</span>
+                <span className="text-[#7C5E3C]">Platform Fee (5%)</span>
                 <span className="text-[#BFA181]">{platformFee} NOK</span>
               </div>
               {appliedPromoCode && discountAmount > 0 && (

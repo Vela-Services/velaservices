@@ -232,7 +232,7 @@ export function useServiceBooking(provider: Provider, services: Service[]) {
         total += subTotal;
       }
     }
-    // Apply platform fee of 10%
+    // Apply platform fee of 5% (added to customer price)
     const platformFee = 0.05;
     return Math.round(total * (1 + platformFee));
   };

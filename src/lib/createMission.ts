@@ -43,11 +43,13 @@ export async function createMissionsFromCart(
 
     // --- Improved Provider Email ---
     if (item.providerEmail) {
-      // Calculate price minus platform fee (10%)
+      // Calculate provider's base price and payout
+      // item.price = customer paid = providerPrice * 1.05 (includes 5% customer platform fee)
+      // providerPrice = item.price / 1.05 (provider's set price, which includes 10% for Véla)
+      // Provider receives 90% of their set price (10% goes to Véla)
       const price = Number(item.price) || 0;
-      const priceMinusPlatformFee = Math.round((price / 1.1) * 100) / 100; // rounded to 2 decimals
-      // Calculate provider payout after 7.5% commission (on subtotal, i.e. after platform fee)
-      const providerPayout = Math.round((priceMinusPlatformFee * (1 - 0.075)) * 100) / 100; // rounded to 2 decimals
+      const providerPrice = Math.round((price / 1.05) * 100) / 100; // provider's set price
+      const providerPayout = Math.round((providerPrice * 0.90) * 100) / 100; // 90% of provider price (10% to Véla)
 
       const providerEmailText = `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -64,8 +66,7 @@ You have received a new mission request with the following details:
 ⏰ Time(s):        ${item.times?.join(", ") || "N/A"}
 💼 Subservices:    ${formatSubservices(item.subservices)}
 💰 Price (customer paid):          ${item.price} NOK
-💸 Price after platform fee (10%): ${priceMinusPlatformFee} NOK
-💵 Your payout after 7.5% commission: ${providerPayout} NOK
+💵 Your payout (90% of your set price): ${providerPayout} NOK
 🏠 Location:        ${item.atLocation ? (item.atLocation === "provider" ? "At provider's place" : "At customer's place") : "N/A"}
 
 👤 Customer:       ${displayName}

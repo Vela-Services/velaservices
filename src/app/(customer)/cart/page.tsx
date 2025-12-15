@@ -33,8 +33,8 @@ export default function CartPage() {
 
   // The item.price already includes the platform fee.
   // To show the platform fee as a separate line, we need to "back out" the fee from the total.
-  // Let x = subtotal (without fee), fee = x * 0.1, total = x + x*0.1 = x*1.1
-  // So, x = total / 1.1, fee = total - x
+  // Let x = subtotal (without fee), fee = x * 0.05, total = x + x*0.05 = x*1.05
+  // So, x = total / 1.05, fee = total - x
 
   const totalWithFee = cart.reduce((acc, item) => acc + item.price, 0);
   const subtotal = Math.round((totalWithFee / 1.05) * 100) / 100; // rounded to 2 decimals (5% fee)

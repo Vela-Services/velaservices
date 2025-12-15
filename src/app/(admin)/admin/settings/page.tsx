@@ -33,10 +33,12 @@ export default function AdminSettingsPage() {
           The following values are currently hard-coded in the payment logic:
         </p>
         <ul className="list-disc list-inside text-sm text-[#7C5E3C] space-y-1">
-          <li>Platform fee: 10% (deducted from the customer price).</li>
+          <li>Customer platform fee: 5% (added to provider&apos;s set price, shown to customer).</li>
           <li>
-            Provider commission: 7.5% (applied to the subtotal after platform
-            fee before payout).
+            Provider platform fee: 10% (deducted from provider&apos;s set price - provider receives 90%).
+          </li>
+          <li>
+            Total platform fee: 15% (10% from provider + 5% from customer).
           </li>
         </ul>
         <p className="mt-3 text-xs text-[#7C5E3C]/70">
