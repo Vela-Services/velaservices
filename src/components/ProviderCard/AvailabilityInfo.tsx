@@ -29,26 +29,28 @@ export default function AvailabilityInfo({ provider, dayLabel }: AvailabilityInf
   });
 
   return (
-    <section className="flex flex-col" aria-label="Availability">
+    <section className="flex flex-col bg-gradient-to-br from-white to-[#F9F9F9] rounded-xl shadow-sm border border-[#366760]/10 p-5" aria-label="Availability">
       <h3
-        className={`flex items-center gap-2 mb-4 text-lg font-bold ${COLORS.headerText} tracking-tight`}
+        className={`flex items-center gap-2.5 mb-4 text-base font-bold ${COLORS.headerText} tracking-tight`}
       >
-        <CalendarDays className="h-7 w-7 text-[#8B4513] flex-shrink-0" aria-hidden="true" />
+        <div className="p-1.5 bg-[#366760]/10 rounded-lg">
+          <CalendarDays className="h-5 w-5 text-[#366760] flex-shrink-0" aria-hidden="true" />
+        </div>
         <span>Availability</span>
       </h3>
       <div className="overflow-x-auto">
-        <table className="w-full border-separate border-spacing-y-2">
+        <table className="w-full border-separate border-spacing-y-2.5">
           <thead>
             <tr>
-              <th className="text-left text-xs font-semibold text-[#7C5E3C]/80 px-2 py-1">Day</th>
-              <th className="text-left text-xs font-semibold text-[#7C5E3C]/80 px-2 py-1">Hours</th>
+              <th className="text-left text-xs font-bold text-[#366760] px-3 py-2 uppercase tracking-wider">Day</th>
+              <th className="text-left text-xs font-bold text-[#366760] px-3 py-2 uppercase tracking-wider">Hours</th>
             </tr>
           </thead>
           <tbody>
             {(!provider.availability || provider.availability.length === 0) ? (
               <tr>
                 <td colSpan={2}>
-                  <p className="text-sm text-[#999999] italic text-center py-4">
+                  <p className="text-sm text-[#999999] italic text-center py-6">
                     No availability listed
                   </p>
                 </td>
@@ -63,10 +65,10 @@ export default function AvailabilityInfo({ provider, dayLabel }: AvailabilityInf
                   const last = sortedTimes[sortedTimes.length - 1];
                   content = (
                     <span className="flex items-center gap-2 font-semibold text-[#366760]">
-                      <Clock className="w-4 h-4 text-[#366760]" aria-hidden="true" />
+                      <Clock className="w-4 h-4 text-[#366760] flex-shrink-0" aria-hidden="true" />
                       <span>
                         {formatTime(first)}{" "}
-                        <span className="mx-1 text-[#BFA181] font-normal">–</span>{" "}
+                        <span className="mx-1.5 text-[#BFA181] font-normal">–</span>{" "}
                         {formatTime(last)}
                       </span>
                     </span>
@@ -74,7 +76,7 @@ export default function AvailabilityInfo({ provider, dayLabel }: AvailabilityInf
                 } else {
                   content = (
                     <span className="italic text-[#CC4B37] flex items-center gap-2">
-                      <span className="inline-block w-2 h-2 rounded-full bg-[#CC4B37]" aria-hidden="true"></span>
+                      <span className="inline-block w-2 h-2 rounded-full bg-[#CC4B37] animate-pulse" aria-hidden="true"></span>
                       Unavailable
                     </span>
                   );
@@ -82,16 +84,16 @@ export default function AvailabilityInfo({ provider, dayLabel }: AvailabilityInf
                 return (
                   <tr
                     key={a.day}
-                    className={`rounded-lg transition-colors ${
+                    className={`rounded-xl transition-all duration-200 ${
                       a.times.length > 0
-                        ? "bg-[#F5E8D3] hover:bg-[#EAD7B7]/80"
-                        : "bg-gray-50"
+                        ? "bg-gradient-to-r from-[#F5E8D3] to-[#EAD7B7]/60 hover:from-[#EAD7B7] hover:to-[#E0C9A0] hover:shadow-sm"
+                        : "bg-gray-50/50 hover:bg-gray-100/50"
                     }`}
                   >
-                    <td className="px-2 py-2 font-medium text-[#7C5E3C] whitespace-nowrap rounded-l-lg">
+                    <td className="px-3 py-2.5 font-semibold text-[#7C5E3C] whitespace-nowrap rounded-l-xl">
                       {dayLabel(a.day)}
                     </td>
-                    <td className="px-2 py-2 rounded-r-lg">{content}</td>
+                    <td className="px-3 py-2.5 rounded-r-xl">{content}</td>
                   </tr>
                 );
               })
