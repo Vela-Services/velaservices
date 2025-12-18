@@ -26,12 +26,12 @@ export async function POST(req: Request) {
       metadata: { providerId },
     });
 
-    // 2️⃣ Crée le lien d’onboarding
+    // 2️⃣ Crée le lien d'onboarding
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
     const link = await stripe.accountLinks.create({
       account: account.id,
-      refresh_url: `${baseUrl}/onboarding/refresh?account_id=${account.id}`,
-      return_url: `${baseUrl}/onboarding/success?account_id=${account.id}`,
+      refresh_url: `${baseUrl}/profile?account_id=${account.id}`,
+      return_url: `${baseUrl}/profile?account_id=${account.id}`,
       type: "account_onboarding",
     });
 

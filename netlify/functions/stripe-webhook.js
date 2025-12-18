@@ -58,13 +58,25 @@ async function handleAccountUpdated(account) {
   const providerId = account.metadata?.providerId;
   if (!providerId) return;
 
-  const status = account.charges_enabled ? 'active' : 'pending';
+  const needsMoreInfo =
+    Array.isArray(account.requirements?.currently_due) &&
+    account.requirements.currently_due.length > 0;
+  const chargesEnabled = account.charges_enabled;
+  const payoutsEnabled = account.payouts_enabled;
+  
+  // Determine onboarding status based on Stripe account state
+  const status = needsMoreInfo
+    ? 'incomplete'
+    : chargesEnabled
+    ? 'active'
+    : 'pending';
 
   try {
-    await updateDoc(doc(db, 'providers', providerId), {
+    // Update users collection (not providers collection)
+    await updateDoc(doc(db, 'users', providerId), {
       stripeOnboardingStatus: status,
-      stripeChargesEnabled: account.charges_enabled,
-      stripePayoutsEnabled: account.payouts_enabled,
+      stripeChargesEnabled: chargesEnabled,
+      stripePayoutsEnabled: payoutsEnabled,
       updatedAt: new Date(),
     });
   } catch (err) {

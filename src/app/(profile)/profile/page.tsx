@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { signOut, setPersistence, browserSessionPersistence, browserLocalPersistence } from "firebase/auth";
 import { auth } from "../../../lib/firebase";
 import { useAuth } from "../../hooks/useAuth";
@@ -11,6 +12,7 @@ import { useAccountDeletion } from "../../hooks/useAccountDeletion";
 import { useProfileCompletion } from "../../hooks/useProfileCompletion";
 import { clearAllAuthData } from "../../../lib/authUtils";
 import { UserProfile } from "../../../types/types";
+import { toast } from "react-hot-toast";
 import { ProfileHeader } from "./components/ProfileHeader";
 import { ProfileBio } from "./components/ProfileBio";
 import { ContactInfo } from "./components/ContactInfo";
@@ -30,7 +32,9 @@ const ProviderStripeSetup = React.lazy(() =>
   }))
 );
 
-export default function ProfilePage() {
+function ProfilePageContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const { user, profile: authProfile, loading: authLoading } = useAuth();
   const {
     saving,
@@ -61,6 +65,7 @@ export default function ProfilePage() {
   const [bioError, setBioError] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [syncingStripe, setSyncingStripe] = useState(false);
 
   // Stripe status for provider onboarding
   const [stripeStatus, setStripeStatus] = useState<{
@@ -96,6 +101,59 @@ export default function ProfilePage() {
       }
     }
   }, [authProfile]);
+
+  // Sync Stripe status if account_id is in URL (from Stripe redirect)
+  useEffect(() => {
+    const accountId = searchParams.get("account_id");
+    
+    if (!accountId || !user?.uid || authLoading || syncingStripe) {
+      return;
+    }
+
+    const syncStripeStatus = async () => {
+      setSyncingStripe(true);
+      try {
+        console.log("🔄 Syncing Stripe status from profile page...", { accountId, providerId: user.uid });
+        const res = await fetch("/api/stripe/sync-account-status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            accountId,
+            providerId: user.uid,
+          }),
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
+          throw new Error(errorData.error || `HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        if (data.error) {
+          console.error("❌ Sync error response:", data);
+          throw new Error(data.error);
+        }
+
+        console.log("✅ Sync successful:", data);
+        toast.success(
+          `✅ Stripe connected! Status: ${data.onboardingStatus} (Charges: ${data.chargesEnabled ? "enabled" : "disabled"})`
+        );
+
+        // Remove account_id from URL
+        router.replace("/profile", { scroll: false });
+      } catch (err) {
+        console.error("❌ Sync Stripe error:", err);
+        const errorMessage = err instanceof Error ? err.message : "Unknown error";
+        toast.error(`Error syncing Stripe: ${errorMessage}`);
+        // Still remove account_id from URL even on error
+        router.replace("/profile", { scroll: false });
+      } finally {
+        setSyncingStripe(false);
+      }
+    };
+
+    syncStripeStatus();
+  }, [searchParams, user?.uid, authLoading, syncingStripe, router]);
 
   const loading = authLoading;
 
@@ -401,5 +459,19 @@ export default function ProfilePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        </div>
+      }
+    >
+      <ProfilePageContent />
+    </Suspense>
   );
 }

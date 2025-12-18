@@ -81,8 +81,8 @@ export default function ProviderStripeSetupPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           accountId: stripeStatus.accountId,
-          refreshUrl: `${baseUrl}/onboarding/refresh`,
-          returnUrl: `${baseUrl}/onboarding/success`,
+          refreshUrl: `${baseUrl}/profile?account_id=${stripeStatus.accountId}`,
+          returnUrl: `${baseUrl}/profile?account_id=${stripeStatus.accountId}`,
         }),
       });
 
@@ -94,6 +94,41 @@ export default function ProviderStripeSetupPage() {
       const message =
         error instanceof Error ? error.message : "Unknown error";
       toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const syncStatus = async () => {
+    if (!stripeStatus.accountId || !user?.uid) {
+      toast.error("Missing account information");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch("/api/stripe/sync-account-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accountId: stripeStatus.accountId,
+          providerId: user.uid,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+
+      toast.success(
+        `Status updated: ${data.onboardingStatus} (Charges: ${data.chargesEnabled ? "enabled" : "disabled"})`
+      );
+      
+      // Reload status from Firestore
+      await loadStripeStatus();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unknown error";
+      toast.error(`Sync failed: ${message}`);
     } finally {
       setLoading(false);
     }
@@ -169,13 +204,20 @@ export default function ProviderStripeSetupPage() {
                 ? "Stripe requires additional details to complete your account setup. Click below to continue."
                 : "Your Stripe account setup is in progress. You’ll be able to receive payments once verified."}
             </p>
-            <div className="mt-4">
+            <div className="mt-4 flex gap-2">
               <button
                 onClick={refreshOnboarding}
                 disabled={loading}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 disabled:opacity-50"
               >
                 {loading ? "Redirecting..." : "Complete setup"}
+              </button>
+              <button
+                onClick={syncStatus}
+                disabled={loading}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+              >
+                {loading ? "Syncing..." : "Refresh status"}
               </button>
             </div>
           </div>
@@ -208,6 +250,15 @@ export default function ProviderStripeSetupPage() {
           <p className="mt-2 text-sm text-gray-600">
             Your Stripe account is set up and you can receive payments. Transfers will be made automatically after job validation.
           </p>
+          <div className="mt-4">
+            <button
+              onClick={syncStatus}
+              disabled={loading}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+            >
+              {loading ? "Syncing..." : "Refresh status"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

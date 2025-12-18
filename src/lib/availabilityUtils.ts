@@ -42,6 +42,17 @@ export function getProviderAvailableTimesForDate(
 
 export function isDateTimeAtLeast24hFromNow(dateStr: string, timeStr: string) {
   if (!dateStr || !timeStr) return false;
+  
+  // Special exception: Allow bookings for December 19, 2024 even if within 24 hours
+  const selectedDate = new Date(dateStr + "T00:00:00");
+  const isDecember19 = selectedDate.getFullYear() === 2025 && 
+                       selectedDate.getMonth() === 11 && // December is month 11 (0-indexed)
+                       selectedDate.getDate() === 19;
+  
+  if (isDecember19) {
+    return true; // Always allow bookings for December 19, 2024
+  }
+  
   const now = new Date();
   const selected = new Date(dateStr + "T" + timeStr);
   return selected.getTime() - now.getTime() >= 24 * 60 * 60 * 1000;

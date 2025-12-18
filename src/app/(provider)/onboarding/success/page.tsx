@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "../../../hooks/useAuth";
 import { toast } from "react-hot-toast";
@@ -8,13 +8,33 @@ import { toast } from "react-hot-toast";
 function OnboardingSuccessContent() {
   const searchParams = useSearchParams();
   const accountId = searchParams.get("account_id"); // Stripe returns `account_id`
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const [syncing, setSyncing] = useState(false);
+  const [synced, setSynced] = useState(false);
 
   useEffect(() => {
     const syncStripeStatus = async () => {
-      if (!accountId || !user?.uid) return;
+      // Wait for auth to be ready
+      if (authLoading) {
+        console.log("⏳ Waiting for auth to load...");
+        return;
+      }
+
+      if (!accountId || !user?.uid) {
+        console.log("⏳ Missing accountId or user:", { accountId, userId: user?.uid });
+        return;
+      }
+
+      // Prevent multiple syncs
+      if (syncing || synced) {
+        console.log("⏭️ Sync already in progress or completed");
+        return;
+      }
+
+      setSyncing(true);
 
       try {
+        console.log("🔄 Syncing Stripe status...", { accountId, providerId: user.uid });
         const res = await fetch("/api/stripe/sync-account-status", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -24,23 +44,43 @@ function OnboardingSuccessContent() {
           }),
         });
 
-        const data = await res.json();
-        if (data.error) throw new Error(data.error);
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ error: "Unknown error" }));
+          throw new Error(errorData.error || `HTTP ${res.status}`);
+        }
 
-        toast.success("✅ Stripe connected successfully!");
-      } catch (err) {
-        console.error("❌ Sync Stripe error:", err);
-        toast.error("Error while syncing Stripe");
-      } finally {
-        // Redirect to dashboard after 2 seconds
+        const data = await res.json();
+        if (data.error) {
+          console.error("❌ Sync error response:", data);
+          throw new Error(data.error);
+        }
+
+        console.log("✅ Sync successful:", data);
+        setSynced(true);
+        toast.success(
+          `✅ Stripe connected! Status: ${data.onboardingStatus} (Charges: ${data.chargesEnabled ? "enabled" : "disabled"})`
+        );
+
+        // Redirect to dashboard after 3 seconds
         setTimeout(() => {
           window.location.href = "/dashboard";
-        }, 2000);
+        }, 3000);
+      } catch (err) {
+        console.error("❌ Sync Stripe error:", err);
+        const errorMessage = err instanceof Error ? err.message : "Unknown error";
+        toast.error(`Error syncing Stripe: ${errorMessage}`);
+        
+        // Still redirect even on error, but after a longer delay
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 5000);
+      } finally {
+        setSyncing(false);
       }
     };
 
     syncStripeStatus();
-  }, [accountId, user?.uid]);
+  }, [accountId, user?.uid, authLoading, syncing, synced]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">

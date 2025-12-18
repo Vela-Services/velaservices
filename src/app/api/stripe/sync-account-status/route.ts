@@ -43,32 +43,110 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const accountId = body.accountId;
-    const providerId = body.providerId;
+    let providerId = body.providerId;
 
-    if (!accountId || !providerId) {
+    if (!accountId) {
       return NextResponse.json(
-        { error: "Missing accountId or providerId" },
+        { error: "Missing accountId" },
         { status: 400 }
       );
+    }
+
+    // If providerId is not provided, try to find it by accountId
+    if (!providerId) {
+      console.log("⚠️ No providerId provided, searching by accountId:", accountId);
+      const usersSnapshot = await adminDb
+        .collection("users")
+        .where("stripeAccountId", "==", accountId)
+        .limit(1)
+        .get();
+      
+      if (usersSnapshot.empty) {
+        return NextResponse.json(
+          { error: "No user found with this Stripe account ID" },
+          { status: 404 }
+        );
+      }
+      
+      providerId = usersSnapshot.docs[0].id;
+      console.log("✅ Found providerId:", providerId);
     }
 
     // Retrieve Stripe account
     const account = await stripe.accounts.retrieve(accountId);
 
+    const needsMoreInfo =
+      Array.isArray(account.requirements?.currently_due) &&
+      account.requirements.currently_due.length > 0;
     const chargesEnabled = !!account.charges_enabled;
-    const onboardingStatus = account.details_submitted ? "active" : "pending";
+    const payoutsEnabled = !!account.payouts_enabled;
+    const detailsSubmitted = !!account.details_submitted;
+    
+    // Determine onboarding status based on Stripe account state
+    const onboardingStatus = needsMoreInfo
+      ? "incomplete"
+      : chargesEnabled
+      ? "active"
+      : "pending";
+
+    // Log the account state for debugging
+    console.log("📊 Stripe Account State:", {
+      accountId,
+      providerId,
+      chargesEnabled,
+      payoutsEnabled,
+      detailsSubmitted,
+      needsMoreInfo,
+      currentlyDue: account.requirements?.currently_due || [],
+      onboardingStatus,
+    });
+
+    // Verify the user document exists and check current accountId
+    const userDoc = await adminDb.collection("users").doc(providerId).get();
+    if (!userDoc.exists) {
+      return NextResponse.json(
+        { error: "User document not found" },
+        { status: 404 }
+      );
+    }
+
+    const currentData = userDoc.data();
+    const currentAccountId = currentData?.stripeAccountId;
+    
+    // If accountId doesn't match, log a warning but still update
+    if (currentAccountId && currentAccountId !== accountId) {
+      console.warn(
+        `⚠️ AccountId mismatch! Firestore has: ${currentAccountId}, URL has: ${accountId}. Updating anyway.`
+      );
+    }
 
     // Update Firestore user document using admin SDK
-    await adminDb.collection("users").doc(providerId).update({
+    const updateData = {
       stripeAccountId: accountId,
       stripeChargesEnabled: chargesEnabled,
+      stripePayoutsEnabled: payoutsEnabled,
       stripeOnboardingStatus: onboardingStatus,
+    };
+
+    await adminDb.collection("users").doc(providerId).update(updateData);
+    console.log("✅ Updated Firestore with:", updateData);
+
+    // Verify the update by reading back
+    const updatedDoc = await adminDb.collection("users").doc(providerId).get();
+    const updatedData = updatedDoc.data();
+    console.log("🔍 Verification - Current Firestore status:", {
+      stripeOnboardingStatus: updatedData?.stripeOnboardingStatus,
+      stripeChargesEnabled: updatedData?.stripeChargesEnabled,
+      stripeAccountId: updatedData?.stripeAccountId,
     });
 
     return NextResponse.json({
       ok: true,
       chargesEnabled,
+      payoutsEnabled,
+      detailsSubmitted,
       onboardingStatus,
+      needsMoreInfo,
     });
   } catch (err) {
     let message = "Unknown error";
