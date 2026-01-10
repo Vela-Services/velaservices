@@ -285,13 +285,13 @@ export default function ServiceSelection({
                   id={`service-panel-${service.id}`}
                   className={`overflow-hidden transition-all duration-300 ease-in-out ${
                     openService === service.id
-                      ? "max-h-[1200px] mt-3 sm:mt-4"
+                      ? "max-h-[5000px] sm:max-h-[1200px] mt-3 sm:mt-4"
                       : "max-h-0"
                   }`}
                   aria-hidden={openService !== service.id}
                 >
                   <form
-                    className="mt-3 sm:mt-4 flex flex-col gap-4"
+                    className="mt-3 sm:mt-4 flex flex-col gap-4 pb-4"
                     autoComplete="off"
                     onSubmit={(e) => e.preventDefault()}
                   >
@@ -612,34 +612,36 @@ export default function ServiceSelection({
                       )}
                     </fieldset>
 
-                    <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mt-2">
-                      <span
-                        className="text-[#7C5E3C] font-semibold text-lg flex items-center gap-2"
-                        aria-live="polite"
-                      >
-                        Total: {totalPrice(service.id)}NOK
-                        <span className="relative group">
-                          <span className="ml-1 text-[#BFA181] cursor-pointer">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="inline h-4 w-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              aria-label="Info"
-                            >
-                              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
-                              <path stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M12 16v-4m0-4h.01" />
-                            </svg>
-                          </span>
-                          <span className="absolute left-1/2 bottom-1/2 -translate-x-1/2 mt-2 w-max min-w-[180px] bg-white text-[#7C5E3C] text-xs rounded shadow-lg px-3 py-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
-                            The price includes the 5% platform fee.
+                    <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 mt-4 mb-2">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 flex-1">
+                        <span
+                          className="text-[#7C5E3C] font-semibold text-lg flex items-center gap-2"
+                          aria-live="polite"
+                        >
+                          Total: {totalPrice(service.id)}NOK
+                          <span className="relative group">
+                            <span className="ml-1 text-[#BFA181] cursor-pointer">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="inline h-4 w-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                aria-label="Info"
+                              >
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                                <path stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M12 16v-4m0-4h.01" />
+                              </svg>
+                            </span>
+                            <span className="absolute left-1/2 bottom-1/2 -translate-x-1/2 mt-2 w-max min-w-[180px] bg-white text-[#7C5E3C] text-xs rounded shadow-lg px-3 py-2 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-20">
+                              The price includes the 5% platform fee.
+                            </span>
                           </span>
                         </span>
-                      </span>
+                      </div>
                       <button
                         type="button"
-                        className="w-full sm:w-auto bg-[#BFA181] text-white py-3 px-6 rounded-lg font-semibold text-base shadow-sm hover:bg-[#A68A64] focus:outline-none focus:ring-2 focus:ring-[#BFA181] transition disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="w-full sm:w-auto bg-[#BFA181] text-white py-3 px-6 rounded-lg font-semibold text-base shadow-sm hover:bg-[#A68A64] focus:outline-none focus:ring-2 focus:ring-[#BFA181] transition disabled:opacity-60 disabled:cursor-not-allowed flex-shrink-0"
                         onClick={() => {
                           const item: CartItem & { atLocation?: "provider" | "customer" } = {
                             id: "",

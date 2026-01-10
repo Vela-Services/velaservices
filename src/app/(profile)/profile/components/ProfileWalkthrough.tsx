@@ -87,7 +87,9 @@ export function ProfileWalkthrough({
                         : emailResent
                         ? "Sent!"
                         : "Resend Email"
-                      : "Complete"}
+                      : step.key === "photo"
+                      ? "Upload"
+                      : "Get started"}
                   </button>
                 )}
               </div>
