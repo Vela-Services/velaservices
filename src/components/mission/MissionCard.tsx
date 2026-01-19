@@ -14,6 +14,33 @@ type MissionCardProps = {
   onAccept: () => void;
 };
 
+// Helper function to calculate mission duration from time slots
+function calculateDuration(times: string[] | string | undefined): number | "N/A" {
+  if (!times) return "N/A";
+  
+  const timeArray = Array.isArray(times) ? times : [times];
+  if (timeArray.length === 0) return "N/A";
+  
+  // Parse time strings (format: "HH:MM")
+  const parseTime = (timeStr: string): number => {
+    const [hours, minutes] = timeStr.split(":").map(Number);
+    return hours * 60 + minutes; // Convert to total minutes
+  };
+  
+  // Sort times to ensure first and last are correct
+  const sortedTimes = [...timeArray].sort();
+  const firstTime = parseTime(sortedTimes[0]);
+  const lastTime = parseTime(sortedTimes[sortedTimes.length - 1]);
+  
+  // Duration is the difference between first and last time slot
+  // For example: ["01:00", "01:30", "02:00", "02:30", "03:00"] = 2 hours (03:00 - 01:00)
+  const durationMinutes = lastTime - firstTime;
+  const durationHours = durationMinutes / 60;
+  
+  // Round to 1 decimal place for cleaner display
+  return Math.round(durationHours * 10) / 10;
+}
+
 export function MissionCard({
   mission,
   isPending,
@@ -27,7 +54,7 @@ export function MissionCard({
     ? dateObj.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
     : mission.date || "N/A";
   const timeStr = mission.time || (Array.isArray(mission.times) ? mission.times.join(", ") : mission.times) || "N/A";
-  const duration = Array.isArray(mission.times) ? mission.times.length : mission.times || "N/A";
+  const duration = calculateDuration(mission.times);
   const price = typeof mission.price === "number" ? mission.price : null;
   const atLocation = mission.atLocation || "";
 

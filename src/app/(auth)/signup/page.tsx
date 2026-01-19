@@ -99,6 +99,9 @@ export default function SignupPage() {
 
       // Send email verification
       await sendEmailVerification(userCredential.user);
+      console.log("Email verification sent"); 
+      console.log(userCredential.user);
+      
 
       // Save user in Firestore, include emailVerified field
       await setDoc(doc(db, "users", userCredential.user.uid), {
